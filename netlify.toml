@@ -1,0 +1,37 @@
+[build]
+  publish = "site"
+
+[build.environment]
+  NODE_VERSION = "22.16.0"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/waterresources/version"
+  to = "/.netlify/functions/waterresources-version"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/waterresources/sync"
+  to = "/.netlify/functions/waterresources-sync"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/waterresources"
+  to = "/.netlify/functions/waterresources"
+  status = 200
+  force = true
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+
+[[headers]]
+  for = "/data/waterresources.initial.json"
+  [headers.values]
+    Cache-Control = "public, max-age=300"

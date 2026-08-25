@@ -1,0 +1,44 @@
+{
+  "ok": true,
+  "tests": [
+    {
+      "test": "unauthorized_sync_401",
+      "ok": true
+    },
+    {
+      "test": "sync_rejects_non_json",
+      "ok": true
+    },
+    {
+      "test": "authorized_sync_accepts_exact_29_tambon_scope",
+      "ok": true,
+      "version": "\"mock-1\"",
+      "count": 31
+    },
+    {
+      "test": "canonical_tambon_aliases_and_scope_normalization",
+      "ok": true
+    },
+    {
+      "test": "identical_sync_keeps_version",
+      "ok": true
+    },
+    {
+      "test": "changed_sync_changes_version",
+      "ok": true,
+      "version": "\"mock-2\""
+    },
+    {
+      "test": "version_endpoint_current",
+      "ok": true
+    },
+    {
+      "test": "dataset_endpoint_etag_and_304",
+      "ok": true
+    },
+    {
+      "test": "read_endpoints_reject_wrong_method",
+      "ok": true
+    }
+  ]
+}

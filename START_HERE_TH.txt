@@ -1,0 +1,64 @@
+DashboardWaterResources — FINAL 29 ตำบล + Strict Autocomplete + Netlify Blob Cache
+
+สิ่งสำคัญของเวอร์ชันนี้
+- Master List ตำบล = 29 รายการ
+- ช่องตำบลเป็นช่องพิมพ์ค้นหา + รายการแนะนำ
+- ไม่ยอมใช้ข้อความอิสระ: ต้องเลือกรายการที่ระบบอนุญาตเท่านั้น
+- ชื่อมาตรฐาน = บ้านปิน
+- Cache/IndexedDB/Netlify Blob ยังทำงานเหมือนเดิม
+
+สิ่งที่ต้องทำหลังได้รับ ZIP
+
+1) แตก ZIP แล้ว Deploy "ทั้งโปรเจกต์" ขึ้น Netlify ผ่าน Git หรือ Netlify CLI
+   - Publish directory = site
+   - Functions directory = netlify/functions
+   - ห้ามอัปเฉพาะ site/ ด้วย Netlify Drop
+
+2) ตั้ง Netlify Environment Variable
+   WATER_SYNC_SECRET = <secret อย่างน้อย 24 ตัวอักษร>
+   ถ้าใช้ Secret เดิมจากระบบ Cache และยังเป็นความลับ ใช้ค่าเดิมได้
+
+3) Google Apps Script ของ WaterResources
+   เพิ่ม/แทนที่ไฟล์:
+   google-apps-script/WaterResourcesDashboardSync.gs
+
+   ไฟล์นี้อ่าน WaterResources อย่างเดียว ไม่เขียน/แก้/ลบเซลล์
+
+4) ตั้ง Script Properties
+   WATER_DASHBOARD_SYNC_URL = https://YOUR-SITE.netlify.app/api/waterresources/sync
+   WATER_DASHBOARD_SYNC_SECRET = <secret เดียวกับ Netlify>
+
+5) หลัง Deploy เวอร์ชันนี้ ต้อง Run 1 ครั้ง
+   syncWaterResourcesToDashboard()
+
+   จำเป็น เพราะ runtime Blob ต้องสร้าง snapshot ใหม่จาก whitelist 29 ตำบล
+
+6) ถ้ายังไม่เคยติดตั้ง Safety Trigger ให้ Run 1 ครั้ง
+   installWaterDashboardSyncSafetyTriggers()
+
+7) เปิด index.html แล้วตรวจ
+   - ช่องตำบลกดแล้วเห็น 29 รายการ
+   - พิมพ์ค้นหาได้
+   - ข้อความที่ไม่ได้เลือกจากรายการถูก reject
+   - อปท. -> ตำบล -> หมู่ -> หมู่บ้าน ทำงานสัมพันธ์กัน
+
+8) ทดสอบ URL
+   /api/waterresources/version
+   /api/waterresources
+
+Master List 29 ตำบล
+แม่กา, แม่นาเรือ, แม่ใส, บ้านตุ่น, บ้านสาง, สันป่าม่วง, บ้านต๋อม, บ้านต๊ำ,
+ท่าจำปี, เทศบาลเมือง, เจริญราษฎร์, แม่ปืม, แม่สุก, ป่าแฝก, บ้านเหล่า,
+บ้านใหม่, แม่ใจ, ศรีถ้อย, สว่างอารมณ์, บุญเกิด, ดอกคำใต้, ดอนศรีชุม,
+คือเวียง, บ้านปิน, จำป่าหวาย, บ้านถ้ำ, แม่อิง, สันโค้ง, ดงเจน
+
+หมายเหตุ
+- บ้านปิน = ชื่อมาตรฐาน
+- legacy spelling รองรับเฉพาะภายใน pipeline เพื่อไม่ให้ข้อมูลเก่าหลุด ไม่แสดงเป็นชื่อมาตรฐาน และไม่แก้ Sheet
+- ดอกคำใต้ หมู่ 1,2 และดอนศรีชุม หมู่ 8,9 ไม่ถูกเดา อปท.
+- WaterOwner ไม่ถูกใช้ตัดสินเขต อปท.
+- maeka.html ไม่ได้ถูกแก้
+
+รายละเอียดทั้งหมด: README_SETUP_TH.md
+กติกาพื้นที่: docs/AREA_RESPONSIBILITY_RULES_TH.md
+ผลทดสอบ: docs/TEST_REPORT.md

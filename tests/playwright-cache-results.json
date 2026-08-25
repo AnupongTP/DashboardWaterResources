@@ -1,0 +1,63 @@
+{
+  "ok": true,
+  "results": [
+    {
+      "test": "cold_load_fetches_dataset_and_caches",
+      "ok": true,
+      "diagnostics": {
+        "source": "netlify-blob-api",
+        "version": "\"v1\"",
+        "count": 2,
+        "elapsedMs": 1,
+        "timestamp": "2026-08-24T18:51:57.945Z"
+      }
+    },
+    {
+      "test": "same_version_uses_indexeddb_without_dataset_request",
+      "ok": true,
+      "diagnostics": {
+        "source": "indexeddb-cache",
+        "version": "\"v1\"",
+        "count": 2,
+        "elapsedMs": 0,
+        "timestamp": "2026-08-24T18:51:57.976Z",
+        "remoteUpdatedAt": "2026-08-25T00:00:00+07:00"
+      }
+    },
+    {
+      "test": "new_version_refreshes_indexeddb",
+      "ok": true,
+      "diagnostics": {
+        "source": "netlify-blob-api",
+        "version": "\"v2\"",
+        "count": 3,
+        "elapsedMs": 0,
+        "timestamp": "2026-08-24T18:51:57.983Z",
+        "remoteUpdatedAt": "2026-08-25T00:00:00+07:00"
+      }
+    },
+    {
+      "test": "api_offline_uses_warm_cache",
+      "ok": true,
+      "diagnostics": {
+        "source": "indexeddb-cache-offline",
+        "version": "\"v2\"",
+        "count": 3,
+        "elapsedMs": 0,
+        "timestamp": "2026-08-24T18:51:57.990Z",
+        "remoteUpdatedAt": "2026-08-25T00:00:00+07:00"
+      }
+    },
+    {
+      "test": "cold_offline_uses_static_bootstrap",
+      "ok": true,
+      "diagnostics": {
+        "source": "static-bootstrap",
+        "version": "bootstrap:3",
+        "count": 3,
+        "elapsedMs": 2,
+        "timestamp": "2026-08-24T18:51:58.084Z"
+      }
+    }
+  ]
+}

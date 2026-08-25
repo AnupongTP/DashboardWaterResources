@@ -1,0 +1,9 @@
+{
+  "recordCount": 1158,
+  "firstId": 1,
+  "lastId": 1164,
+  "sha256": "4afe547633ac3faa056b8fbe4b96439e100cee5d417ae5ad41ae7fde3eba5576",
+  "source": "Original embedded dataScript extracted from index.html",
+  "note": "Bootstrap/fallback only. Runtime data is read from Netlify Blobs after deployment.",
+  "scopeNote": "Bootstrap นี้เป็น snapshot เดิม 10 ตำบล; หลัง Deploy เวอร์ชัน 29 ตำบล ต้อง Run syncWaterResourcesToDashboard() เพื่อรับข้อมูลปัจจุบันครบขอบเขต 29 ตำบลจาก Sheet"
+}

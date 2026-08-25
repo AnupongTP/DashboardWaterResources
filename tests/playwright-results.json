@@ -1,0 +1,115 @@
+{
+  "ok": true,
+  "masterTambonCount": 29,
+  "baseDatasetCount": 1158,
+  "syntheticRecordCount": 24,
+  "testDatasetCount": 1182,
+  "results": [
+    {
+      "test": "tambon_controls_are_custom_allowlist_comboboxes",
+      "ok": true
+    },
+    {
+      "test": "master_tambon_list_exact_29",
+      "ok": true,
+      "count": 29
+    },
+    {
+      "test": "tambon_search_recommendations_filter_master_list",
+      "ok": true,
+      "options": [
+        "แม่กา",
+        "แม่นาเรือ",
+        "แม่ใส",
+        "แม่ปืม",
+        "แม่สุก",
+        "แม่ใจ",
+        "แม่อิง"
+      ]
+    },
+    {
+      "test": "free_text_is_rejected_and_never_filters",
+      "ok": true
+    },
+    {
+      "test": "explicit_recommendation_selection_applies_filter",
+      "ok": true
+    },
+    {
+      "test": "executive_authority_cascade_limits_combobox_scope",
+      "ok": true,
+      "tambons": [
+        "สว่างอารมณ์",
+        "บุญเกิด",
+        "ดอกคำใต้",
+        "ดอนศรีชุม"
+      ]
+    },
+    {
+      "test": "out_of_authority_text_cannot_be_selected",
+      "ok": true
+    },
+    {
+      "test": "detail_authority_tambon_moo_cascade",
+      "ok": true,
+      "moos": [
+        "ทั้งหมด",
+        "หมู่ 4",
+        "หมู่ 5",
+        "หมู่ 6",
+        "หมู่ 8"
+      ]
+    },
+    {
+      "test": "ban_pin_canonical_combobox_path",
+      "ok": true
+    },
+    {
+      "test": "overlapping_moos_visible_but_disabled",
+      "ok": true
+    },
+    {
+      "test": "partial_moos_visible_but_disabled",
+      "ok": true
+    },
+    {
+      "test": "dongjen_moo_labels_include_brief_village_names",
+      "ok": true
+    },
+    {
+      "test": "unresolved_bucket_is_safe_and_precise",
+      "ok": true,
+      "records": [
+        "ดงเจน-หมู่6-นอกบัญชี",
+        "ดอกคำใต้-หมู่1-เขตซ้อน",
+        "ดอนศรีชุม-หมู่8-บางส่วน"
+      ]
+    },
+    {
+      "test": "previously_omitted_eight_are_selectable",
+      "ok": true
+    },
+    {
+      "test": "damaged_tab_strict_combobox_and_independent_filter",
+      "ok": true
+    },
+    {
+      "test": "detail_reset_restores_all_data_and_combobox_state",
+      "ok": true
+    },
+    {
+      "test": "keyboard_navigation_selects_allowed_tambon",
+      "ok": true
+    },
+    {
+      "test": "desktop_no_uncaught_page_errors",
+      "ok": true
+    },
+    {
+      "test": "mobile_combobox_tap_no_horizontal_overflow",
+      "ok": true,
+      "comboWidth": 320,
+      "horizontalOverflowPx": 0
+    }
+  ]
+}

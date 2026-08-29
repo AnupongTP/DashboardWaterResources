@@ -127,6 +127,11 @@
       return true;
     }
 
+    function itemMeta(item) {
+      if (typeof options.itemMeta !== 'function') return '';
+      return normalizeText(options.itemMeta(item));
+    }
+
     function renderList(query) {
       filteredItems = filterForQuery(query);
       listbox.innerHTML = '';
@@ -145,7 +150,23 @@
           option.setAttribute('role', 'option');
           option.setAttribute('aria-selected', 'false');
           option.dataset.value = item;
-          option.textContent = item;
+          const meta = itemMeta(item);
+          if (meta) {
+            option.classList.add('has-scope');
+            option.dataset.scope = meta;
+            option.setAttribute('aria-label', item + ' ' + meta);
+
+            const name = document.createElement('span');
+            name.className = 'tambon-combobox-option-name';
+            name.textContent = item;
+            const scope = document.createElement('span');
+            scope.className = 'tambon-combobox-option-scope';
+            scope.textContent = meta;
+            option.appendChild(name);
+            option.appendChild(scope);
+          } else {
+            option.textContent = item;
+          }
           option.addEventListener('mousedown', function (event) {
             // Keep focus on the input so mobile/desktop click selection is not lost to blur timing.
             event.preventDefault();

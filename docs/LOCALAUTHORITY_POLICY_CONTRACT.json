@@ -1,0 +1,40 @@
+{
+  "version": "KebNamComplete-LocalAuthority-v1.2",
+  "rulesetVersion": "2026-08-27.2",
+  "principles": {
+    "storedField": "LocalAuthority",
+    "storedFieldPriority": "explicit-first",
+    "waterOwnerUsedForJurisdiction": false,
+    "unknownTambonAuthorityMapping": "leave-unassigned",
+    "invalidExplicitAuthority": "reject-from-authority-counts",
+    "legacySingleExactFallback": true,
+    "legacyAmbiguousFallback": false
+  },
+  "modes": {
+    "SELECT": {
+      "exactOptions": "more-than-one",
+      "suggestion": null,
+      "allowedExplicitAuthorities": "exact-options-only",
+      "legacyWithoutLocalAuthority": "unassigned"
+    },
+    "SUGGEST": {
+      "exactOptions": "exactly-one",
+      "suggestion": "the-single-exact-option",
+      "allowedExplicitAuthorities": "all-authorities-in-the-same-tambon-master",
+      "legacyWithoutLocalAuthority": "use-the-single-exact-option-as-temporary-fallback"
+    },
+    "TAMBON_ONLY": {
+      "exactOptions": "none",
+      "suggestion": null,
+      "allowedExplicitAuthorities": "none",
+      "legacyWithoutLocalAuthority": "unassigned"
+    }
+  },
+  "dashboardUi": {
+    "showUnresolvedAuthorityBucket": false,
+    "showOnlyAuthoritiesWithResolvedRecords": true,
+    "authorityAvailabilityBasis": "full-loaded-dataset",
+    "authorityDropdownAlwaysIncludesAllOption": true,
+    "doubleCountAllowed": false
+  }
+}

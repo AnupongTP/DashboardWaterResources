@@ -17,15 +17,15 @@ function getStore(name) {
   return {
     async getMetadata(key) {
       const e = map.get(key);
-      return e ? { etag: e.etag, metadata: structuredClone(e.metadata) } : null;
+      return e ? { ...(globalThis.__TEST_OMIT_ETAG ? {} : { etag: e.etag }), metadata: structuredClone(e.metadata) } : null;
     },
     async getWithMetadata(key, options={}) {
       const e = map.get(key);
       if (!e) return null;
       if (options.etag && options.etag === e.etag) {
-        return { data: null, etag: e.etag, metadata: structuredClone(e.metadata) };
+        return { data: null, ...(globalThis.__TEST_OMIT_ETAG ? {} : { etag: e.etag }), metadata: structuredClone(e.metadata) };
       }
-      return { data: structuredClone(e.data), etag: e.etag, metadata: structuredClone(e.metadata) };
+      return { data: structuredClone(e.data), ...(globalThis.__TEST_OMIT_ETAG ? {} : { etag: e.etag }), metadata: structuredClone(e.metadata) };
     },
     async setJSON(key, value, options={}) {
       __etagCounter += 1;
@@ -57,6 +57,10 @@ const MASTER_TAMBONS = [
   'แม่กา','แม่นาเรือ','แม่ใส','บ้านตุ่น','บ้านสาง','สันป่าม่วง','บ้านต๋อม','บ้านต๊ำ','ท่าจำปี','เทศบาลเมือง',
   'เจริญราษฎร์','แม่ปืม','แม่สุก','ป่าแฝก','บ้านเหล่า','บ้านใหม่','แม่ใจ','ศรีถ้อย',
   'สว่างอารมณ์','บุญเกิด','ดอกคำใต้','ดอนศรีชุม','คือเวียง','บ้านปิน','จำป่าหวาย','บ้านถ้ำ','แม่อิง','สันโค้ง','ดงเจน'
+];
+const AUTHORITIES = [
+  'ทม.ดอกคำใต้','อบต.คือเวียง','อบต.บ้านปิน','อบต.ดอกคำใต้','อบต.จำป่าหวาย',
+  'ทต.บ้านถ้ำ','อบต.ดอนศรีชุม','อบต.แม่อิง','ทต.ดงเจน','อบต.สันโค้ง'
 ];
 process.env.WATER_SYNC_SECRET = SECRET;
 const tests = [];
@@ -90,10 +94,15 @@ ok('sync_rejects_non_json');
 // 3 authorized snapshot: all 29 approved tambons accepted; aliases normalized; out-of-scope excluded.
 assert.equal(storeMod.ALLOWED_TAMBONS.size, 29);
 assert.deepEqual([...storeMod.ALLOWED_TAMBONS], MASTER_TAMBONS);
+assert.equal(storeMod.ALLOWED_AUTHORITIES.size, 10);
+assert.deepEqual([...storeMod.ALLOWED_AUTHORITIES], AUTHORITIES);
 const records = MASTER_TAMBONS.map((tambon, index) => sample(index + 1, tambon, index + 1));
 records.push(sample(1001, 'บ้านปิ่น', '2'));
 records.push(sample(1002, 'เทศบาลเมืองพะเยา', 6));
 records.push(sample(1003, 'นอกขอบเขต', 1));
+records.push(sample(1004, 'ดอกคำใต้', 1, {localAuthority:'ทม.ดอกคำใต้'}));
+records.push(sample(1005, 'ดอกคำใต้', 1, {localAuthority:'อปท.ปลอม'}));
+records.push(sample(1006, 'ดอกคำใต้', 3, {localAuthority:'ทม.ดอกคำใต้'}));
 req = new Request('https://example.net/api/waterresources/sync', {
   method:'POST', headers:{authorization:'Bearer '+SECRET, 'content-type':'application/json'},
   body:JSON.stringify({sourceSpreadsheetId:'sheet',sourceSheetName:'WaterResources',records})
@@ -103,12 +112,12 @@ assert.equal(res.status, 200);
 let body = await res.json();
 assert.equal(body.success, true);
 assert.equal(body.changed, true);
-assert.equal(body.count, 31); // 29 canonical + two accepted aliases; out-of-scope excluded
+assert.equal(body.count, 34); // 29 canonical + two aliases + three LocalAuthority fixtures; out-of-scope excluded
 const v1 = body.version;
 ok('authorized_sync_accepts_exact_29_tambon_scope', {version:v1,count:body.count});
 
 let entry = await storeMod.getDatasetWithMetadata();
-assert.equal(entry.data.length, 31);
+assert.equal(entry.data.length, 34);
 for (const tambon of MASTER_TAMBONS) {
   assert.ok(entry.data.some(x=>x.tambon===tambon), 'missing normalized tambon '+tambon);
 }
@@ -116,7 +125,10 @@ assert.equal(entry.data.find(x=>x.id===1001).tambon, 'บ้านปิน');
 assert.equal(entry.data.find(x=>x.id===1001).moo, 2);
 assert.equal(entry.data.find(x=>x.id===1002).tambon, 'เทศบาลเมือง');
 assert.equal(entry.data.some(x=>x.id===1003), false);
-ok('canonical_tambon_aliases_and_scope_normalization');
+assert.equal(entry.data.find(x=>x.id===1004).localAuthority, 'ทม.ดอกคำใต้');
+assert.equal(entry.data.find(x=>x.id===1005).localAuthority, 'อปท.ปลอม');
+assert.equal(entry.data.find(x=>x.id===1006).localAuthority, 'ทม.ดอกคำใต้');
+ok('canonical_tambon_aliases_scope_and_raw_localauthority_preservation');
 
 // 4 identical sync must not churn version
 req = new Request('https://example.net/api/waterresources/sync', {
@@ -148,7 +160,7 @@ res = await versionFn(new Request('https://example.net/api/waterresources/versio
 assert.equal(res.status, 200);
 body = await res.json();
 assert.equal(body.version, v2);
-assert.equal(body.count, 31);
+assert.equal(body.count, 34);
 ok('version_endpoint_current');
 
 // 7 data endpoint and 304
@@ -156,7 +168,7 @@ res = await dataFn(new Request('https://example.net/api/waterresources'));
 assert.equal(res.status, 200);
 body = await res.json();
 assert.equal(body.version, v2);
-assert.equal(body.data.length, 31);
+assert.equal(body.data.length, 34);
 assert.equal(res.headers.get('etag'), v2);
 
 res = await dataFn(new Request('https://example.net/api/waterresources', {headers:{'if-none-match':v2}}));
@@ -164,7 +176,28 @@ assert.equal(res.status, 304);
 assert.equal(res.headers.get('etag'), v2);
 ok('dataset_endpoint_etag_and_304');
 
-// 8 methods
+// 8 Netlify Dev sandbox fallback: metadata may be available without a Blob etag.
+globalThis.__TEST_OMIT_ETAG = true;
+res = await versionFn(new Request('https://example.net/api/waterresources/version'));
+assert.equal(res.status, 200);
+body = await res.json();
+assert.ok(body.version && body.version.startsWith('\"sha256-'));
+const fallbackVersion = body.version;
+assert.equal(res.headers.get('etag'), fallbackVersion);
+
+res = await dataFn(new Request('https://example.net/api/waterresources'));
+assert.equal(res.status, 200);
+body = await res.json();
+assert.equal(body.version, fallbackVersion);
+assert.equal(body.data.length, 34);
+
+res = await dataFn(new Request('https://example.net/api/waterresources', {headers:{'if-none-match':fallbackVersion}}));
+assert.equal(res.status, 304);
+assert.equal(res.headers.get('etag'), fallbackVersion);
+globalThis.__TEST_OMIT_ETAG = false;
+ok('sandbox_without_blob_etag_uses_sourcehash_version');
+
+// 9 methods
 res = await versionFn(new Request('https://example.net/api/waterresources/version', {method:'POST'}));
 assert.equal(res.status, 405);
 res = await dataFn(new Request('https://example.net/api/waterresources', {method:'POST'}));

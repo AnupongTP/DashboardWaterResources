@@ -1,68 +1,125 @@
-# Architecture
+# Architecture — DashboardWaterResources v1.4.3 Candidate
 
 ```text
 Google Sheet: WaterResources
         │
-        │ read-only full snapshot when sync runs
+        │ optional Y: LocalAuthority
         ▼
 Google Apps Script
 WaterResourcesDashboardSync.gs
-        │  จำกัด scope = 29 ตำบล + normalize alias
-        │  HTTPS POST + Bearer secret
+        │ read-only snapshot
+        │ localAuthority optional/backward-compatible
         ▼
 /api/waterresources/sync
 Netlify Function
-        │  validate/normalize ซ้ำฝั่ง server
+        │ normalize 29 tambons
+        │ preserve raw LocalAuthority
         ▼
 Netlify Blob
 store: water-resources-cache
 key: dataset
         │
-        ├─ ETag = Cache Version
-        └─ metadata = hash/count/bytes/update time
-        │
-        ├──────────────────────────┐
-        ▼                          ▼
-/api/waterresources/version   /api/waterresources
-        │                          │
-        └────────────┬─────────────┘
-                     ▼
-                 index.html
+        ├─ /api/waterresources/version
+        └─ /api/waterresources
                      │
-      ┌──────────────┴──────────────┐
-      ▼                             ▼
-area-responsibility.js       tambon-combobox.js
-29-tambon master list        strict allow-list UI
-อปท. → ตำบล → หมู่          keyboard/touch/mouse
-      │                             │
-      └──────────────┬──────────────┘
                      ▼
-                  IndexedDB
+               water-data-loader.js
+                     │
+                IndexedDB cache
+                     │
+                     ▼
+             area-responsibility.js
+                     │
+        policy: KebNamComplete v1.2
+                     │
+        ┌────────────┼─────────────┐
+        ▼            ▼             ▼
+     SELECT        SUGGEST      TAMBON_ONLY
+ exact >1        exact =1       exact =0
+        │            │             │
+ explicit exact   explicit may     no authority
+ options only     override within  accepted
+                  same tambon
+        └────────────┼─────────────┘
+                     ▼
+            resolvedLocalAuthority
+                     │
+     ┌───────────────┼────────────────┐
+     ▼               ▼                ▼
+Executive         Detail           Damaged
+KPI/Map           Table/Map        Table/Map
 ```
 
-## Source of truth
+## Data contract
 
-Google Sheet เป็น Source of Truth ของข้อมูลแหล่งน้ำ ส่วน Netlify Blob เป็น read-optimized snapshot สำหรับ Dashboard
+`localAuthority` เป็น optional field เพื่อรองรับช่วงเปลี่ยนผ่าน
 
-กติกาเขต อปท. และ Master List 29 ตำบลอยู่ใน `site/assets/area-responsibility.js` และไม่ได้เขียนกลับ Sheet
+```json
+{
+  "tambon": "ดอกคำใต้",
+  "moo": 3,
+  "localAuthority": "ทม.ดอกคำใต้"
+}
+```
 
-## UI validation boundary
+Netlify เก็บค่าดิบที่ sync เข้ามาไว้ ไม่ silently เปลี่ยนค่าที่ไม่รู้จักเป็น `null` เพราะ Browser ต้องแยกให้ได้ระหว่าง:
 
-`site/assets/tambon-combobox.js` ป้องกันไม่ให้ free text กลายเป็น filter value โดยตรง ตัว state ของ Dashboard จะได้รับค่าตำบลเฉพาะเมื่อผู้ใช้เลือกค่าจาก allow-list ผ่าน click/touch/keyboard เท่านั้น
+- field ว่างจริง = legacy record
+- field มีแต่ผิด = invalid explicit record
 
-Server side ยัง validate ซ้ำด้วย `ALLOWED_TAMBONS` ใน `netlify/lib/water-store.mjs` ดังนั้นแม้มี payload ผิดจาก client/sync ก็ไม่ถูกเก็บลง Blob
+## Resolver fields
 
-## Versioning
+หลัง decorate record จะมีแนวคิดแยกกัน:
 
-ใช้ Netlify Blob ETag เป็น Cache Version และเก็บ SHA-256 ของ normalized dataset ใน metadata หาก Sync ข้อมูลเดิมซ้ำจะไม่เปลี่ยน Blob/Version
+```text
+localAuthorityRaw          ค่าเดิมจาก dataset
+recommendedAuthority      ค่าแนะนำจาก exact Tambon+Moo
+resolvedLocalAuthority     ค่าใช้จริงหลัง policy validation
+localAuthority             alias สำหรับ UI ปัจจุบัน = resolvedLocalAuthority
+authorityConfidence        explicit-field / explicit-override / legacy-inferred / ...
+authorityMode              SELECT / SUGGEST / TAMBON_ONLY
+```
 
-## Failure behavior
+## Legacy transition
 
-1. API ใช้งานได้ + Version เดิม → IndexedDB
-2. API ใช้งานได้ + Version ใหม่ → โหลด dataset ใหม่และเขียน IndexedDB
-3. API ล่ม + มี IndexedDB → ใช้ cache ล่าสุด
-4. API ล่ม + ไม่มี IndexedDB → static bootstrap JSON
+ข้อมูลเก่าที่ไม่มี `LocalAuthority`:
 
-## Administrative boundary safety
+- exact = 1 → `legacy-inferred`
+- exact > 1 → unassigned
+- exact = 0 → unassigned
 
-กรณีเขตซ้อน/บางส่วนของหมู่จะไม่อนุมานจาก `WaterOwner`; ระบบติดสถานะ unresolved จนกว่าจะมี polygon หรือข้อมูลยืนยันเขต
+Fallback นี้มีไว้เพื่อรักษาความต่อเนื่องของ Dashboard จนกว่าจะ backfill ข้อมูลเก่า ไม่ถือว่าเป็น explicit confirmation
+
+## Authority safety
+
+- `WaterOwner` ไม่ถูกใช้เป็น jurisdiction
+- cross-tambon explicit authority ถูก reject จาก authority counts
+- explicit authority บน TAMBON_ONLY ถูก reject
+- 1 record match ได้สูงสุด 1 authority
+- invalid/unassigned record ยังอยู่ใน dataset และยังกรองด้วย Tambon ได้
+- ไม่มี unresolved warning/bucket ใน UI
+
+## Active authority UI
+
+```text
+full loaded dataset
+→ resolve every record
+→ count resolvedLocalAuthority
+→ count > 0 = show authority
+→ count = 0 = hide authority
+```
+
+รายการนี้ไม่ขึ้นกับ filter ประเภท/ปัญหา/ตำบลที่ผู้ใช้กำลังเลือก
+
+## GAS integration
+
+`WaterResourcesDashboardSync.gs` ใน v1.4.3 ถูกเตรียมให้รองรับ `LocalAuthority` แบบ optional แล้ว:
+
+- ถ้ายังไม่มีคอลัมน์ `LocalAuthority` → sync เดิมยังทำงาน
+- ถ้ามีคอลัมน์ → ส่ง `localAuthority`
+- helper อ่าน Sheet เท่านั้น ไม่มีการเขียนกลับ
+- ไม่มี hard cap 24 columns แบบเดิม
+
+## Cache
+
+IndexedDB เป็น object cache จึงเก็บ `localAuthority` ได้โดยไม่ bump DB schema; dataset version/ETag เป็นตัวควบคุม refresh

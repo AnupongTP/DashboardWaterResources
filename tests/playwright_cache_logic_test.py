@@ -113,18 +113,22 @@ def main():
         results.append({'test':'same_version_uses_indexeddb_without_dataset_request','ok':True,'diagnostics':diag})
 
         # 3 new version -> refresh
-        page.evaluate("__netState.version='\\\"v2\\\"';__netState.data=[{id:1},{id:2},{id:3}];__netState.forbidDataset=false")
+        page.evaluate("""__netState.version='"v2"';__netState.data=[{id:1},{id:2,localAuthority:'ทม.ดอกคำใต้'},{id:3,localAuthority:'อปท.ปลอม'}];__netState.forbidDataset=false""")
         data=page.evaluate('WaterData.load()')
         diag=page.evaluate('window.__WATER_DATA_DIAGNOSTICS__')
         assert len(data)==3 and diag['source']=='netlify-blob-api' and diag['version']=='"v2"',diag
-        results.append({'test':'new_version_refreshes_indexeddb','ok':True,'diagnostics':diag})
+        assert data[1].get('localAuthority') == 'ทม.ดอกคำใต้', data
+        assert data[2].get('localAuthority') == 'อปท.ปลอม', data
+        results.append({'test':'new_version_refreshes_indexeddb_and_preserves_raw_localauthority','ok':True,'diagnostics':diag})
 
         # 4 API offline -> warm cache
         page.evaluate('__netState.apiOffline=true')
         data=page.evaluate('WaterData.load()')
         diag=page.evaluate('window.__WATER_DATA_DIAGNOSTICS__')
         assert len(data)==3 and diag['source']=='indexeddb-cache-offline',diag
-        results.append({'test':'api_offline_uses_warm_cache','ok':True,'diagnostics':diag})
+        assert data[1].get('localAuthority') == 'ทม.ดอกคำใต้', data
+        assert data[2].get('localAuthority') == 'อปท.ปลอม', data
+        results.append({'test':'api_offline_uses_warm_cache_with_raw_localauthority','ok':True,'diagnostics':diag})
         assert not errors,errors
         page.close()
 

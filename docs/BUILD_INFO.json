@@ -1,0 +1,58 @@
+{
+  "name": "DashboardWaterResources",
+  "version": "1.4.3",
+  "status": "candidate",
+  "productionReady": false,
+  "baseVersion": "1.4.1",
+  "rulesetVersion": "2026-08-27.2",
+  "policyVersion": "KebNamComplete-LocalAuthority-v1.2",
+  "createdAt": "2026-08-27",
+  "scope": [
+    "KebNamComplete v1.2-compatible authority resolver",
+    "separate recommendedAuthority from resolvedLocalAuthority",
+    "accept valid explicit same-tambon overrides in SUGGEST mode",
+    "keep SELECT exact-option validation and TAMBON_ONLY rejection",
+    "legacy single-exact fallback for old records",
+    "preserve invalid raw LocalAuthority through Netlify for browser validation",
+    "hide zero-count authorities and remove unresolved warning UI",
+    "GAS snapshot optional LocalAuthority support without Sheet writes",
+    "authority-aware Tambon dropdown shows plain-language Moo scope without changing Tambon values"
+  ],
+  "intentionallyUnchanged": {
+    "maekaHtml": true,
+    "waterDataLoader": true,
+    "bootstrapDataset": true,
+    "tambonCombobox": false
+  },
+  "integrationGate": [
+    "KebNamComplete v1.2 real form test",
+    "WaterResources column Y = LocalAuthority",
+    "manual Google Apps Script sync",
+    "real dataset integration test",
+    "production deployment approval"
+  ],
+  "hashes": {
+    "areaResponsibility": "3e3dce9133fd9cfffcd06a053e885d29a1d15731abdd309c64529e543fc50bb5",
+    "siteIndex": "f778cf977ef9ab4a7060927e83b925b84e2b46b8f9f64c7468bf8e16d38b6dd6",
+    "netlifyStore": "c1a64d4f8e3b0dd6c658501f3a8ef5b9a7eb94a94a6aec1ba084f47c4e76a39a",
+    "authorityMappingContract": "8fef95ad007ed8463f1e4295919f41e1825b1a4991b2880a414337502d5e6c22",
+    "localAuthorityPolicyContract": "a58ca368765ce373d54e29144b64aca63e06d33f3df5358ea66f3642aeea4161",
+    "googleAppsScriptSync": "c3d45b9787132f074739d29f21a5d264f0501dc35889b41fb65cc2fcd89f75a5",
+    "maekaHtml": "d992edcb7d182e2cbc48132fb5ea9f47fa794c0795b027e065749fb3d101be56",
+    "waterDataLoader": "d83358e58220637aa07b104cd33f09b630d7fb4a804dde88b21fda93a16f42b4",
+    "tambonCombobox": "2b2d5800d368ce261de1f5206483e59c24955f2826e233d050e04424061cbb1c",
+    "testReport": "398e7e5846ee88a6f89fdd61d4e894df3442477614399c05fea774c182c37610"
+  },
+  "tests": {
+    "kebNamV12ExactMapping": "PASS (47 combinations, three-way parity)",
+    "kebNamV12ServerResolver": "PASS (6960 cases)",
+    "areaResponsibility": "PASS (including authority Tambon scope labels)",
+    "gasSyncContract": "PASS",
+    "staticIntegrity": "PASS",
+    "netlifyFunctions": "PASS (10/10)",
+    "playwrightDashboard": "PASS (23/23)",
+    "playwrightCache": "PASS (5/5)"
+  },
+  "change": "Remove “ทุกหมู่” suffix from full-tambon authority dropdown entries; keep partial moo scope text.",
+  "builtAt": "2026-08-27T20:55:00+07:00"
+}

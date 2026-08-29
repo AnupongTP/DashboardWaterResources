@@ -1,132 +1,225 @@
-# FINAL TEST REPORT — DashboardWaterResources
+# TEST REPORT — DashboardWaterResources v1.4.3 Candidate
 
-Build: `FINAL 29 Tambons + Strict Autocomplete + Netlify Blob Cache`
-Ruleset: `2026-08-25.2`
-ทดสอบวันที่: 2026-08-25 (Asia/Bangkok)
+วันที่ทดสอบ: 2026-08-27  
+Ruleset: `2026-08-27.2`  
+Policy: `KebNamComplete-LocalAuthority-v1.2`  
+สถานะ: **PASS — Candidate only, ยังไม่ใช่ Production approval**
 
-## สรุป
+## 1. KebNamComplete v1.2 parity
 
-ผลรวม: **PASS**
+ตรวจเทียบ 3 แหล่งโดยตรง:
 
-- Area responsibility unit test: PASS
-- Static/source integrity: PASS
-- Netlify Function + Blob behavior (in-memory mock): PASS
-- Playwright Dashboard functional test — Chromium Desktop: PASS
-- Playwright responsive/touch test — 390×844 Mobile: PASS
-- Playwright Cache/IndexedDB logic: PASS
-- JavaScript syntax check: PASS
+1. `KebNamComplete_LocalAuthority_v1.2/code.js` — server rules/resolver
+2. `KebNamComplete_LocalAuthority_v1.2/scripts.html` — client fallback rules
+3. Dashboard `docs/AUTHORITY_MAPPING_CONTRACT.json` + `area-responsibility.js`
 
-Google Sheet ไม่ถูกแก้ไขระหว่างการพัฒนา/ทดสอบ
+ผล:
 
-## Playwright — Dashboard/UI
+- exact mapping ตรงกันทั้ง 3 แหล่ง: **PASS**
+- exact mapping combinations: **47**
+- server resolver parity sweep: **6,960 cases PASS**
+- ครอบคลุม 29 ตำบล × หมู่ 1–20 × blank/10 master authorities/invalid authority
 
-ใช้ bootstrap จริง 1,158 รายการ + synthetic test records 24 รายการ รวม 1,182 รายการใน test fixture เท่านั้น
+ตรวจ semantics:
 
-ผ่าน 19 กรณี:
+- `SELECT`: exact > 1 → explicit ต้องอยู่ใน exact options: **PASS**
+- `SUGGEST`: exact = 1 → ค่าแนะนำเปลี่ยนเป็น authority อื่นใน master ของตำบลเดียวกันได้: **PASS**
+- `TAMBON_ONLY`: exact = 0 → explicit LocalAuthority ถูก reject: **PASS**
+- cross-tambon explicit authority ถูก reject: **PASS**
+- `WaterOwner` ไม่ถูกใช้ resolve jurisdiction: **PASS**
 
-1. ตัวกรองตำบลทั้ง Executive / Detail / Damaged เป็น Custom Combobox ไม่ใช่ `<select>`
-2. Master List แสดงครบ 29 ตำบลตามลำดับที่กำหนด
-3. พิมพ์ `แม่` แล้วรายการแนะนำถูกกรองจาก Master List
-4. Free text ที่ไม่ได้เลือกจากรายการถูก reject และไม่กลายเป็น filter state
-5. เลือก suggestion จริงแล้ว filter ถูกนำไปใช้
-6. เลือก `ทม.ดอกคำใต้` แล้ว suggestion ตำบลเหลือเฉพาะ 4 ตำบลใน scope
-7. พิมพ์ตำบลนอก scope อปท. แล้วเลือกไม่ได้
-8. Detail cascade `อบต.แม่อิง → แม่อิง → หมู่ 4,5,6,8`
-9. `อบต.บ้านปิน → บ้านปิน` ทำงานด้วยชื่อมาตรฐาน
-10. ดอกคำใต้ หมู่ 1,2 แสดงในตัวกรองหมู่แต่ disabled พร้อม “ต้องยืนยันเขต”
-11. ดอนศรีชุม หมู่ 8,9 แสดงแต่ disabled พร้อม “ต้องยืนยันเขต”
-12. ทต.ดงเจนแสดงชื่อหมู่บ้านคู่เลขหมู่ตามโจทย์
-13. bucket `⚠️ ต้องยืนยันเขต อปท.` เก็บเฉพาะกรณี ambiguous/unresolved ของพื้นที่ที่มี brief อปท.
-14. 8 ตำบลที่เคยตกจาก whitelist รอบ 21 ตำบลกลับมาเลือกได้ครบ
-15. แท็บแหล่งน้ำชำรุดใช้ strict combobox และ state แยกจากหน้ารายละเอียด
-16. Reset คืนข้อมูลทั้งหมดและล้าง combobox state/validation
-17. Keyboard `ArrowDown + Enter` เลือกค่าจาก allow-list ได้
-18. Desktop ไม่มี uncaught page error
-19. Mobile 390×844 เลือก suggestion ด้วย touch ได้และไม่มี horizontal overflow
+ผล machine-readable: `tests/kebnam-v12-parity-results.json`
 
-Screenshots:
+## 2. Area responsibility unit tests
 
-- `tests/screenshots/desktop-autocomplete-open-final.png`
-- `tests/screenshots/desktop-29tambons-autocomplete-final.png`
-- `tests/screenshots/mobile-autocomplete-open-final.png`
-- `tests/screenshots/mobile-29tambons-autocomplete-final.png`
-
-## Strict autocomplete behavior
-
-ค่าที่พิมพ์ใน input และค่าที่ใช้ filter ถูกแยกกัน:
+Command:
 
 ```text
-input text ≠ selectedTambon
+node tests/area_responsibility_test.mjs
 ```
 
-เมื่อผู้ใช้พิมพ์แก้ข้อความ ระบบล้าง selected value เดิมทันที ข้อมูลจะไม่ถูกกรองด้วยข้อความใหม่จนกว่าจะเลือก suggestion ด้วย click/touch/keyboard
+ผล: **PASS**
 
-ถ้า blur ออกจากช่องทั้งที่ยังมีข้อความที่ไม่ได้เลือก จะแสดง validation error
+ครอบคลุม:
 
-## Netlify Functions / Blob behavior
+- Master 29 ตำบล / 10 authorities
+- canonical `บ้านปิน`
+- 47 exact mapping combinations
+- 4 exact-overlap cases
+- recommendedAuthority
+- validAuthoritiesFor
+- validConfiguredMoos
+- explicit SELECT
+- explicit SUGGEST override
+- invalid cross-tambon
+- invalid TAMBON_ONLY
+- legacy fallback
+- ambiguous legacy unassigned
+- raw field preservation after decorate/redecorate
+- active authority counts
+- one-record/one-authority invariant
+- internal resolution statistics
 
-ทดสอบด้วย in-memory Blob mock เพื่อไม่แตะ Netlify account จริง
+## 3. Google Apps Script sync contract
 
-ผ่าน 9 กรณี:
+Command:
 
-1. Sync ไม่มี/ผิด Secret → 401
-2. Content-Type ไม่ใช่ JSON → 415
-3. whitelist ฝั่ง server มี exact 29 ตำบล
-4. authorized sync รับครบ 29 ตำบล + normalize alias + ตัด out-of-scope
-5. Dataset เหมือนเดิม → Version ไม่เปลี่ยน
-6. Dataset เปลี่ยน → Version เปลี่ยน
-7. Version endpoint คืน metadata ล่าสุด
-8. Dataset endpoint รองรับ ETag / `304 Not Modified`
-9. Read endpoints ปฏิเสธ HTTP method ที่ไม่รองรับ
+```text
+node tests/gas_sync_contract_test.mjs
+```
 
-ผลละเอียด: `tests/netlify-function-results.json`
+ผล: **PASS**
 
-## Playwright — Cache/IndexedDB
+ตรวจแล้ว:
 
-ผ่าน 5 กรณี:
+- Sheet เดิม 24 columns ยัง sync ได้
+- Sheet ใหม่ 25 columns อ่าน `LocalAuthority` ได้
+- ค่า LocalAuthority ถูก preserve exact รวมถึงค่าผิดเพื่อให้ Dashboard ตรวจ invalid explicit ได้
+- blank LocalAuthority → `null`
+- alias `บ้านปิ่น → บ้านปิน`
+- alias `เทศบาลเมืองพะเยา → เทศบาลเมือง`
+- trailing unrelated column ไม่ถูกส่งออก
+- helper ไม่มีการเขียนข้อมูลกลับ Sheet
+- ยกเลิก hard cap `24 columns` แบบเดิมและใช้ header-driven read
 
-1. Cold load → โหลด dataset จาก Netlify API และเขียน IndexedDB
-2. Version เดิม → ใช้ IndexedDB โดยไม่ request dataset ซ้ำ
-3. Version ใหม่ → โหลด dataset ใหม่และอัปเดต IndexedDB
-4. API offline + มี cache → ใช้ warm cache
-5. API offline + ไม่มี cache → ใช้ static bootstrap
+## 4. Netlify functions
 
-ผลละเอียด: `tests/playwright-cache-results.json`
+Command:
 
-## Area responsibility rules
+```text
+node tests/netlify_function_test.mjs
+```
 
-Node unit test ตรวจ:
+ผล: **10/10 PASS**
 
-- Master List exact 29 ตำบล
-- 18 original/config tambons + 11 authority-brief tambons
-- 10 อปท./เทศบาลตามโจทย์
-- exact moo lists ของพื้นที่แบ่งตามหมู่
-- ดอกคำใต้ หมู่ 1,2 = ambiguous
-- ดอนศรีชุม หมู่ 8,9 = partial/ambiguous
-- แม่อิงแบ่งระหว่าง อบต.แม่อิง และ ทต.ดงเจน
-- ดงเจน 12 หมู่ตามรายการ
-- canonical/display name = `บ้านปิน`
-- WaterOwner ไม่ถูกใช้เดาเขต
-- 8 ตำบลที่เพิ่มกลับไม่มีการเดา authority โดยไม่มีหลักฐาน
+- unauthorized sync 401
+- reject non-JSON
+- exact 29-tambon scope
+- raw LocalAuthority preservation
+- idempotent version
+- version changes only when dataset changes
+- version endpoint
+- dataset ETag / 304
+- local Blob fallback version
+- wrong methods rejected
 
-## Static integrity / Safety
+จุดสำคัญ v1.4.3: Netlify **ไม่ silently แปลง invalid LocalAuthority เป็น null** เพราะจะทำให้ Dashboard เข้าใจผิดว่าเป็น legacy blank record แล้ว fallback ผิดเขตได้
 
-ตรวจว่า:
+## 5. Browser / Dashboard end-to-end tests
 
-- `site/index.html` และ root `index.html` byte-identical
-- `site/maeka.html` และ root `maeka.html` byte-identical
-- `maeka.html` ยังตรง SHA-256 ของ build ก่อนหน้า
-- `water-data-loader.js` ยังตรง SHA-256 ของ build Cache ที่ validate แล้ว
-- `index.html` โหลด `tambon-combobox.js`
-- ไม่มี `<select id="efTambon">`, `<select id="fTambon">`, `<select id="dfTambon">`
-- Browser master list, Netlify whitelist และ Apps Script whitelist มี 29 ตำบล
-- Google Apps Script Sync ไม่มี `setValue`, `setValues`, `appendRow`, `deleteRow`, `clearContent`
-- Netlify publish directory = `site`
-- Functions directory = `netlify/functions`
-- user-facing `index.html` ใช้ `บ้านปิน`
+Command:
 
-## ข้อจำกัดที่ตั้งใจไว้
+```text
+python tests/playwright_dashboard_test.py
+```
 
-กรณี “บางส่วนของหมู่” ยังไม่สามารถตัดสินจุดแหล่งน้ำเป็น อปท. ใดได้จาก `Tambon + Moo` เพียงอย่างเดียว จึงถูกแยกไว้ใน `⚠️ ต้องยืนยันเขต อปท.` โดยเจตนา
+ผล: **23/23 PASS**
 
-การระบุให้แม่นยำกว่านี้ต้องมี Polygon เขต อปท. หรือฟิลด์ LocalAuthority ที่ได้รับการยืนยัน
+Test dataset:
+
+- static bootstrap เดิม: 1,158 records
+- synthetic authority fixtures: 35 records
+- รวม: 1,193 records
+
+กรณีสำคัญที่ผ่าน:
+
+- strict autocomplete 29 ตำบล
+- zero-count authority hidden
+- authority → tambon cascade
+- v1.2 authority → tambon → moo cascade
+- `ดอกคำใต้ ม.1` legacy ambiguous ไม่ถูก assign
+- `ดอกคำใต้ ม.2` explicit SELECT ถูก assign
+- `ดอกคำใต้ ม.7` explicit override ไป `อบต.ดอกคำใต้` ถูกยอมรับ
+- `ดอกคำใต้ ม.3` explicit override ไป `ทม.ดอกคำใต้` ถูกยอมรับ
+- `ดอนศรีชุม ม.4` explicit override ไป `ทม.ดอกคำใต้` ถูกยอมรับ
+- cross-tambon explicit invalid ไม่ถูกนับ
+- ไม่มี unresolved warning/bucket ใน UI
+- KPI/Table filter pipeline ไม่ double-count authority
+- damaged tab independent filter state
+- reset / keyboard / mobile behavior
+- desktop ไม่มี uncaught page errors
+- authority → tambon dropdown แสดงขอบเขตหมู่ด้วยภาษาง่าย โดย value ตำบลไม่เปลี่ยน
+- mobile ไม่มี horizontal overflow
+
+
+## 5A. Authority → Tambon scope labels
+
+เพิ่ม metadata ใน dropdown ตำบลเฉพาะเมื่อเลือก อปท. โดย **ไม่เปลี่ยน value ของตำบล**:
+
+- `สว่างอารมณ์` → แสดงเฉพาะชื่อตำบล (ไม่ต่อท้าย `ทุกหมู่`)
+- `บุญเกิด` → แสดงเฉพาะชื่อตำบล (ไม่ต่อท้าย `ทุกหมู่`)
+- `ดอกคำใต้` ภายใต้ `ทม.ดอกคำใต้` → `ม.1, 2, 7`
+- `ดอนศรีชุม` ภายใต้ `ทม.ดอกคำใต้` → `ม.1, 5, 7, 10 ทั้งหมู่ · ม.8, 9 บางพื้นที่`
+- mobile แสดงเป็นสองบรรทัดเมื่อพื้นที่แคบ
+- input หลังเลือกยังเก็บ/แสดงเฉพาะชื่อตำบล เช่น `ดอนศรีชุม`
+
+ผล unit + browser assertions: **PASS**
+
+## 6. IndexedDB/cache tests
+
+Command:
+
+```text
+python tests/playwright_cache_logic_test.py
+```
+
+ผล: **5/5 PASS**
+
+- cold network load
+- warm cache same version
+- version change refresh
+- valid + invalid raw LocalAuthority preserved through cache
+- offline warm cache
+- cold offline static bootstrap
+
+## 7. Static/integrity tests
+
+Command:
+
+```text
+python tests/static_integrity_test.py
+```
+
+ผล: **PASS**
+
+ตรวจ:
+
+- package/build version = 1.4.3
+- Netlify Blobs = 11.0.1
+- unresolved UI ไม่มี
+- `WaterOwner` ไม่อยู่ใน resolver
+- root/site HTML copies ตรงกัน
+- `maeka.html` และ `water-data-loader.js` ยัง byte-identical กับ validated v1.3.1
+- GAS sync เป็น read-only
+- LocalAuthority policy contract มีครบ
+
+## 8. สิ่งที่ยังไม่ได้ทำใน Candidate นี้
+
+ยังไม่ได้ทำ live integration กับ Production dataset ปัจจุบันหลังกรอก `LocalAuthority` จริง เพราะขั้นนั้นต้องเกิดหลังฟอร์ม `KebNamComplete v1.2` บันทึกคอลัมน์ Y จริงแล้ว
+
+Production gate ที่เหลือ:
+
+```text
+กรอก KebNamComplete v1.2 จริง
+→ ตรวจ Sheet Y = LocalAuthority
+→ วาง GAS sync helper รุ่นนี้
+→ manual sync
+→ ตรวจ /api/waterresources
+→ ตรวจ Authority counts ด้วย dataset จริง
+→ ตรวจ KPI / Table / Map
+→ Deploy Dashboard Production
+```
+
+## Result
+
+```text
+Area resolver                 PASS
+KebNam v1.2 exact mapping     PASS (47 combinations)
+KebNam server parity          PASS (6,960 cases)
+GAS sync contract             PASS
+Static integrity              PASS
+Netlify functions             PASS (10/10)
+Playwright dashboard          PASS (23/23)
+Playwright cache              PASS (5/5)
+Production live integration   NOT RUN — gated intentionally
+```

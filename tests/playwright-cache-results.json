@@ -9,7 +9,7 @@
         "version": "\"v1\"",
         "count": 2,
         "elapsedMs": 1,
-        "timestamp": "2026-08-24T18:51:57.945Z"
+        "timestamp": "2026-08-27T14:40:42.243Z"
       }
     },
     {
@@ -20,31 +20,31 @@
         "version": "\"v1\"",
         "count": 2,
         "elapsedMs": 0,
-        "timestamp": "2026-08-24T18:51:57.976Z",
+        "timestamp": "2026-08-27T14:40:42.252Z",
         "remoteUpdatedAt": "2026-08-25T00:00:00+07:00"
       }
     },
     {
-      "test": "new_version_refreshes_indexeddb",
+      "test": "new_version_refreshes_indexeddb_and_preserves_raw_localauthority",
       "ok": true,
       "diagnostics": {
         "source": "netlify-blob-api",
         "version": "\"v2\"",
         "count": 3,
         "elapsedMs": 0,
-        "timestamp": "2026-08-24T18:51:57.983Z",
+        "timestamp": "2026-08-27T14:40:42.260Z",
         "remoteUpdatedAt": "2026-08-25T00:00:00+07:00"
       }
     },
     {
-      "test": "api_offline_uses_warm_cache",
+      "test": "api_offline_uses_warm_cache_with_raw_localauthority",
       "ok": true,
       "diagnostics": {
         "source": "indexeddb-cache-offline",
         "version": "\"v2\"",
         "count": 3,
-        "elapsedMs": 0,
-        "timestamp": "2026-08-24T18:51:57.990Z",
+        "elapsedMs": 1,
+        "timestamp": "2026-08-27T14:40:42.268Z",
         "remoteUpdatedAt": "2026-08-25T00:00:00+07:00"
       }
     },
@@ -56,7 +56,7 @@
         "version": "bootstrap:3",
         "count": 3,
         "elapsedMs": 2,
-        "timestamp": "2026-08-24T18:51:58.084Z"
+        "timestamp": "2026-08-27T14:40:42.390Z"
       }
     }
   ]

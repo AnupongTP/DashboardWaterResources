@@ -1,0 +1,17 @@
+{
+  "ok": true,
+  "kebNamVersion": "v1.2",
+  "dashboardVersion": "1.4.3",
+  "exactMappingThreeWayEqual": true,
+  "exactMappingCombinationCount": 47,
+  "serverResolverParityCases": 6960,
+  "rulesetVersion": "2026-08-27.2",
+  "policyVersion": "KebNamComplete-LocalAuthority-v1.2",
+  "sourceHashes": {
+    "kebNamCodeJs": "847e42d8015c06121c9fee3e83a722697bc3d7394b09aaa20aac01201ab4bc66",
+    "kebNamScriptsHtml": "141128ce315c0d21914011cfe2d7cfbe730bcfd0d032c55da4a03ddf56c58549",
+    "dashboardAreaResponsibilityJs": "9c510e05b417148d044d7963f49cad04c1e5e3e5d98cbfb84d8cfce4be8df8bc",
+    "dashboardAuthorityMappingContract": "8fef95ad007ed8463f1e4295919f41e1825b1a4991b2880a414337502d5e6c22"
+  },
+  "note": "Authority resolver/mapping unchanged from v1.4.1; v1.4.3 keeps v1.4.2 scope metadata but suppresses the “ทุกหมู่” suffix for full-tambon entries."
+}

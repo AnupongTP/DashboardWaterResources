@@ -13,6 +13,11 @@ export const ALLOWED_TAMBONS = new Set([
   'จำป่าหวาย','บ้านถ้ำ','แม่อิง','สันโค้ง','ดงเจน'
 ]);
 
+export const ALLOWED_AUTHORITIES = new Set([
+  'ทม.ดอกคำใต้','อบต.คือเวียง','อบต.บ้านปิน','อบต.ดอกคำใต้','อบต.จำป่าหวาย',
+  'ทต.บ้านถ้ำ','อบต.ดอนศรีชุม','อบต.แม่อิง','ทต.ดงเจน','อบต.สันโค้ง'
+]);
+
 // ชื่อมาตรฐานคือ 'บ้านปิน'; alias แรกมีไว้รองรับข้อมูลเดิมที่สะกดผิดเท่านั้น
 // และถูก normalize ใน snapshot ของ Dashboard โดยไม่เขียนกลับ Google Sheet
 const LEGACY_TAMBON_ALIASES = new Map([
@@ -64,6 +69,20 @@ function normalizeType(value) {
   return text;
 }
 
+export function normalizeAuthority(value) {
+  const text = textOrNull(value);
+  if (!text) return null;
+  return ALLOWED_AUTHORITIES.has(text) ? text : null;
+}
+
+// Preserve the raw LocalAuthority field from the authenticated Google Sheets snapshot.
+// Do NOT silently coerce an unknown value to null here: doing that would make the browser
+// mistake a bad explicit value for a legacy record and could incorrectly apply fallback.
+// The browser resolver validates the preserved value against the v1.2 authority policy.
+export function normalizeAuthorityField(value) {
+  return textOrNull(value);
+}
+
 export function normalizeRecord(input) {
   if (!input || typeof input !== 'object') return null;
   const id = finiteNumber(input.id, null);
@@ -91,7 +110,10 @@ export function normalizeRecord(input) {
     imglink: textOrNull(input.imglink),
     volume: finiteNumber(input.volume, 0),
     note: primitiveOrNull(input.note),
-    status: textOrNull(input.status)
+    status: textOrNull(input.status),
+    // Optional field from KebNamComplete LocalAuthority rollout.
+    // Current legacy sync may omit it; browser resolver still validates Tambon + Moo compatibility.
+    localAuthority: normalizeAuthorityField(input.localAuthority)
   };
 }
 

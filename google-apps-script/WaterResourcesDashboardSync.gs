@@ -93,11 +93,13 @@ function buildDashboardWaterResourcesSnapshot_() {
   if (!sheet) throw new Error('ไม่พบชีต ' + WATER_DASHBOARD_SYNC_CONFIG.SHEET_NAME);
 
   const lastRow = sheet.getLastRow();
-  const lastColumn = Math.min(sheet.getLastColumn(), 24);
-  if (lastRow < 2 || lastColumn < 1) return [];
+  const physicalLastColumn = sheet.getLastColumn();
+  if (lastRow < 2 || physicalLastColumn < 1) return [];
 
-  const values = sheet.getRange(1, 1, lastRow, lastColumn).getValues();
-  const headers = values[0].map(function (value) { return String(value || '').trim(); });
+  // Read the header first, then fetch only the columns that are actually part of the contract.
+  // LocalAuthority is optional during rollout, so this helper works both before and after column Y exists.
+  const headerRow = sheet.getRange(1, 1, 1, physicalLastColumn).getValues()[0];
+  const headers = headerRow.map(function (value) { return String(value || '').trim(); });
   const headerIndex = {};
   headers.forEach(function (header, index) { if (header) headerIndex[header] = index; });
 
@@ -108,6 +110,11 @@ function buildDashboardWaterResourcesSnapshot_() {
   ];
   const missing = required.filter(function (header) { return headerIndex[header] === undefined; });
   if (missing.length) throw new Error('ชีตขาดคอลัมน์: ' + missing.join(', '));
+
+  const contractHeaders = required.concat(headerIndex.LocalAuthority === undefined ? [] : ['LocalAuthority']);
+  const maxContractIndex = Math.max.apply(null, contractHeaders.map(function (header) { return headerIndex[header]; }));
+  const readColumnCount = maxContractIndex + 1;
+  const values = sheet.getRange(1, 1, lastRow, readColumnCount).getValues();
 
   const allowedTambons = new Set(WATER_DASHBOARD_SYNC_CONFIG.ALLOWED_TAMBONS);
   const output = [];
@@ -139,7 +146,11 @@ function buildDashboardWaterResourcesSnapshot_() {
       imglink: toTextOrNull_(row[headerIndex.LinkImage]),
       volume: toNumberOrNull_(row[headerIndex.Volumn]) || 0,
       note: toPrimitiveOrNull_(row[headerIndex.Note]),
-      status: toTextOrNull_(row[headerIndex.Status])
+      status: toTextOrNull_(row[headerIndex.Status]),
+      // Optional during rollout. Preserve the exact Sheet value; Dashboard v1.4.3 validates it.
+      localAuthority: headerIndex.LocalAuthority === undefined
+        ? null
+        : toTextOrNull_(row[headerIndex.LocalAuthority])
     });
   }
 

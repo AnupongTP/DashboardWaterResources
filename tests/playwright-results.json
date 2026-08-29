@@ -2,8 +2,8 @@
   "ok": true,
   "masterTambonCount": 29,
   "baseDatasetCount": 1158,
-  "syntheticRecordCount": 24,
-  "testDatasetCount": 1182,
+  "syntheticRecordCount": 35,
+  "testDatasetCount": 1193,
   "results": [
     {
       "test": "tambon_controls_are_custom_allowlist_comboboxes",
@@ -13,6 +13,21 @@
       "test": "master_tambon_list_exact_29",
       "ok": true,
       "count": 29
+    },
+    {
+      "test": "zero_count_authorities_hidden_from_dropdown",
+      "ok": true,
+      "authorities": [
+        "ทม.ดอกคำใต้",
+        "อบต.บ้านปิน",
+        "อบต.ดอกคำใต้",
+        "อบต.จำป่าหวาย",
+        "ทต.บ้านถ้ำ",
+        "อบต.ดอนศรีชุม",
+        "อบต.แม่อิง",
+        "ทต.ดงเจน",
+        "อบต.สันโค้ง"
+      ]
     },
     {
       "test": "tambon_search_recommendations_filter_master_list",
@@ -36,6 +51,10 @@
       "ok": true
     },
     {
+      "test": "authority_tambon_dropdown_hides_full_tambon_suffix_and_shows_partial_moo_scope",
+      "ok": true
+    },
+    {
       "test": "executive_authority_cascade_limits_combobox_scope",
       "ok": true,
       "tambons": [
@@ -50,13 +69,17 @@
       "ok": true
     },
     {
-      "test": "detail_authority_tambon_moo_cascade",
+      "test": "detail_authority_tambon_moo_cascade_v12",
       "ok": true,
       "moos": [
         "ทั้งหมด",
+        "หมู่ 1",
+        "หมู่ 2",
+        "หมู่ 3",
         "หมู่ 4",
         "หมู่ 5",
         "หมู่ 6",
+        "หมู่ 7",
         "หมู่ 8"
       ]
     },
@@ -65,11 +88,19 @@
       "ok": true
     },
     {
-      "test": "overlapping_moos_visible_but_disabled",
+      "test": "select_mode_requires_explicit_localauthority_for_overlap",
       "ok": true
     },
     {
-      "test": "partial_moos_visible_but_disabled",
+      "test": "suggest_mode_explicit_same_tambon_override_is_respected",
+      "ok": true
+    },
+    {
+      "test": "recommended_authority_does_not_override_confirmed_field",
+      "ok": true
+    },
+    {
+      "test": "don_si_chum_v12_override_and_zero_result_filter_are_consistent",
       "ok": true
     },
     {
@@ -77,13 +108,8 @@
       "ok": true
     },
     {
-      "test": "unresolved_bucket_is_safe_and_precise",
-      "ok": true,
-      "records": [
-        "ดงเจน-หมู่6-นอกบัญชี",
-        "ดอกคำใต้-หมู่1-เขตซ้อน",
-        "ดอนศรีชุม-หมู่8-บางส่วน"
-      ]
+      "test": "unresolved_ui_removed_and_invalid_records_never_authority_counted",
+      "ok": true
     },
     {
       "test": "previously_omitted_eight_are_selectable",

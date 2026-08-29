@@ -1,64 +1,31 @@
-DashboardWaterResources — FINAL 29 ตำบล + Strict Autocomplete + Netlify Blob Cache
+DashboardWaterResources v1.4.3 — LocalAuthority v1.2 Candidate
 
-สิ่งสำคัญของเวอร์ชันนี้
-- Master List ตำบล = 29 รายการ
-- ช่องตำบลเป็นช่องพิมพ์ค้นหา + รายการแนะนำ
-- ไม่ยอมใช้ข้อความอิสระ: ต้องเลือกรายการที่ระบบอนุญาตเท่านั้น
-- ชื่อมาตรฐาน = บ้านปิน
-- Cache/IndexedDB/Netlify Blob ยังทำงานเหมือนเดิม
+สถานะ
+- ยังไม่ใช่ Production rollout
+- Dashboard + Netlify + GAS sync helper รองรับ LocalAuthority v1.2 แล้ว
+- รอการทดสอบกรอกจริงของ KebNamComplete และ integration กับข้อมูลจริงก่อน Production
 
-สิ่งที่ต้องทำหลังได้รับ ZIP
+กติกาหลัก
+1. LocalAuthority ที่ valid มี priority เหนือค่าแนะนำจาก Tambon+Moo
+2. SUGGEST: exact 1 ค่าเป็นเพียงคำแนะนำ และ explicit override ภายในตำบลเดียวกันต้องถูกยอมรับ
+3. SELECT: exact >1 ต้องเลือกจาก exact options เท่านั้น
+4. TAMBON_ONLY: ไม่รับ LocalAuthority
+5. ข้อมูลเก่า exact 1 ค่าใช้ legacy fallback ชั่วคราว
+6. WaterOwner ไม่ใช้ตัดสินเขต อปท.
+7. ไม่มี “ต้องยืนยันเขต อปท.” ใน Dashboard
+8. อปท. resolved count = 0 ถูกซ่อนจาก dropdown
+9. Netlify เก็บ raw localAuthority เพื่อให้ Browser ตรวจ invalid explicit ได้ถูกต้อง
+10. Master List ตำบลยังครบ 29
 
-1) แตก ZIP แล้ว Deploy "ทั้งโปรเจกต์" ขึ้น Netlify ผ่าน Git หรือ Netlify CLI
-   - Publish directory = site
-   - Functions directory = netlify/functions
-   - ห้ามอัปเฉพาะ site/ ด้วย Netlify Drop
+ทดสอบ:
+node tests/area_responsibility_test.mjs
+python tests/static_integrity_test.py
+node tests/netlify_function_test.mjs
+python tests/playwright_dashboard_test.py
+python tests/playwright_cache_logic_test.py
 
-2) ตั้ง Netlify Environment Variable
-   WATER_SYNC_SECRET = <secret อย่างน้อย 24 ตัวอักษร>
-   ถ้าใช้ Secret เดิมจากระบบ Cache และยังเป็นความลับ ใช้ค่าเดิมได้
-
-3) Google Apps Script ของ WaterResources
-   เพิ่ม/แทนที่ไฟล์:
-   google-apps-script/WaterResourcesDashboardSync.gs
-
-   ไฟล์นี้อ่าน WaterResources อย่างเดียว ไม่เขียน/แก้/ลบเซลล์
-
-4) ตั้ง Script Properties
-   WATER_DASHBOARD_SYNC_URL = https://YOUR-SITE.netlify.app/api/waterresources/sync
-   WATER_DASHBOARD_SYNC_SECRET = <secret เดียวกับ Netlify>
-
-5) หลัง Deploy เวอร์ชันนี้ ต้อง Run 1 ครั้ง
-   syncWaterResourcesToDashboard()
-
-   จำเป็น เพราะ runtime Blob ต้องสร้าง snapshot ใหม่จาก whitelist 29 ตำบล
-
-6) ถ้ายังไม่เคยติดตั้ง Safety Trigger ให้ Run 1 ครั้ง
-   installWaterDashboardSyncSafetyTriggers()
-
-7) เปิด index.html แล้วตรวจ
-   - ช่องตำบลกดแล้วเห็น 29 รายการ
-   - พิมพ์ค้นหาได้
-   - ข้อความที่ไม่ได้เลือกจากรายการถูก reject
-   - อปท. -> ตำบล -> หมู่ -> หมู่บ้าน ทำงานสัมพันธ์กัน
-
-8) ทดสอบ URL
-   /api/waterresources/version
-   /api/waterresources
-
-Master List 29 ตำบล
-แม่กา, แม่นาเรือ, แม่ใส, บ้านตุ่น, บ้านสาง, สันป่าม่วง, บ้านต๋อม, บ้านต๊ำ,
-ท่าจำปี, เทศบาลเมือง, เจริญราษฎร์, แม่ปืม, แม่สุก, ป่าแฝก, บ้านเหล่า,
-บ้านใหม่, แม่ใจ, ศรีถ้อย, สว่างอารมณ์, บุญเกิด, ดอกคำใต้, ดอนศรีชุม,
-คือเวียง, บ้านปิน, จำป่าหวาย, บ้านถ้ำ, แม่อิง, สันโค้ง, ดงเจน
-
-หมายเหตุ
-- บ้านปิน = ชื่อมาตรฐาน
-- legacy spelling รองรับเฉพาะภายใน pipeline เพื่อไม่ให้ข้อมูลเก่าหลุด ไม่แสดงเป็นชื่อมาตรฐาน และไม่แก้ Sheet
-- ดอกคำใต้ หมู่ 1,2 และดอนศรีชุม หมู่ 8,9 ไม่ถูกเดา อปท.
-- WaterOwner ไม่ถูกใช้ตัดสินเขต อปท.
-- maeka.html ไม่ได้ถูกแก้
-
-รายละเอียดทั้งหมด: README_SETUP_TH.md
-กติกาพื้นที่: docs/AREA_RESPONSIBILITY_RULES_TH.md
-ผลทดสอบ: docs/TEST_REPORT.md
+รายละเอียด:
+README_SETUP_TH.md
+docs/AREA_RESPONSIBILITY_RULES_TH.md
+docs/ARCHITECTURE.md
+docs/TEST_REPORT.md

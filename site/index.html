@@ -786,11 +786,6 @@ canvas{max-width:100%!important;}
   margin-left:auto;font-size:12.5px;color:#5a7080;
   background:#e3f2fd;padding:5px 12px;border-radius:6px;white-space:nowrap;
 }
-.authority-filter-note{
-  font-size:11px;line-height:1.55;color:#607d8b;background:#f8fbfd;
-  border:1px solid #dbe8ef;border-radius:7px;padding:7px 9px;margin-top:2px;
-}
-.authority-filter-note strong{color:#c62828;}
 /* จอมือถือ: จัดแถบตัวกรองเรียงเป็นคอลัมน์เดียว เต็มความกว้าง แทนการไหลแบบ wrap ที่ทำให้แต่ละชิ้นกว้างไม่เท่ากันและดูไม่เป็นระเบียบ */
 @media (max-width:600px){
   .exec-filter-bar{flex-direction:column;align-items:stretch;gap:10px;}
@@ -1172,7 +1167,11 @@ table.data-tbl tr:hover td{background:#ddeeff;}
 }
 .tambon-combobox-list[hidden]{display:none;}
 .tambon-combobox-option{padding:9px 12px;font-size:13px;color:#183449;cursor:pointer;line-height:1.35;}
+.tambon-combobox-option.has-scope{display:grid;grid-template-columns:minmax(92px,auto) minmax(0,1fr);gap:5px 10px;align-items:start;}
+.tambon-combobox-option-name{font-weight:700;min-width:0;}
+.tambon-combobox-option-scope{font-size:11.5px;font-weight:500;color:#607d8b;line-height:1.45;min-width:0;overflow-wrap:anywhere;}
 .tambon-combobox-option:hover,.tambon-combobox-option.is-active{background:#e3f2fd;color:#0d47a1;font-weight:700;}
+.tambon-combobox-option:hover .tambon-combobox-option-scope,.tambon-combobox-option.is-active .tambon-combobox-option-scope{color:#315f86;}
 .tambon-combobox-empty{padding:10px 12px;font-size:12px;color:#8a9aa0;line-height:1.4;}
 .tambon-combobox-error{font-size:10.5px;color:#c62828;font-weight:700;line-height:1.35;margin-top:4px;}
 .tambon-combobox-error[hidden]{display:none;}
@@ -1196,6 +1195,10 @@ table.data-tbl tr:hover td{background:#ddeeff;}
 @media(max-width:960px){
   .exec-filter-bar .tambon-combobox{width:100%;max-width:none;min-width:0;flex:0 0 auto;}
   .df-group .tambon-combobox{width:100%;min-width:0;}
+}
+@media(max-width:560px){
+  .tambon-combobox-option.has-scope{grid-template-columns:1fr;gap:2px;}
+  .tambon-combobox-option-scope{font-size:11px;}
 }
 
 /* damaged tab */
@@ -1545,7 +1548,7 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
       <div class="filter-head"><h3>🔍 ตัวกรองข้อมูล</h3></div>
       <div class="filter-body">
         <div class="f-group"><label>ค้นหา</label><input type="text" id="searchBox" placeholder="ชื่อ / เจ้าของ / หมู่บ้าน..."></div>
-        <div class="f-group"><label>อปท./เทศบาล</label><select id="fAuthority"><option value="">ทั้งหมด</option></select><div class="authority-filter-note">พื้นที่ที่แบ่งกันระดับหมู่จะไม่ถูกเดาอัตโนมัติ และจะแยกไว้ใน <strong>“ต้องยืนยันเขต อปท.”</strong></div></div>
+        <div class="f-group"><label>อปท./เทศบาล</label><select id="fAuthority"><option value="">ทั้งหมด</option></select></div>
         <div class="f-group"><label for="fTambon">ตำบล</label>
           <div class="tambon-combobox" id="fTambonBox">
             <div class="tambon-combobox-inputwrap">
@@ -1706,7 +1709,10 @@ if (typeof Chart !== 'undefined') {
 const TAMBONS_ORDER=AREA.TAMBON_ORDER.slice();
 const AVAILABLE_TAMBONS=TAMBONS_ORDER.filter(tb=>RAW.some(r=>r.tambon===tb));
 const AUTHORITY_ORDER=AREA.AUTHORITY_ORDER.slice();
-const UNRESOLVED_AUTHORITY=AREA.UNRESOLVED_VALUE;
+const AUTHORITY_COUNTS=AREA.authorityCounts(RAW);
+const ACTIVE_AUTHORITIES=AREA.activeAuthorities(RAW);
+const AUTHORITY_RESOLUTION_STATS=AREA.resolutionStats(RAW);
+window.__AUTHORITY_RESOLUTION_STATS__=AUTHORITY_RESOLUTION_STATS;
 const TYPES_ORDER=['สระน้ำ/บ่อน้ำ(มนุษย์สร้าง)','ฝาย','ห้วย/คลอง','บ่อน้ำตื้น/บ่อตอก/บ่อวง','ประตูน้ำ','บ่อบาดาล','รางส่งน้ำ/ท่อส่งน้ำ','อ่างเก็บน้ำ','อ่างเก็บน้ำ/ ถังเก็บน้ำ','สถานีสูบน้ำไฟฟ้า','ลำน้ำ/แม่น้ำ','บ่อน้ำ (ตามธรรมชาติ)'];
 const PROBLEM_TAGS=['ใช้งานได้','วัชพืชปกคลุม','น้ำตื้นเขิน','ชำรุด','ไม่มีน้ำ/แห้งแล้ง','น้ำมีสี','น้ำเน่าเสีย','ไม่สามารถใช้งานได้'];
 // รายการปัญหาเฉพาะจุด (ไม่รวม "ใช้งานได้" ซึ่งแยกไปอยู่ในตัวกรอง "สถานะการใช้งาน" แล้ว) — ใช้กับชั้นข้อมูล "ตัวกรองปัญหาที่พบเจอ" บนแผนที่
@@ -1758,8 +1764,7 @@ function isUsable(r){return r.problem&&r.problem.includes('ใช้งานไ
 function uniqueSorted(arr){return[...new Set(arr.filter(Boolean))].sort((a,b)=>a.localeCompare(b,'th'));}
 function countBy(data,key){const c={};data.forEach(d=>{const k=d[key]||'ไม่ระบุ';c[k]=(c[k]||0)+1;});return c;}
 function authorityDisplay(d){
-  if(d&&d.localAuthority)return d.localAuthority;
-  return AREA.authoritiesForTambon(d&&d.tambon).length?AREA.UNRESOLVED_LABEL:'-';
+  return d&&d.localAuthority?d.localAuthority:'-';
 }
 
 // ===== MAIN NAV =====
@@ -1790,9 +1795,6 @@ let state={authority:'',tambon:'',moo:'',type:'',village:'',q:'',problem:null};
 function matchesAuthority(r, authority){ return AREA.recordMatchesAuthority(r, authority); }
 function authorityTambonScope(authority){
   if(!authority) return TAMBONS_ORDER.slice();
-  if(authority===UNRESOLVED_AUTHORITY){
-    return AREA.NEW_TAMBONS.filter(tb=>RAW.some(r=>r.tambon===tb&&matchesAuthority(r,UNRESOLVED_AUTHORITY)));
-  }
   return AREA.tambonsForAuthority(authority);
 }
 function availableTambonsForExec(){
@@ -1900,7 +1902,7 @@ function setupExecFilters() {
   var efA=document.getElementById('efAuthority');
   var efTy=document.getElementById('efType');
 
-  AUTHORITY_ORDER.concat([UNRESOLVED_AUTHORITY]).forEach(function(v){
+  ACTIVE_AUTHORITIES.forEach(function(v){
     var o=document.createElement('option');o.value=v;o.textContent=AREA.authorityOptionLabel(v);efA.appendChild(o);
   });
   types.forEach(function(v){var o=document.createElement('option');o.value=v;o.textContent=v;efTy.appendChild(o);});
@@ -1908,6 +1910,7 @@ function setupExecFilters() {
   var efTambonCombo=TAMBON_UI.create({
     input:'#efTambon',listbox:'#efTambonListbox',clearButton:'#efTambonClear',errorElement:'#efTambonError',
     items:TAMBONS_ORDER,
+    itemMeta:function(tambon){return AREA.authorityTambonScopeText(execFilter.authority,tambon);},
     onChange:function(value){
       execFilter.tambon=value;
       crossFilter={type:null,tambon:null,problem:null};
@@ -3078,12 +3081,13 @@ const types=uniqueSorted(RAW.map(r=>r.type));
 function fillSelect(sel,items,labelFn){items.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=labelFn?labelFn(v):v;sel.appendChild(o);});}
 function resetSelect(sel,placeholder){sel.innerHTML='<option value="">'+placeholder+'</option>';}
 
-fillSelect($('#fAuthority'),AUTHORITY_ORDER.concat([UNRESOLVED_AUTHORITY]),v=>AREA.authorityOptionLabel(v));
+fillSelect($('#fAuthority'),ACTIVE_AUTHORITIES,v=>AREA.authorityOptionLabel(v));
 fillSelect($('#fType'),types);
 
 const detailTambonCombo=TAMBON_UI.create({
   input:'#fTambon',listbox:'#fTambonListbox',clearButton:'#fTambonClear',errorElement:'#fTambonError',
   items:TAMBONS_ORDER,
+  itemMeta:tambon=>AREA.authorityTambonScopeText(state.authority,tambon),
   onChange:value=>{
     state.tambon=value;state.moo='';state.village='';
     refreshMooOptions();refreshVillageOptions();render();runBuildExec();
@@ -3105,26 +3109,20 @@ function refreshMooOptions(){
   if(!state.tambon){state.moo='';return;}
   let pool=RAW.filter(r=>r.tambon===state.tambon);
   if(state.authority)pool=pool.filter(r=>matchesAuthority(r,state.authority));
-  const hasSpecificAuthority=state.authority&&state.authority!==UNRESOLVED_AUTHORITY;
-  const configured=hasSpecificAuthority?AREA.configuredMoos(state.authority,state.tambon):[];
-  const ambiguousSet=new Set((hasSpecificAuthority?AREA.ambiguousMoos(state.authority,state.tambon):[]).map(String));
+  const hasSpecificAuthority=!!state.authority;
+  // v1.2: แสดงหมู่ที่ authority นี้เป็นค่าที่ผู้กรอกสามารถยืนยันได้ตาม Master ของตำบล
+  // แล้วรวมกับหมู่ที่มี record จริง เพื่อรองรับ explicit override และ legacy data พร้อมกัน
+  const configured=hasSpecificAuthority?AREA.validConfiguredMoos(state.authority,state.tambon):[];
   const fromData=pool.map(r=>AREA.normalizeMoo(r.moo)).filter(v=>v!==null);
   const items=[...new Set(configured.concat(fromData))].sort((a,b)=>a-b).map(String);
   items.forEach(v=>{
     const o=document.createElement('option');
     o.value=v;
     const vn=hasSpecificAuthority?AREA.configuredVillageForMoo(state.authority,state.tambon,v):null;
-    const base=vn?'หมู่ '+v+' — '+vn:'หมู่ '+v;
-    if(ambiguousSet.has(v)){
-      o.textContent=base+' — ⚠️ ต้องยืนยันเขต';
-      o.disabled=true;
-      o.title='หมู่นี้เป็นเขตซ้อนหรือแบ่งเพียงบางส่วน จึงยังกรองเข้า อปท.นี้โดยอัตโนมัติไม่ได้';
-    }else{
-      o.textContent=base;
-    }
+    o.textContent=vn?'หมู่ '+v+' — '+vn:'หมู่ '+v;
     sel.appendChild(o);
   });
-  const curOption=[...sel.options].find(o=>o.value===String(cur)&&!o.disabled);
+  const curOption=[...sel.options].find(o=>o.value===String(cur));
   if(cur&&curOption){sel.value=String(cur);}else{sel.value='';state.moo='';state.village='';}
 }
 
@@ -3442,12 +3440,13 @@ function renderDamagedTab(){
 }
 (function setupDamagedFilters(){
   const dfa=$('#dfAuthority'),dfty=$('#dfType');
-  fillSelect(dfa,AUTHORITY_ORDER.concat([UNRESOLVED_AUTHORITY]),v=>AREA.authorityOptionLabel(v));
+  fillSelect(dfa,ACTIVE_AUTHORITIES,v=>AREA.authorityOptionLabel(v));
   uniqueSorted(RAW.filter(isDamaged).map(r=>r.type)).forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;dfty.appendChild(o);});
 
   const damagedTambonCombo=TAMBON_UI.create({
     input:'#dfTambon',listbox:'#dfTambonListbox',clearButton:'#dfTambonClear',errorElement:'#dfTambonError',
     items:TAMBONS_ORDER,
+    itemMeta:tambon=>AREA.authorityTambonScopeText(dfState.authority,tambon),
     onChange:value=>{dfState.tambon=value;renderDamagedTab();}
   });
 

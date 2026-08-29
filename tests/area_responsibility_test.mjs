@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 
 globalThis.window = {};
 await import('../site/assets/area-responsibility.js');
@@ -12,45 +13,89 @@ const MASTER_TAMBONS = [
 ];
 const ORIGINAL_18 = MASTER_TAMBONS.slice(0, 18);
 const AUTHORITY_11 = MASTER_TAMBONS.slice(18);
+const AUTHORITIES = [
+  'ทม.ดอกคำใต้','อบต.คือเวียง','อบต.บ้านปิน','อบต.ดอกคำใต้','อบต.จำป่าหวาย',
+  'ทต.บ้านถ้ำ','อบต.ดอนศรีชุม','อบต.แม่อิง','ทต.ดงเจน','อบต.สันโค้ง'
+];
 
-assert.equal(A.RULESET_VERSION, '2026-08-25.2');
+assert.equal(A.RULESET_VERSION, '2026-08-27.2');
+assert.equal(A.POLICY_VERSION, 'KebNamComplete-LocalAuthority-v1.2');
 assert.deepEqual(A.TAMBON_ORDER, MASTER_TAMBONS);
 assert.deepEqual(A.OLD_TAMBONS, ORIGINAL_18);
 assert.deepEqual(A.NEW_TAMBONS, AUTHORITY_11);
+assert.deepEqual(A.AUTHORITY_ORDER, AUTHORITIES);
 assert.equal(new Set(A.TAMBON_ORDER).size, 29);
 
 assert.equal(A.canonicalTambon('บ้านปิน'), 'บ้านปิน');
-// legacy compatibility only; canonical/display name remains บ้านปิน
 assert.equal(A.canonicalTambon('บ้านปิ่น'), 'บ้านปิน');
 assert.equal(A.canonicalTambon('เทศบาลเมืองพะเยา'), 'เทศบาลเมือง');
-
-assert.deepEqual(A.AUTHORITY_ORDER, [
-  'ทม.ดอกคำใต้','อบต.คือเวียง','อบต.บ้านปิน','อบต.ดอกคำใต้','อบต.จำป่าหวาย',
-  'ทต.บ้านถ้ำ','อบต.ดอนศรีชุม','อบต.แม่อิง','ทต.ดงเจน','อบต.สันโค้ง'
-]);
+assert.equal(A.normalizeAuthority(' ทม.ดอกคำใต้ '), 'ทม.ดอกคำใต้');
+assert.equal(A.normalizeAuthority('อบต.ที่ไม่มีใน Master'), null);
 
 assert.deepEqual(A.tambonsForAuthority('ทม.ดอกคำใต้'), ['สว่างอารมณ์','บุญเกิด','ดอกคำใต้','ดอนศรีชุม']);
-assert.deepEqual(A.tambonsForAuthority('อบต.คือเวียง'), ['คือเวียง']);
-assert.deepEqual(A.tambonsForAuthority('อบต.บ้านปิน'), ['บ้านปิน']);
-assert.deepEqual(A.tambonsForAuthority('อบต.ดอกคำใต้'), ['ดอกคำใต้']);
-assert.deepEqual(A.tambonsForAuthority('อบต.จำป่าหวาย'), ['จำป่าหวาย']);
-assert.deepEqual(A.tambonsForAuthority('ทต.บ้านถ้ำ'), ['บ้านถ้ำ']);
-assert.deepEqual(A.tambonsForAuthority('อบต.ดอนศรีชุม'), ['ดอนศรีชุม']);
-assert.deepEqual(A.tambonsForAuthority('อบต.แม่อิง'), ['แม่อิง']);
 assert.deepEqual(A.tambonsForAuthority('ทต.ดงเจน'), ['แม่อิง','ดงเจน']);
-assert.deepEqual(A.tambonsForAuthority('อบต.สันโค้ง'), ['สันโค้ง']);
+assert.deepEqual(A.tambonsForAuthority(''), MASTER_TAMBONS);
 
-assert.deepEqual(A.configuredMoos('ทม.ดอกคำใต้', 'ดอกคำใต้'), [1,2,7]);
-assert.deepEqual(A.ambiguousMoos('ทม.ดอกคำใต้', 'ดอกคำใต้'), [1,2]);
-assert.deepEqual(A.configuredMoos('ทม.ดอกคำใต้', 'ดอนศรีชุม'), [1,5,7,8,9,10]);
-assert.deepEqual(A.ambiguousMoos('ทม.ดอกคำใต้', 'ดอนศรีชุม'), [8,9]);
-assert.deepEqual(A.configuredMoos('อบต.ดอกคำใต้', 'ดอกคำใต้'), [1,2,3,4,5,6,8,9,10]);
-assert.deepEqual(A.ambiguousMoos('อบต.ดอกคำใต้', 'ดอกคำใต้'), [1,2]);
-assert.deepEqual(A.configuredMoos('อบต.ดอนศรีชุม', 'ดอนศรีชุม'), [2,3,4,6,8,9]);
-assert.deepEqual(A.ambiguousMoos('อบต.ดอนศรีชุม', 'ดอนศรีชุม'), [8,9]);
-assert.deepEqual(A.configuredMoos('อบต.แม่อิง', 'แม่อิง'), [4,5,6,8]);
-assert.deepEqual(A.configuredMoos('ทต.ดงเจน', 'แม่อิง'), [1,2,3,7]);
-assert.deepEqual(A.configuredMoos('ทต.ดงเจน', 'ดงเจน'), [1,2,3,4,5,8,9,10,11,12,13,16]);
+// Exact mapping contract must remain byte-for-byte semantically equal to the validated form master.
+const mappingContract = JSON.parse(
+  fs.readFileSync(new URL('../docs/AUTHORITY_MAPPING_CONTRACT.json', import.meta.url), 'utf8')
+);
+let contractCombinationCount = 0;
+for (const [tambon, rule] of Object.entries(mappingContract)) {
+  if (Array.isArray(rule.all)) {
+    assert.deepEqual(A.authorityOptionsFor(tambon, 1), rule.all, `${tambon}|all`);
+    contractCombinationCount += 1;
+  }
+  for (const [moo, expected] of Object.entries(rule.moos || {})) {
+    assert.deepEqual(A.authorityOptionsFor(tambon, Number(moo)), expected, `${tambon}|${moo}`);
+    contractCombinationCount += 1;
+  }
+}
+assert.equal(contractCombinationCount, 47);
+
+// SELECT mode: exact mapping has multiple options and must not suggest one silently.
+for (const [tambon, moo, expected] of [
+  ['ดอกคำใต้',1,['ทม.ดอกคำใต้','อบต.ดอกคำใต้']],
+  ['ดอกคำใต้',2,['ทม.ดอกคำใต้','อบต.ดอกคำใต้']],
+  ['ดอนศรีชุม',8,['ทม.ดอกคำใต้','อบต.ดอนศรีชุม']],
+  ['ดอนศรีชุม',9,['ทม.ดอกคำใต้','อบต.ดอนศรีชุม']]
+]) {
+  assert.equal(A.authorityModeFor(tambon, moo), 'SELECT');
+  assert.equal(A.recommendedAuthorityFor(tambon, moo), null);
+  assert.deepEqual(A.validAuthoritiesFor(tambon, moo), expected);
+}
+
+// SUGGEST mode: exact value is recommendation, but another authority from the same tambon is a valid explicit override.
+assert.equal(A.authorityModeFor('ดอกคำใต้',3), 'SUGGEST');
+assert.equal(A.recommendedAuthorityFor('ดอกคำใต้',3), 'อบต.ดอกคำใต้');
+assert.deepEqual(A.validAuthoritiesFor('ดอกคำใต้',3), ['อบต.ดอกคำใต้','ทม.ดอกคำใต้']);
+assert.equal(A.recommendedAuthorityFor('ดอกคำใต้',7), 'ทม.ดอกคำใต้');
+assert.deepEqual(A.validAuthoritiesFor('ดอกคำใต้',7), ['ทม.ดอกคำใต้','อบต.ดอกคำใต้']);
+assert.equal(A.recommendedAuthorityFor('ดอนศรีชุม',4), 'อบต.ดอนศรีชุม');
+assert.deepEqual(A.validAuthoritiesFor('ดอนศรีชุม',4), ['อบต.ดอนศรีชุม','ทม.ดอกคำใต้']);
+assert.equal(A.recommendedAuthorityFor('แม่อิง',2), 'ทต.ดงเจน');
+assert.deepEqual(A.validAuthoritiesFor('แม่อิง',2), ['ทต.ดงเจน','อบต.แม่อิง']);
+assert.equal(A.recommendedAuthorityFor('แม่อิง',5), 'อบต.แม่อิง');
+assert.deepEqual(A.validAuthoritiesFor('แม่อิง',5), ['อบต.แม่อิง','ทต.ดงเจน']);
+
+// Full-tambon rules have only one authority, so there is nothing to override to.
+assert.deepEqual(A.validAuthoritiesFor('คือเวียง',1), ['อบต.คือเวียง']);
+assert.deepEqual(A.validAuthoritiesFor('บ้านปิน',1), ['อบต.บ้านปิน']);
+
+// TAMBON_ONLY: no exact mapping => explicit LocalAuthority is not accepted.
+assert.equal(A.authorityModeFor('ดงเจน',6), 'TAMBON_ONLY');
+assert.deepEqual(A.authorityOptionsFor('ดงเจน',6), []);
+assert.deepEqual(A.validAuthoritiesFor('ดงเจน',6), []);
+assert.equal(A.authorityModeFor('แม่กา',1), 'TAMBON_ONLY');
+
+// Legacy helpers are kept, while v1.2 cascading helper reflects every authority users can validly confirm.
+assert.deepEqual(A.autoConfiguredMoos('อบต.แม่อิง', 'แม่อิง'), [4,5,6,8]);
+assert.deepEqual(A.validConfiguredMoos('อบต.แม่อิง', 'แม่อิง'), [1,2,3,4,5,6,7,8]);
+assert.deepEqual(A.validConfiguredMoos('ทต.ดงเจน', 'แม่อิง'), [1,2,3,4,5,6,7,8]);
+assert.deepEqual(A.validConfiguredMoos('ทม.ดอกคำใต้', 'ดอกคำใต้'), [1,2,3,4,5,6,7,8,9,10]);
+assert.deepEqual(A.validConfiguredMoos('อบต.ดอกคำใต้', 'ดอกคำใต้'), [1,2,3,4,5,6,7,8,9,10]);
+assert.deepEqual(A.validConfiguredMoos('ทม.ดอกคำใต้', 'ดอนศรีชุม'), [1,2,3,4,5,6,7,8,9,10]);
+assert.deepEqual(A.validConfiguredMoos('อบต.ดอนศรีชุม', 'ดอนศรีชุม'), [1,2,3,4,5,6,7,8,9,10]);
 
 const dongJenNames = {
   1:'บ้านกว๊านกลาง',2:'บ้านสันป่าสัก',3:'บ้านกว๊านใต้',4:'บ้านกว๊านเหนือ',5:'บ้านเจน',
@@ -61,54 +106,134 @@ for (const [moo, village] of Object.entries(dongJenNames)) {
   assert.equal(A.configuredVillageForMoo('ทต.ดงเจน','ดงเจน',Number(moo)), village);
 }
 
-// Resolved examples
-assert.equal(A.resolveAuthority({tambon:'สว่างอารมณ์',moo:99}).authority, 'ทม.ดอกคำใต้');
-assert.equal(A.resolveAuthority({tambon:'บุญเกิด',moo:1}).authority, 'ทม.ดอกคำใต้');
-assert.equal(A.resolveAuthority({tambon:'ดอกคำใต้',moo:7}).authority, 'ทม.ดอกคำใต้');
-assert.equal(A.resolveAuthority({tambon:'ดอกคำใต้',moo:5}).authority, 'อบต.ดอกคำใต้');
-assert.equal(A.resolveAuthority({tambon:'คือเวียง',moo:1}).authority, 'อบต.คือเวียง');
-assert.equal(A.resolveAuthority({tambon:'บ้านปิน',moo:1}).authority, 'อบต.บ้านปิน');
-assert.equal(A.resolveAuthority({tambon:'จำป่าหวาย',moo:1}).authority, 'อบต.จำป่าหวาย');
-assert.equal(A.resolveAuthority({tambon:'บ้านถ้ำ',moo:1}).authority, 'ทต.บ้านถ้ำ');
-assert.equal(A.resolveAuthority({tambon:'ดอนศรีชุม',moo:4}).authority, 'อบต.ดอนศรีชุม');
-assert.equal(A.resolveAuthority({tambon:'แม่อิง',moo:5}).authority, 'อบต.แม่อิง');
-assert.equal(A.resolveAuthority({tambon:'แม่อิง',moo:2}).authority, 'ทต.ดงเจน');
-assert.equal(A.resolveAuthority({tambon:'ดงเจน',moo:16}).authority, 'ทต.ดงเจน');
-assert.equal(A.resolveAuthority({tambon:'สันโค้ง',moo:1}).authority, 'อบต.สันโค้ง');
+// Backward-compatible legacy fallback for records that predate LocalAuthority.
+let r = A.resolveAuthority({tambon:'ดอกคำใต้',moo:7});
+assert.equal(r.authority, 'ทม.ดอกคำใต้');
+assert.equal(r.confidence, 'legacy-inferred');
+assert.equal(r.source, 'tambon-moo-legacy-fallback');
+assert.equal(r.suggestedAuthority, 'ทม.ดอกคำใต้');
+r = A.resolveAuthority({tambon:'ดอกคำใต้',moo:5});
+assert.equal(r.authority, 'อบต.ดอกคำใต้');
+assert.equal(r.confidence, 'legacy-inferred');
+r = A.resolveAuthority({tambon:'ดอนศรีชุม',moo:4});
+assert.equal(r.authority, 'อบต.ดอนศรีชุม');
+r = A.resolveAuthority({tambon:'แม่อิง',moo:2});
+assert.equal(r.authority, 'ทต.ดงเจน');
+r = A.resolveAuthority({tambon:'แม่อิง',moo:5});
+assert.equal(r.authority, 'อบต.แม่อิง');
 
-// The eight re-added original CONFIG tambons are in the Dashboard master list but intentionally have no authority rule from this brief.
-for (const tb of ['เจริญราษฎร์','แม่ปืม','แม่สุก','ป่าแฝก','บ้านเหล่า','บ้านใหม่','แม่ใจ','ศรีถ้อย']) {
-  const x = A.resolveAuthority({tambon:tb,moo:1});
-  assert.equal(x.authority, null, tb);
-  assert.equal(x.confidence, 'out-of-brief', tb);
-  assert.deepEqual(x.candidates, [], tb);
-}
-
-// Ambiguous/partial must never be guessed from WaterOwner
-let r = A.resolveAuthority({tambon:'ดอกคำใต้',moo:1,owner:'เทศบาลเมืองดอกคำใต้'});
+// Ambiguous old records are never guessed, even when WaterOwner looks authoritative.
+r = A.resolveAuthority({tambon:'ดอกคำใต้',moo:1,owner:'เทศบาลเมืองดอกคำใต้'});
 assert.equal(r.authority, null);
 assert.equal(r.confidence, 'ambiguous');
-assert.deepEqual(new Set(r.candidates), new Set(['ทม.ดอกคำใต้','อบต.ดอกคำใต้']));
-
+assert.deepEqual(r.candidates, ['ทม.ดอกคำใต้','อบต.ดอกคำใต้']);
 r = A.resolveAuthority({tambon:'ดอนศรีชุม',moo:8,owner:'อบต.ดอนศรีชุม'});
 assert.equal(r.authority, null);
 assert.equal(r.confidence, 'ambiguous');
-assert.deepEqual(new Set(r.candidates), new Set(['ทม.ดอกคำใต้','อบต.ดอนศรีชุม']));
 
-r = A.resolveAuthority({tambon:'ดงเจน',moo:6});
-assert.equal(r.authority, null);
-assert.equal(r.confidence, 'unresolved');
-assert.deepEqual(r.candidates, ['ทต.ดงเจน']);
+// Explicit SELECT values are accepted only from exact options.
+r = A.resolveAuthority({tambon:'ดอกคำใต้',moo:1,localAuthority:'ทม.ดอกคำใต้'});
+assert.equal(r.authority, 'ทม.ดอกคำใต้');
+assert.equal(r.confidence, 'explicit-field');
+r = A.resolveAuthority({tambon:'ดอกคำใต้',moo:1,localAuthority:'อบต.ดอกคำใต้'});
+assert.equal(r.authority, 'อบต.ดอกคำใต้');
+r = A.resolveAuthority({tambon:'ดอนศรีชุม',moo:8,localAuthority:'อบต.ดอนศรีชุม'});
+assert.equal(r.authority, 'อบต.ดอนศรีชุม');
 
-const ambiguous = A.decorateRecord({tambon:'ดอกคำใต้',moo:1,owner:'อบต.ดอกคำใต้'});
-assert.equal(ambiguous.localAuthority, null);
-assert.equal(A.recordMatchesAuthority(ambiguous, A.UNRESOLVED_VALUE), true);
-
-for (const tb of ORIGINAL_18) {
-  const oldScope = A.decorateRecord({tambon:tb,moo:1});
-  assert.equal(oldScope.localAuthority, null);
-  assert.equal(oldScope.authorityConfidence, 'out-of-brief');
-  assert.equal(A.recordMatchesAuthority(oldScope, A.UNRESOLVED_VALUE), false);
+// v1.2 explicit override: exact recommendation may be changed to another authority in the same tambon master.
+for (const test of [
+  {tambon:'ดอกคำใต้',moo:3,localAuthority:'ทม.ดอกคำใต้',expected:'ทม.ดอกคำใต้'},
+  {tambon:'ดอกคำใต้',moo:7,localAuthority:'อบต.ดอกคำใต้',expected:'อบต.ดอกคำใต้'},
+  {tambon:'ดอนศรีชุม',moo:4,localAuthority:'ทม.ดอกคำใต้',expected:'ทม.ดอกคำใต้'},
+  {tambon:'แม่อิง',moo:2,localAuthority:'อบต.แม่อิง',expected:'อบต.แม่อิง'},
+  {tambon:'แม่อิง',moo:5,localAuthority:'ทต.ดงเจน',expected:'ทต.ดงเจน'}
+]) {
+  r = A.resolveAuthority(test);
+  assert.equal(r.authority, test.expected, JSON.stringify(test));
+  assert.equal(r.confidence, 'explicit-override', JSON.stringify(test));
+  assert.equal(r.source, 'local-authority-field');
+  assert.equal(r.overridden, true);
 }
+
+// Invalid explicit values must never contaminate authority counts.
+for (const test of [
+  {tambon:'ดอกคำใต้',moo:3,localAuthority:'อบต.แม่อิง'},       // cross-tambon
+  {tambon:'ดอกคำใต้',moo:1,localAuthority:'อบต.แม่อิง'},       // SELECT outside exact options
+  {tambon:'ดงเจน',moo:6,localAuthority:'ทต.ดงเจน'},             // no exact mapping => TAMBON_ONLY
+  {tambon:'ดอกคำใต้',moo:1,localAuthority:'อปท.ปลอม'}           // unknown master name
+]) {
+  r = A.resolveAuthority(test);
+  assert.equal(r.authority, null, JSON.stringify(test));
+  assert.equal(r.confidence, 'invalid-explicit', JSON.stringify(test));
+}
+
+// Re-decoration preserves raw stored value and never turns legacy fallback into an explicit field.
+const legacy = A.decorateRecord({tambon:'แม่อิง',moo:2});
+assert.equal(legacy.localAuthorityRaw, null);
+assert.equal(legacy.localAuthority, 'ทต.ดงเจน');
+assert.equal(legacy.resolvedLocalAuthority, 'ทต.ดงเจน');
+assert.equal(legacy.authorityConfidence, 'legacy-inferred');
+A.decorateRecord(legacy);
+assert.equal(legacy.localAuthorityRaw, null);
+assert.equal(legacy.authorityConfidence, 'legacy-inferred');
+
+const override = A.decorateRecord({tambon:'ดอกคำใต้',moo:3,localAuthority:'ทม.ดอกคำใต้'});
+assert.equal(override.localAuthorityRaw, 'ทม.ดอกคำใต้');
+assert.equal(override.localAuthority, 'ทม.ดอกคำใต้');
+assert.equal(override.resolvedLocalAuthority, 'ทม.ดอกคำใต้');
+assert.equal(override.recommendedAuthority, 'อบต.ดอกคำใต้');
+assert.equal(override.authorityConfidence, 'explicit-override');
+assert.equal(override.authorityOverridden, true);
+A.decorateRecord(override);
+assert.equal(override.localAuthorityRaw, 'ทม.ดอกคำใต้');
+assert.equal(override.authorityConfidence, 'explicit-override');
+
+// Out-of-brief tambons remain normal Tambon data and receive no invented authority.
+for (const tb of ORIGINAL_18) {
+  const item = A.decorateRecord({tambon:tb,moo:1});
+  assert.equal(item.localAuthority, null, tb);
+  assert.equal(item.authorityConfidence, 'out-of-brief', tb);
+}
+
+// Active authority list is based on the full resolved dataset, including explicit overrides and legacy fallback.
+const sample = A.decorateRecords([
+  {id:1,tambon:'ดอกคำใต้',moo:7},                                      // legacy -> ทม.
+  {id:2,tambon:'ดอกคำใต้',moo:5},                                      // legacy -> อบต.ดอกคำใต้
+  {id:3,tambon:'แม่อิง',moo:2},                                         // legacy -> ทต.ดงเจน
+  {id:4,tambon:'ดอกคำใต้',moo:1},                                      // ambiguous -> none
+  {id:5,tambon:'ดอกคำใต้',moo:1,localAuthority:'อบต.ดอกคำใต้'},       // explicit SELECT
+  {id:6,tambon:'ดอกคำใต้',moo:3,localAuthority:'ทม.ดอกคำใต้'},        // explicit override
+  {id:7,tambon:'คือเวียง',moo:1,localAuthority:'อบต.แม่อิง'},           // invalid cross-tambon
+  {id:8,tambon:'ดงเจน',moo:6,localAuthority:'ทต.ดงเจน'}                 // invalid TAMBON_ONLY
+]);
+const counts = A.authorityCounts(sample);
+assert.equal(counts['ทม.ดอกคำใต้'], 2);
+assert.equal(counts['อบต.ดอกคำใต้'], 2);
+assert.equal(counts['ทต.ดงเจน'], 1);
+assert.equal(counts['อบต.คือเวียง'], 0);
+assert.deepEqual(A.activeAuthorities(sample), ['ทม.ดอกคำใต้','อบต.ดอกคำใต้','ทต.ดงเจน']);
+
+// Every record resolves to at most one authority, preventing double-counting.
+for (const item of sample) {
+  const matched = AUTHORITIES.filter((authority) => A.recordMatchesAuthority(item, authority));
+  assert.ok(matched.length <= 1, `double count for id ${item.id}: ${matched}`);
+}
+
+const stats = A.resolutionStats(sample);
+assert.equal(stats.total, sample.length);
+assert.equal(stats.explicitOverride, 1);
+assert.equal(stats.legacyInferred, 3);
+assert.equal(stats.ambiguous, 1);
+assert.equal(stats.invalidExplicit, 2);
+
+
+// Authority-aware Tambon dropdown scope labels are display-only. Full-tambon coverage stays visually clean; partial scopes show moo details.
+assert.equal(A.authorityTambonScopeText('ทม.ดอกคำใต้','สว่างอารมณ์'), '');
+assert.equal(A.authorityTambonScopeText('ทม.ดอกคำใต้','บุญเกิด'), '');
+assert.equal(A.authorityTambonScopeText('ทม.ดอกคำใต้','ดอกคำใต้'), 'ม.1, 2, 7');
+assert.equal(A.authorityTambonScopeText('ทม.ดอกคำใต้','ดอนศรีชุม'), 'ม.1, 5, 7, 10 ทั้งหมู่ · ม.8, 9 บางพื้นที่');
+assert.equal(A.authorityTambonScopeText('อบต.ดอนศรีชุม','ดอนศรีชุม'), 'ม.2, 3, 4, 6 ทั้งหมู่ · ม.8, 9 บางพื้นที่');
+assert.equal(A.authorityTambonScopeText('ทต.ดงเจน','แม่อิง'), 'ม.1, 2, 3, 7');
+assert.equal(A.authorityTambonScopeText('', 'ดอกคำใต้'), '');
 
 console.log('area_responsibility_test: PASS');

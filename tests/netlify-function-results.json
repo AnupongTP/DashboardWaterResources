@@ -13,10 +13,10 @@
       "test": "authorized_sync_accepts_exact_29_tambon_scope",
       "ok": true,
       "version": "\"mock-1\"",
-      "count": 31
+      "count": 34
     },
     {
-      "test": "canonical_tambon_aliases_and_scope_normalization",
+      "test": "canonical_tambon_aliases_scope_and_raw_localauthority_preservation",
       "ok": true
     },
     {
@@ -34,6 +34,10 @@
     },
     {
       "test": "dataset_endpoint_etag_and_304",
+      "ok": true
+    },
+    {
+      "test": "sandbox_without_blob_etag_uses_sourcehash_version",
       "ok": true
     },
     {

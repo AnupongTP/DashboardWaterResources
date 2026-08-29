@@ -20,8 +20,8 @@ MASTER_TAMBONS = [
 ]
 
 
-def rec(i, tambon, moo, name, owner='ทดสอบ', village='ทดสอบ', problem='ใช้งานได้'):
-    return {
+def rec(i, tambon, moo, name, owner='ทดสอบ', village='ทดสอบ', problem='ใช้งานได้', local_authority=None):
+    item = {
         'id': i, 'dt': '2026-08-25 01:00', 'lat': 19.1 + (i % 9) * .001,
         'lng': 99.9 + (i % 9) * .001, 'name': name, 'owner': owner,
         'phone': None, 'type': 'ฝาย', 'width': 1, 'length': 1, 'depth': 1,
@@ -29,6 +29,9 @@ def rec(i, tambon, moo, name, owner='ทดสอบ', village='ทดสอบ'
         'problem': problem, 'imglink': None, 'volume': 1, 'note': None,
         'status': 'ตรวจสอบแล้ว'
     }
+    if local_authority is not None:
+        item['localAuthority'] = local_authority
+    return item
 
 
 SYNTHETIC = [
@@ -39,13 +42,28 @@ SYNTHETIC = [
     # WaterOwner intentionally looks authoritative: resolver must still not guess an overlapping moo.
     rec(30005, 'ดอกคำใต้', 1, 'ดอกคำใต้-หมู่1-เขตซ้อน', 'เทศบาลเมืองดอกคำใต้'),
     rec(30006, 'ดอนศรีชุม', 8, 'ดอนศรีชุม-หมู่8-บางส่วน', 'อบต.ดอนศรีชุม'),
+    # New LocalAuthority field resolves overlap only when explicitly supplied and compatible.
+    rec(30025, 'ดอกคำใต้', 1, 'ดอกคำใต้-หมู่1-ทม-ยืนยันแล้ว', local_authority='ทม.ดอกคำใต้'),
+    rec(30026, 'ดอกคำใต้', 2, 'ดอกคำใต้-หมู่2-อบต-ยืนยันแล้ว', local_authority='อบต.ดอกคำใต้'),
+    rec(30027, 'ดอนศรีชุม', 8, 'ดอนศรีชุม-หมู่8-ทม-ยืนยันแล้ว', local_authority='ทม.ดอกคำใต้'),
+    rec(30028, 'ดอนศรีชุม', 9, 'ดอนศรีชุม-หมู่9-อบต-ยืนยันแล้ว', local_authority='อบต.ดอนศรีชุม'),
+    # Allowed authority name but incompatible Tambon+Moo: browser resolver must reject it.
+    rec(30029, 'ดอกคำใต้', 1, 'ดอกคำใต้-หมู่1-อปทผิด', local_authority='อบต.แม่อิง'),
+    # v1.2: a single exact mapping is only a suggestion; explicit same-tambon overrides are valid.
+    rec(30030, 'ดอกคำใต้', 3, 'ดอกคำใต้-หมู่3-override-ทม', local_authority='ทม.ดอกคำใต้'),
+    rec(30031, 'ดอกคำใต้', 7, 'ดอกคำใต้-หมู่7-override-อบต', local_authority='อบต.ดอกคำใต้'),
+    rec(30032, 'ดอนศรีชุม', 4, 'ดอนศรีชุม-หมู่4-override-ทม', local_authority='ทม.ดอกคำใต้'),
+    rec(30033, 'แม่อิง', 2, 'แม่อิง-หมู่2-override-อบต', local_authority='อบต.แม่อิง'),
+    rec(30034, 'แม่อิง', 5, 'แม่อิง-หมู่5-override-ทตดงเจน', local_authority='ทต.ดงเจน'),
+    # v1.2 still rejects cross-tambon values and explicit authority on an unmapped moo.
+    rec(30035, 'ดอกคำใต้', 3, 'ดอกคำใต้-หมู่3-cross-invalid', local_authority='อบต.แม่อิง'),
+    rec(30036, 'ดงเจน', 6, 'ดงเจน-หมู่6-explicit-invalid', local_authority='ทต.ดงเจน'),
     rec(30007, 'ดอนศรีชุม', 4, 'อบต.ดอนศรีชุม-หมู่4'),
     rec(30008, 'แม่อิง', 5, 'อบต.แม่อิง-หมู่5'),
     rec(30009, 'แม่อิง', 2, 'ทต.ดงเจน-แม่อิงหมู่2'),
     rec(30010, 'บ้านปิน', 1, 'บ้านปิน-ชื่อมาตรฐาน'),
     rec(30011, 'ดงเจน', 16, 'ทต.ดงเจน-หมู่16', village='บ้านเจน'),
     rec(30012, 'ดงเจน', 6, 'ดงเจน-หมู่6-นอกบัญชี'),
-    rec(30013, 'คือเวียง', 1, 'อบต.คือเวียง'),
     rec(30014, 'จำป่าหวาย', 1, 'อบต.จำป่าหวาย'),
     rec(30015, 'บ้านถ้ำ', 1, 'ทต.บ้านถ้ำ'),
     rec(30016, 'สันโค้ง', 1, 'อบต.สันโค้ง-ชำรุด', problem='ชำรุด'),
@@ -94,16 +112,20 @@ def open_combo(page, input_id):
 
 
 def combo_options(page, listbox_id):
-    return page.locator(f'#{listbox_id} [role="option"]').all_text_contents()
+    return page.locator(f'#{listbox_id} [role="option"]').evaluate_all("els => els.map(e => e.dataset.value)")
+
+
+def combo_scope(page, listbox_id, value):
+    return page.locator(f'#{listbox_id} [role="option"][data-value="{value}"]').get_attribute('data-scope')
 
 
 def choose_combo(page, input_id, listbox_id, query, value):
     page.locator('#' + input_id).fill(query)
     page.wait_for_function(
-        "([listbox,value]) => [...document.querySelectorAll('#'+listbox+' [role=option]')].some(x=>x.textContent===value)",
+        "([listbox,value]) => [...document.querySelectorAll('#'+listbox+' [role=option]')].some(x=>x.dataset.value===value)",
         arg=[listbox_id, value]
     )
-    page.locator(f'#{listbox_id} [role="option"]', has_text=value).filter(has_text=value).first.click()
+    page.locator(f'#{listbox_id} [role="option"][data-value="{value}"]').click()
     assert page.locator('#' + input_id).input_value() == value
     assert page.locator('#' + input_id).get_attribute('aria-invalid') == 'false'
 
@@ -141,6 +163,17 @@ def main():
         page.locator('#efTambon').press('Escape')
         results.append({'test': 'master_tambon_list_exact_29', 'ok': True, 'count': len(options)})
 
+        # 2b. Authority dropdowns show only authorities with resolved data from the full dataset.
+        expected_active = [
+            'ทม.ดอกคำใต้','อบต.บ้านปิน','อบต.ดอกคำใต้','อบต.จำป่าหวาย','ทต.บ้านถ้ำ',
+            'อบต.ดอนศรีชุม','อบต.แม่อิง','ทต.ดงเจน','อบต.สันโค้ง'
+        ]
+        exec_authorities = page.locator('#efAuthority option').evaluate_all("els => els.slice(1).map(e => e.value)")
+        assert exec_authorities == expected_active, exec_authorities
+        assert 'อบต.คือเวียง' not in exec_authorities
+        assert '__UNRESOLVED__' not in exec_authorities
+        results.append({'test': 'zero_count_authorities_hidden_from_dropdown', 'ok': True, 'authorities': exec_authorities})
+
         # 3. Search recommendation works: "แม่" narrows to seven allowed names, still in master order.
         page.locator('#efTambon').fill('แม่')
         expected_mae = ['แม่กา','แม่นาเรือ','แม่ใส','แม่ปืม','แม่สุก','แม่ใจ','แม่อิง']
@@ -165,12 +198,17 @@ def main():
 
         # 5. Authority cascade limits recommendations, not just result data.
         page.locator('#efAuthority').select_option('ทม.ดอกคำใต้')
-        page.wait_for_function("document.querySelector('#efCount').textContent.includes('3 รายการ')")
+        page.wait_for_function("document.querySelector('#efCount').textContent.includes('7 รายการ')")
         open_combo(page, 'efTambon')
         authority_options = combo_options(page, 'efTambonListbox')
         assert authority_options == ['สว่างอารมณ์', 'บุญเกิด', 'ดอกคำใต้', 'ดอนศรีชุม'], authority_options
+        assert combo_scope(page, 'efTambonListbox', 'สว่างอารมณ์') is None
+        assert combo_scope(page, 'efTambonListbox', 'บุญเกิด') is None
+        assert combo_scope(page, 'efTambonListbox', 'ดอกคำใต้') == 'ม.1, 2, 7'
+        assert combo_scope(page, 'efTambonListbox', 'ดอนศรีชุม') == 'ม.1, 5, 7, 10 ทั้งหมู่ · ม.8, 9 บางพื้นที่'
+        results.append({'test': 'authority_tambon_dropdown_hides_full_tambon_suffix_and_shows_partial_moo_scope', 'ok': True})
         choose_combo(page, 'efTambon', 'efTambonListbox', 'ดอก', 'ดอกคำใต้')
-        page.wait_for_function("document.querySelector('#efCount').textContent.includes('1 รายการ')")
+        page.wait_for_function("document.querySelector('#efCount').textContent.includes('3 รายการ')")
         results.append({'test': 'executive_authority_cascade_limits_combobox_scope', 'ok': True, 'tambons': authority_options})
 
         # 6. Attempting an out-of-authority tambon shows no allowed recommendation and cannot apply.
@@ -179,26 +217,29 @@ def main():
         assert page.locator('#efTambonListbox').inner_text().strip() == 'ไม่พบตำบลในรายการที่กำหนด'
         page.locator('#efType').focus(); page.wait_for_timeout(180)
         assert page.locator('#efTambon').get_attribute('aria-invalid') == 'true'
-        # Selected filter was cleared when user edited it, so only authority filter remains = 3 records.
-        page.wait_for_function("document.querySelector('#efCount').textContent.includes('3 รายการ')")
+        # Selected filter was cleared when user edited it, so only authority filter remains = 7 resolved records.
+        page.wait_for_function("document.querySelector('#efCount').textContent.includes('7 รายการ')")
         results.append({'test': 'out_of_authority_text_cannot_be_selected', 'ok': True})
 
         # Reset executive before detail tests.
         page.locator('#efReset').click()
 
-        # 7. Detail cascade: อบต.แม่อิง -> แม่อิง -> 4,5,6,8.
+        # 7. Detail cascade v1.2: อบต.แม่อิง can be explicitly confirmed for any mapped แม่อิง moo 1-8.
         page.locator('.main-nav button[data-view="detail"]').click()
         page.locator('#fAuthority').select_option('อบต.แม่อิง')
         open_combo(page, 'fTambon')
         assert combo_options(page, 'fTambonListbox') == ['แม่อิง']
         choose_combo(page, 'fTambon', 'fTambonListbox', 'แม่', 'แม่อิง')
         moos = page.locator('#fMoo option').all_text_contents()
-        assert moos == ['ทั้งหมด', 'หมู่ 4', 'หมู่ 5', 'หมู่ 6', 'หมู่ 8'], moos
+        assert moos == ['ทั้งหมด'] + [f'หมู่ {i}' for i in range(1,9)], moos
+        wait_detail_count(page, 2)
+        page.locator('#fMoo').select_option('2')
         wait_detail_count(page, 1)
+        assert 'แม่อิง-หมู่2-override-อบต' in page.locator('#tblBody').inner_text()
         page.locator('#fMoo').select_option('5')
         wait_detail_count(page, 1)
         assert page.locator('#tblBody tr td:nth-child(2)').first.inner_text() == 'อบต.แม่อิง-หมู่5'
-        results.append({'test': 'detail_authority_tambon_moo_cascade', 'ok': True, 'moos': moos})
+        results.append({'test': 'detail_authority_tambon_moo_cascade_v12', 'ok': True, 'moos': moos})
 
         # 8. Canonical บ้านปิน path uses combobox and never exposes legacy spelling.
         page.locator('#fAuthority').select_option('อบต.บ้านปิน')
@@ -210,23 +251,52 @@ def main():
         assert 'บ้านปิน-ชื่อมาตรฐาน' in row and 'บ้านปิน' in row and 'บ้านปิ่น' not in row
         results.append({'test': 'ban_pin_canonical_combobox_path', 'ok': True})
 
-        # 9. Ambiguous moos stay visible but disabled; no false ownership inference.
+        # 9. v1.2 cascade exposes valid master moos, while actual filtering still uses resolved records only.
         page.locator('#fAuthority').select_option('อบต.ดอกคำใต้')
         choose_combo(page, 'fTambon', 'fTambonListbox', 'ดอก', 'ดอกคำใต้')
-        for value in ('1', '2'):
-            opt = page.locator(f'#fMoo option[value="{value}"]')
-            assert opt.is_disabled()
-            assert 'ต้องยืนยันเขต' in opt.inner_text()
-        assert not page.locator('#fMoo option[value="5"]').is_disabled()
-        results.append({'test': 'overlapping_moos_visible_but_disabled', 'ok': True})
+        moo_values = page.locator('#fMoo option').evaluate_all("els => els.map(e => e.value)")
+        assert moo_values == [''] + [str(i) for i in range(1,11)], moo_values
+        assert 'ต้องยืนยันเขต' not in ' '.join(page.locator('#fMoo option').all_text_contents())
 
+        # Exact-overlap legacy row is still unassigned; the master option can exist but returns zero until explicitly confirmed.
+        page.locator('#fMoo').select_option('1')
+        wait_detail_count(page, 0)
+        assert 'ดอกคำใต้-หมู่1-เขตซ้อน' not in page.locator('#tblBody').inner_text()
+
+        # Explicit SELECT field resolves overlap.
+        page.locator('#fMoo').select_option('2')
+        wait_detail_count(page, 1)
+        assert 'ดอกคำใต้-หมู่2-อบต-ยืนยันแล้ว' in page.locator('#tblBody').inner_text()
+        results.append({'test': 'select_mode_requires_explicit_localauthority_for_overlap', 'ok': True})
+
+        # SUGGEST mode override: ดอกคำใต้ ม.7 recommends ทม. but explicit อบต. must be accepted.
+        page.locator('#fMoo').select_option('7')
+        wait_detail_count(page, 1)
+        assert 'ดอกคำใต้-หมู่7-override-อบต' in page.locator('#tblBody').inner_text()
+        assert 'ทม.ดอกคำใต้-หมู่7' not in page.locator('#tblBody').inner_text()
+        results.append({'test': 'suggest_mode_explicit_same_tambon_override_is_respected', 'ok': True})
+
+        # Reverse override: ดอกคำใต้ ม.3 recommends อบต. but explicit ทม. must be accepted.
         page.locator('#fAuthority').select_option('ทม.ดอกคำใต้')
+        choose_combo(page, 'fTambon', 'fTambonListbox', 'ดอก', 'ดอกคำใต้')
+        page.locator('#fMoo').select_option('3')
+        wait_detail_count(page, 1)
+        table_text = page.locator('#tblBody').inner_text()
+        assert 'ดอกคำใต้-หมู่3-override-ทม' in table_text
+        assert 'ดอกคำใต้-หมู่3-cross-invalid' not in table_text
+        results.append({'test': 'recommended_authority_does_not_override_confirmed_field', 'ok': True})
+
+        # Same v1.2 policy applies to Don Si Chum: every mapped moo is a valid candidate under both local authorities,
+        # but only resolved records appear in results.
         choose_combo(page, 'fTambon', 'fTambonListbox', 'ดอน', 'ดอนศรีชุม')
-        for value in ('8', '9'):
-            opt = page.locator(f'#fMoo option[value="{value}"]')
-            assert opt.is_disabled()
-            assert 'ต้องยืนยันเขต' in opt.inner_text()
-        results.append({'test': 'partial_moos_visible_but_disabled', 'ok': True})
+        moo_values = page.locator('#fMoo option').evaluate_all("els => els.map(e => e.value)")
+        assert moo_values == [''] + [str(i) for i in range(1,11)], moo_values
+        page.locator('#fMoo').select_option('4')
+        wait_detail_count(page, 1)
+        assert 'ดอนศรีชุม-หมู่4-override-ทม' in page.locator('#tblBody').inner_text()
+        page.locator('#fMoo').select_option('9')
+        wait_detail_count(page, 0)
+        results.append({'test': 'don_si_chum_v12_override_and_zero_result_filter_are_consistent', 'ok': True})
 
         # 10. Dong Jen shows village names supplied in the brief.
         page.locator('#fAuthority').select_option('ทต.ดงเจน')
@@ -239,13 +309,31 @@ def main():
         assert 'หมู่ 16 — บ้านเจน' in dongjen_moos
         results.append({'test': 'dongjen_moo_labels_include_brief_village_names', 'ok': True})
 
-        # 11. Unresolved authority bucket remains precise; original 18 out-of-brief tambons are not mislabeled unresolved.
-        page.locator('#fAuthority').select_option('__UNRESOLVED__')
+        # 11. No unresolved bucket exists in UI; old ambiguous/invalid records remain visible by Tambon but are not assigned.
+        authority_values = page.locator('#fAuthority option').evaluate_all("els => els.map(e => e.value)")
+        assert '__UNRESOLVED__' not in authority_values
+        assert 'อบต.คือเวียง' not in authority_values  # zero resolved records => hidden
+        assert 'ทต.ดงเจน' in authority_values
+
+        page.locator('#fAuthority').select_option('')
+        choose_combo(page, 'fTambon', 'fTambonListbox', 'ดอก', 'ดอกคำใต้')
+        page.locator('#fMoo').select_option('1')
         wait_detail_count(page, 3)
-        unresolved = set(page.locator('#tblBody tr td:nth-child(2)').all_text_contents())
-        expected_unresolved = {'ดอกคำใต้-หมู่1-เขตซ้อน', 'ดอนศรีชุม-หมู่8-บางส่วน', 'ดงเจน-หมู่6-นอกบัญชี'}
-        assert unresolved == expected_unresolved, unresolved
-        results.append({'test': 'unresolved_bucket_is_safe_and_precise', 'ok': True, 'records': sorted(unresolved)})
+        all_m1 = page.locator('#tblBody').inner_text()
+        assert 'ดอกคำใต้-หมู่1-เขตซ้อน' in all_m1
+        assert 'ดอกคำใต้-หมู่1-ทม-ยืนยันแล้ว' in all_m1
+        assert 'ดอกคำใต้-หมู่1-อปทผิด' in all_m1
+        assert 'ต้องยืนยันเขต' not in all_m1
+
+        page.locator('#fAuthority').select_option('ทม.ดอกคำใต้')
+        choose_combo(page, 'fTambon', 'fTambonListbox', 'ดอก', 'ดอกคำใต้')
+        page.locator('#fMoo').select_option('1')
+        wait_detail_count(page, 1)
+        authority_m1 = page.locator('#tblBody').inner_text()
+        assert 'ดอกคำใต้-หมู่1-ทม-ยืนยันแล้ว' in authority_m1
+        assert 'ดอกคำใต้-หมู่1-เขตซ้อน' not in authority_m1
+        assert 'ดอกคำใต้-หมู่1-อปทผิด' not in authority_m1
+        results.append({'test': 'unresolved_ui_removed_and_invalid_records_never_authority_counted', 'ok': True})
 
         # 12. No-authority detail master list also exposes all 29, including the previously omitted eight.
         page.locator('#fAuthority').select_option('')
@@ -258,6 +346,9 @@ def main():
 
         # 13. Damaged tab uses the same strict combobox and its own independent filter state.
         page.locator('.tab-btn[data-tab="damaged"]').click()
+        damaged_authorities = page.locator('#dfAuthority option').evaluate_all("els => els.slice(1).map(e => e.value)")
+        assert 'อบต.คือเวียง' not in damaged_authorities
+        assert '__UNRESOLVED__' not in damaged_authorities
         page.locator('#dfAuthority').select_option('อบต.สันโค้ง')
         open_combo(page, 'dfTambon')
         assert combo_options(page, 'dfTambonListbox') == ['สันโค้ง']

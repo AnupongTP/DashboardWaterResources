@@ -8,8 +8,8 @@
         "source": "netlify-blob-api",
         "version": "\"v1\"",
         "count": 2,
-        "elapsedMs": 1,
-        "timestamp": "2026-08-27T14:40:42.243Z"
+        "elapsedMs": 3,
+        "timestamp": "2026-08-29T18:34:37.487Z"
       }
     },
     {
@@ -19,8 +19,8 @@
         "source": "indexeddb-cache",
         "version": "\"v1\"",
         "count": 2,
-        "elapsedMs": 0,
-        "timestamp": "2026-08-27T14:40:42.252Z",
+        "elapsedMs": 1,
+        "timestamp": "2026-08-29T18:34:37.537Z",
         "remoteUpdatedAt": "2026-08-25T00:00:00+07:00"
       }
     },
@@ -31,8 +31,8 @@
         "source": "netlify-blob-api",
         "version": "\"v2\"",
         "count": 3,
-        "elapsedMs": 0,
-        "timestamp": "2026-08-27T14:40:42.260Z",
+        "elapsedMs": 1,
+        "timestamp": "2026-08-29T18:34:37.552Z",
         "remoteUpdatedAt": "2026-08-25T00:00:00+07:00"
       }
     },
@@ -44,7 +44,7 @@
         "version": "\"v2\"",
         "count": 3,
         "elapsedMs": 1,
-        "timestamp": "2026-08-27T14:40:42.268Z",
+        "timestamp": "2026-08-29T18:34:37.567Z",
         "remoteUpdatedAt": "2026-08-25T00:00:00+07:00"
       }
     },
@@ -55,8 +55,8 @@
         "source": "static-bootstrap",
         "version": "bootstrap:3",
         "count": 3,
-        "elapsedMs": 2,
-        "timestamp": "2026-08-27T14:40:42.390Z"
+        "elapsedMs": 4,
+        "timestamp": "2026-08-29T18:34:37.905Z"
       }
     }
   ]

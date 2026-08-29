@@ -147,7 +147,7 @@ function buildDashboardWaterResourcesSnapshot_() {
       volume: toNumberOrNull_(row[headerIndex.Volumn]) || 0,
       note: toPrimitiveOrNull_(row[headerIndex.Note]),
       status: toTextOrNull_(row[headerIndex.Status]),
-      // Optional during rollout. Preserve the exact Sheet value; Dashboard v1.4.3 validates it.
+      // Optional during rollout. Preserve the exact Sheet value; Dashboard v1.4.5 validates it.
       localAuthority: headerIndex.LocalAuthority === undefined
         ? null
         : toTextOrNull_(row[headerIndex.LocalAuthority])

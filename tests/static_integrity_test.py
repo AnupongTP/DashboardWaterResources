@@ -33,9 +33,9 @@ assert len(MASTER_TAMBONS) == 29 and len(set(MASTER_TAMBONS)) == 29
 assert len(bootstrap) == 1158
 assert meta['recordCount'] == 1158
 assert meta['lastId'] == 1164
-assert package['version'] == '1.4.3'
+assert package['version'] == '1.4.5'
 assert package['dependencies']['@netlify/blobs'] == '11.0.1'
-assert build_info['version'] == '1.4.3'
+assert build_info['version'] == '1.4.5'
 assert build_info['status'] == 'candidate'
 assert build_info['productionReady'] is False
 assert build_info['rulesetVersion'] == '2026-08-27.2'
@@ -49,7 +49,9 @@ for marker in [
     '/assets/water-data-loader.js', '/assets/area-responsibility.js', '/assets/tambon-combobox.js',
     'ACTIVE_AUTHORITIES', 'AREA.activeAuthorities(RAW)', 'authorityDisplay', 'TambonCombobox',
     'AREA.validConfiguredMoos(state.authority,state.tambon)', 'AREA.authorityTambonScopeText(state.authority,tambon)',
-    'tambon-combobox-option-scope', '__AUTHORITY_RESOLUTION_STATS__'
+    'tambon-combobox-option-scope', '__AUTHORITY_RESOLUTION_STATS__',
+    'table-scroll-hint', 'mobile-tab-hint', 'pivot-scroll-hint',
+    'MOBILE RESPONSIVE AUDIT v1.4.5'
 ]:
     assert marker in index, f'missing index marker: {marker}'
 

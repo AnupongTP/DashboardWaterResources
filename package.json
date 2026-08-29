@@ -1,7 +1,7 @@
 {
   "name": "dashboard-water-resources-final-29tambons-autocomplete",
   "private": true,
-  "version": "1.4.3",
+  "version": "1.4.5",
   "type": "module",
   "engines": {
     "node": ">=22.12.0"

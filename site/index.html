@@ -1282,6 +1282,161 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
   .main-nav{flex-basis:100%;gap:8px;margin-right:0;}
   .main-nav button{flex:1;padding:10px 8px;font-size:12.5px;border-radius:8px;}
 }
+
+
+/* ===== MOBILE RESPONSIVE AUDIT v1.4.5 =====
+   เป้าหมาย: รักษารูปแบบตารางเดิมทุกหน้า และให้ตารางเลื่อนซ้าย–ขวาภายในกรอบของตนเองบนมือถือ
+   ไม่แปลงตารางเป็นการ์ด ไม่ซ่อนคอลัมน์ และไม่สร้าง horizontal overflow ให้ทั้งหน้า */
+.main{min-width:0;}
+.mobile-scroll-hint,.mobile-tab-hint,.table-scroll-hint,.tambon-compare-mobile{display:none;}
+.tambon-compare-table-wrap{overflow-x:auto;max-width:100%;border-radius:8px;overscroll-behavior-x:contain;}
+.tambon-compare-table{min-width:900px;}
+
+@media(max-width:640px){
+  html,body{max-width:100%;overflow-x:hidden;}
+  body{font-size:14px;}
+  .exec-wrap,.detail-wrap{padding-left:10px;padding-right:10px;overflow-x:clip;}
+  .exec-wrap{padding-top:10px;padding-bottom:36px;}
+  .detail-wrap{padding-top:10px;padding-bottom:36px;}
+
+  /* Header: text remains complete and buttons remain tap-friendly. */
+  .app-header{padding:10px 12px;row-gap:9px;position:sticky;top:0;}
+  .header-brand .eyebrow{font-size:18px;line-height:1.2;overflow-wrap:anywhere;}
+  .header-brand h1{font-size:12px;line-height:1.35;}
+  .main-nav{width:100%;gap:8px;}
+  .main-nav button{min-width:0;padding:10px 6px;font-size:12px;line-height:1.25;}
+  .main-nav button span{white-space:normal;overflow-wrap:anywhere;}
+
+  /* Executive components */
+  .exec-filter-bar{padding:12px;margin-bottom:14px;}
+  .exec-filter-bar .ef-count{white-space:normal;line-height:1.4;}
+  .sec-head{flex-wrap:wrap;align-items:center;gap:7px 9px;}
+  .sec-head h2{font-size:14.5px;}
+  .sec-head .sec-sub{width:100%;margin-left:35px;font-size:11.5px;line-height:1.4;}
+  .exec-hero{gap:12px;}
+  .exec-hero-cards,.exec-hero-map{min-width:0;flex-basis:100%;}
+  .exec-hero-map{padding:12px;}
+  .exec-hero-map .map-stage,.exec-hero-map #map{min-height:330px;}
+  .map-layer-control{top:8px;right:8px;max-width:calc(100% - 16px);}
+  .mlc-panel{min-width:min(270px,calc(100vw - 44px));max-width:calc(100vw - 44px);}
+  .chart-box,.chart-box-wide,.panel{padding:13px 12px;}
+  .chart-expand-btn{opacity:1;}
+  .chart-canvas-flex{max-width:100%;}
+  .bar-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 8px;margin-bottom:11px;}
+  .bar-row .lbl{width:auto;text-align:left;white-space:normal;overflow:visible;text-overflow:clip;line-height:1.35;}
+  .bar-row .bar-track{grid-column:1/2;width:100%;}
+  .bar-row .bar-val{grid-column:2/3;grid-row:1/3;width:auto;min-width:38px;align-self:center;text-align:right;}
+  .prog-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 8px;margin-bottom:10px;}
+  .prog-lbl{width:auto;text-align:left;white-space:normal;overflow:visible;text-overflow:clip;}
+  .prog-track{grid-column:1/2;width:100%;}
+  .prog-val{grid-column:2/3;grid-row:1/3;width:auto;min-width:44px;align-self:center;}
+  .map-legend{grid-template-columns:1fr;font-size:11.5px;}
+
+  /* Detail page matrix: internal scroll only, sticky first column, explicit mobile hint. */
+  .pivot-section{padding-bottom:12px;min-width:0;}
+  .pivot-section>div:first-child{font-size:12.5px!important;line-height:1.5;}
+  .mobile-scroll-hint{display:block;font-size:10.5px;color:#607d8b;text-align:right;margin:-4px 2px 6px;line-height:1.35;}
+  .pivot-wrap{max-width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;scrollbar-gutter:stable;}
+  table.pivot{width:max-content;min-width:760px;}
+  table.pivot thead tr th,table.pivot tbody tr td,table.pivot tfoot tr td{padding:8px 9px;}
+  table.pivot thead tr th:first-child,table.pivot tbody tr td:first-child,table.pivot tfoot tr td:first-child{
+    position:sticky;left:0;z-index:4;min-width:132px;max-width:132px;white-space:normal;line-height:1.25;box-shadow:2px 0 4px rgba(13,71,161,.10);
+  }
+  table.pivot thead tr th:first-child{z-index:6;background:linear-gradient(135deg,#0d47a1,#1565c0);}
+  table.pivot tbody tr td:first-child{z-index:3;}
+  table.pivot tfoot tr td:first-child{z-index:5;background:linear-gradient(135deg,#1565c0,#1976d2);}
+  .pivot-filter-note{align-items:flex-start;flex-wrap:wrap;font-size:11.5px;line-height:1.4;}
+
+  /* Filters: always within viewport width. */
+  .body-section{gap:12px;min-width:0;}
+  .filters,.main{min-width:0;width:100%;}
+  .filter-head{padding:10px 13px;}
+  .filter-body{padding:12px;}
+  .f-group{margin-bottom:11px;}
+  .f-group select,.f-group input[type=text]{min-height:40px;font-size:14px;}
+  .chip{font-size:11px;padding:5px 9px;}
+  .reset-btn{min-height:42px;}
+
+  /* Tabs: no truncated labels; the tab strip itself scrolls rather than the page. */
+  .tabs{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;gap:2px;margin:0 -2px 2px;padding:0 2px 4px;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scrollbar-width:none;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab-btn{flex:0 0 auto;min-height:44px;padding:9px 12px;font-size:12.5px;white-space:nowrap;scroll-snap-align:center;}
+  .mobile-tab-hint{display:block;text-align:right;color:#8a9aa0;font-size:10px;line-height:1.3;margin:0 2px 10px;}
+
+  /* Common panels and headings */
+  .panel{border-radius:9px;margin-bottom:12px;min-width:0;overflow:visible;}
+  .panel h3{align-items:flex-start;gap:8px;line-height:1.35;flex-wrap:wrap;}
+  .panel h3 .n{margin-left:auto;}
+  .grid2{gap:10px;}
+
+  /* Tables on mobile: preserve the desktop table structure and scroll only inside the table frame. */
+  .table-scroll-hint{display:block;font-size:10.5px;color:#607d8b;text-align:right;margin:0 2px 6px;line-height:1.35;}
+  .tambon-compare-desktop{display:block;min-width:0;}
+  .tambon-compare-mobile{display:none!important;}
+  .tambon-compare-table-wrap,.tbl-wrap{
+    width:100%;max-width:100%;overflow-x:auto;overflow-y:auto;-webkit-overflow-scrolling:touch;
+    overscroll-behavior-x:contain;scrollbar-gutter:stable;border:1px solid #cdd8e3;border-radius:8px;background:#fff;
+  }
+  .tambon-compare-table-wrap{max-height:580px;}
+  .tbl-wrap{max-height:580px;}
+  .tambon-compare-table{width:max-content!important;min-width:920px!important;}
+  table.data-tbl{display:table;width:max-content;min-width:1080px;font-size:12px;background:#fff;}
+  table.data-tbl thead{display:table-header-group;}
+  table.data-tbl tbody{display:table-row-group;}
+  table.data-tbl tr{display:table-row;}
+  table.data-tbl th,table.data-tbl td{display:table-cell;white-space:nowrap;}
+  table.data-tbl th:nth-child(2),table.data-tbl td:nth-child(2),
+  table.data-tbl th:nth-child(8),table.data-tbl td:nth-child(8),
+  table.data-tbl th:nth-child(11),table.data-tbl td:nth-child(11){white-space:normal;min-width:150px;}
+  .tambon-compare-table th:first-child,.tambon-compare-table td:first-child{
+    position:sticky;left:0;z-index:3;min-width:108px;box-shadow:2px 0 4px rgba(13,71,161,.10);
+  }
+  .tambon-compare-table thead th:first-child{z-index:5;background:linear-gradient(135deg,#0d47a1,#1976d2)!important;}
+  .tambon-compare-table tbody tr:nth-child(odd) td:first-child{background:#f7fbff;}
+  .tambon-compare-table tbody tr:nth-child(even) td:first-child{background:#fff;}
+  .tambon-compare-table tbody tr.row-selected td:first-child{background:#bbdefb!important;}
+  .thumb-link,.nav-btn-sm{min-height:34px;align-items:center;justify-content:center;}
+
+  /* Gallery and damage tab */
+  .gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  .gcard .img-box{height:112px;}
+  .gcard .meta{padding:7px 8px;}
+  .gcard .meta .nm{white-space:normal;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+  .damage-filter-bar{display:grid;grid-template-columns:1fr;align-items:stretch;gap:10px;padding:11px;}
+  .df-group,.df-group select,.df-group .tambon-combobox{width:100%;min-width:0;}
+  .df-group select{min-height:40px;font-size:14px;}
+  .df-reset{width:100%;min-height:42px;align-self:stretch;}
+  .damaged-list-head{align-items:flex-start;gap:8px;line-height:1.35;}
+  #damaged-map{height:340px;}
+
+  /* Modals: use visible viewport and wrap label/value rows. */
+  #chartModal,#siteCardModal,.modal-bg{padding:10px;}
+  .cm-box{width:100%;max-height:calc(100dvh - 20px);border-radius:10px;}
+  .cm-head{padding:13px 14px 10px;}
+  .cm-head .cm-title{font-size:15px;}
+  .cm-body{padding:12px;}
+  .cm-canvas-wrap{height:min(58dvh,420px);}
+  .site-card-box{width:100%;max-height:calc(100dvh - 20px);}
+  .modal{width:100%;max-height:calc(100dvh - 20px);border-radius:10px;}
+  .modal .mimg{min-height:210px;flex-basis:100%;}
+  .modal .mbody{padding:14px;flex-basis:100%;}
+  .modal .mbody .row{display:grid;grid-template-columns:minmax(90px,34%) minmax(0,1fr);gap:8px;align-items:start;}
+  .modal .mbody .row .v{text-align:left;overflow-wrap:anywhere;}
+  .close-outer{top:10px;right:10px;}
+
+  /* Footer / visitor panel */
+  .vc-footer-wrap{margin-top:20px;padding:0 10px;}
+  .vc-toggle{max-width:100%;padding:9px 14px;font-size:11.5px;}
+  .vc-panel{max-width:calc(100vw - 20px);}
+  footer.note{padding:0 10px;font-size:10.5px;line-height:1.5;}
+}
+
+@media(max-width:370px){
+  .app-header{padding-left:9px;padding-right:9px;}
+  .exec-wrap,.detail-wrap{padding-left:8px;padding-right:8px;}
+  .main-nav button{font-size:11.5px;padding-left:4px;padding-right:4px;}
+  .gallery{grid-template-columns:1fr;}
+}
 </style>
 </head>
 <body>
@@ -1536,7 +1691,8 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
   <!-- PIVOT TABLE -->
   <div class="pivot-section">
     <div style="font-size:13px;font-weight:800;color:#0d47a1;margin-bottom:10px;">สรุปข้อมูลในการลงพื้นที่สำรวจ — จำแนกตามประเภทและตำบล <span style="font-weight:400;color:#5b7a99;">(คลิกตัวเลข/หัวตาราง เพื่อกรองข้อมูลด้านล่าง)</span></div>
-    <div class="pivot-wrap">
+    <div class="mobile-scroll-hint pivot-scroll-hint" aria-hidden="true">↔ เลื่อนซ้าย–ขวาเพื่อดูตารางครบ</div>
+    <div class="pivot-wrap" role="region" aria-label="ตารางสรุปจำแนกตามประเภทและตำบล" tabindex="0">
       <table class="pivot"><thead id="pivotHead"></thead><tbody id="pivotBody"></tbody><tfoot id="pivotFoot"></tfoot></table>
     </div>
     <div class="pivot-filter-note" id="pivotFilterNote" style="display:none;"></div>
@@ -1569,13 +1725,14 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
     </aside>
 
     <div class="main">
-      <div class="tabs">
-        <button class="tab-btn active" data-tab="overview">📊 ภาพรวม</button>
-        <button class="tab-btn" data-tab="tambon">📋 เปรียบเทียบตำบล</button>
-        <button class="tab-btn" data-tab="table">📋 ตารางข้อมูล</button>
-        <button class="tab-btn" data-tab="gallery">🖼️ คลังภาพ</button>
-        <button class="tab-btn tab-danger" data-tab="damaged">⚠️ แหล่งน้ำชำรุด</button>
+      <div class="tabs" role="tablist" aria-label="รายละเอียดข้อมูล">
+        <button class="tab-btn active" data-tab="overview" role="tab" aria-selected="true">📊 ภาพรวม</button>
+        <button class="tab-btn" data-tab="tambon" role="tab" aria-selected="false">📋 เปรียบเทียบตำบล</button>
+        <button class="tab-btn" data-tab="table" role="tab" aria-selected="false">📋 ตารางข้อมูล</button>
+        <button class="tab-btn" data-tab="gallery" role="tab" aria-selected="false">🖼️ คลังภาพ</button>
+        <button class="tab-btn tab-danger" data-tab="damaged" role="tab" aria-selected="false">⚠️ แหล่งน้ำชำรุด</button>
       </div>
+      <div class="mobile-tab-hint" aria-hidden="true">ปัดแถบเมนูซ้าย–ขวาเพื่อดูหัวข้อทั้งหมด</div>
 
       <div class="tab-panel active" id="panel-overview">
         <div class="grid2">
@@ -1592,6 +1749,7 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
         <div class="panel">
           <h3>ตารางเปรียบเทียบรายตำบล</h3>
           <div style="font-size:11.5px;color:#5a7080;margin-bottom:10px;line-height:1.55;">ตารางรวมทุกมิติ · Risk Score คำนวณจาก %ชำรุด/ไม่มีน้ำ/ขาดแคลน×40% + %คุณภาพน้ำ×25% + %วัชพืช×20% + %ตื้นเขิน×15% (ไม่มีคะแนนบวกเพิ่ม) · <b>คลิกแถวเพื่อกรองข้อมูลเฉพาะตำบลนั้นในแดชบอร์ดผู้บริหาร</b></div>
+          <div class="table-scroll-hint" aria-hidden="true">← เลื่อนตารางซ้าย–ขวาเพื่อดูข้อมูลครบ →</div>
           <div id="tambonCompare"></div>
         </div>
       </div>
@@ -1599,6 +1757,7 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
       <div class="tab-panel" id="panel-table">
         <div class="panel">
           <h3>ตารางข้อมูลแหล่งน้ำ <span class="n" id="n-table"></span></h3>
+          <div class="table-scroll-hint" aria-hidden="true">← เลื่อนตารางซ้าย–ขวาเพื่อดูข้อมูลครบ →</div>
           <div class="tbl-wrap">
             <table class="data-tbl"><thead><tr><th>ID</th><th>ชื่อแหล่งน้ำ</th><th>ประเภท</th><th>อปท./เทศบาล</th><th>ตำบล</th><th>หมู่บ้าน</th><th>ม.</th><th>เจ้าของ</th><th>กว้าง×ยาว×ลึก</th><th>ปริมาตร(ลบ.ม.)</th><th>ปัญหา</th><th>ภาพ</th></tr></thead><tbody id="tblBody"></tbody></table>
           </div>
@@ -1636,6 +1795,7 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
             <div id="damaged-map"></div>
           </div>
           <div class="damaged-list-head"><span>รายการแหล่งน้ำที่มีปัญหา</span><span class="n" id="n-damaged-list"></span></div>
+          <div class="table-scroll-hint" aria-hidden="true">← เลื่อนตารางซ้าย–ขวาเพื่อดูข้อมูลครบ →</div>
           <div class="tbl-wrap">
             <table class="data-tbl"><thead><tr><th>ID</th><th>ชื่อแหล่งน้ำ</th><th>ประเภท</th><th>อปท./เทศบาล</th><th>ตำบล</th><th>หมู่บ้าน</th><th>ม.</th><th>เจ้าของ</th><th>สภาพปัญหา</th><th>นำทาง</th></tr></thead><tbody id="damagedBody"></tbody></table>
           </div>
@@ -2781,9 +2941,9 @@ function runBuildExec(){
   });
   document.getElementById('repairNeeded').innerHTML=repHtml;
 
-  // ─── TAMBON TABLE ──────────────────────────────────
+  // ─── TAMBON COMPARISON: original table; mobile scrolls inside table wrapper ─────────────
   var allTbFull=tbStats.slice().sort(function(a,b){return b.rs-a.rs;});
-  var tblHtml='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;">'
+  var tblHtml='<div class="tambon-compare-desktop"><div class="tambon-compare-table-wrap"><table class="tambon-compare-table" style="width:100%;border-collapse:collapse;font-size:12px;">'
     +'<thead><tr style="background:linear-gradient(135deg,#0d47a1,#1976d2);color:#fff;">'
     +'<th style="padding:8px 10px;text-align:left;font-size:11px;">ตำบล</th>'
     +'<th style="padding:8px 10px;text-align:center;font-size:11px;">จำนวน</th>'
@@ -2801,10 +2961,11 @@ function runBuildExec(){
     var rowBg = isSelected?'#bbdefb':i%2?'#fff':'#f7fbff';
     var rClr=rC(t.rs);
     var vStr=t.v>=1e6?(t.v/1e6).toFixed(1)+'M':t.v>=1000?(t.v/1000).toFixed(0)+'K':Math.round(t.v).toString();
+    var usablePct=t.n?(t.nu/t.n*100):0;
     tblHtml+='<tr class="row-clickable'+(isSelected?' row-selected':'')+'" style="background:'+rowBg+'" onclick="syncTambonEverywhere(\''+t.tb+'\')">'
       +'<td style="padding:8px 10px;font-weight:700;color:#0d47a1;">'+t.tb+'</td>'
       +'<td style="padding:8px 10px;text-align:center;">'+t.n+'</td>'
-      +'<td style="padding:8px 10px;text-align:center;color:#2e7d32;font-weight:700;">'+t.nu+' <span style="font-size:10px;font-weight:400;color:#8a9aa0;">('+( t.n?(t.nu/t.n*100).toFixed(0):0)+'%)</span></td>'
+      +'<td style="padding:8px 10px;text-align:center;color:#2e7d32;font-weight:700;">'+t.nu+' <span style="font-size:10px;font-weight:400;color:#8a9aa0;">('+usablePct.toFixed(0)+'%)</span></td>'
       +'<td style="padding:8px 10px;text-align:center;"><span style="background:'+( t.pct>35?'#ffebee':t.pct>20?'#fff3e0':'#f1f8e9')+';color:'+( t.pct>35?'#c62828':t.pct>20?'#e65100':'#2e7d32')+';padding:1px 8px;border-radius:4px;font-weight:700;">'+t.nd+' ('+t.pct.toFixed(0)+'%)</span></td>'
       +'<td style="padding:8px 10px;text-align:center;color:#7c5cd6;">'+t.nq+'</td>'
       +'<td style="padding:8px 10px;text-align:center;color:#e65100;">'+t.nw+'</td>'
@@ -2814,7 +2975,7 @@ function runBuildExec(){
       +'<td style="padding:8px 10px;text-align:center;"><span style="background:'+rClr+'22;color:'+rClr+';padding:2px 8px;border-radius:5px;font-size:10.5px;font-weight:700;">'+rL(t.rs)+'</span></td>'
       +'</tr>';
   });
-  tblHtml+='</tbody></table></div>';
+  tblHtml+='</tbody></table></div></div>';
   document.getElementById('tambonCompare').innerHTML=tblHtml;
 
   // ─── WATER QUALITY ─────────────────────────────────
@@ -3160,10 +3321,14 @@ $('#resetBtn').addEventListener('click',()=>{
 
 document.querySelectorAll('.tab-btn').forEach(btn=>{
   btn.addEventListener('click',()=>{
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b=>{b.classList.remove('active');b.setAttribute('aria-selected','false');});
     document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
     btn.classList.add('active');
+    btn.setAttribute('aria-selected','true');
     document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+    if(window.matchMedia('(max-width: 640px)').matches){
+      try{btn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});}catch(_e){}
+    }
     if(btn.dataset.tab==='damaged'){renderDamagedTab();}
   });
 });

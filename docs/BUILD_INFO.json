@@ -1,22 +1,26 @@
 {
   "name": "DashboardWaterResources",
-  "version": "1.4.3",
+  "version": "1.4.5",
   "status": "candidate",
   "productionReady": false,
-  "baseVersion": "1.4.1",
+  "baseVersion": "1.4.3",
   "rulesetVersion": "2026-08-27.2",
   "policyVersion": "KebNamComplete-LocalAuthority-v1.2",
-  "createdAt": "2026-08-27",
+  "createdAt": "2026-08-30",
   "scope": [
     "KebNamComplete v1.2-compatible authority resolver",
     "separate recommendedAuthority from resolvedLocalAuthority",
     "accept valid explicit same-tambon overrides in SUGGEST mode",
     "keep SELECT exact-option validation and TAMBON_ONLY rejection",
     "legacy single-exact fallback for old records",
-    "preserve invalid raw LocalAuthority through Netlify for browser validation",
     "hide zero-count authorities and remove unresolved warning UI",
-    "GAS snapshot optional LocalAuthority support without Sheet writes",
-    "authority-aware Tambon dropdown shows plain-language Moo scope without changing Tambon values"
+    "authority-aware Tambon dropdown with plain-language Moo scope",
+    "mobile detail tabs use internal horizontal scrolling with complete labels",
+    "mobile pivot matrix keeps table form with internal scroll and sticky first column",
+    "mobile Tambon comparison keeps original 10-column table and scrolls inside its own frame",
+    "mobile water-source table keeps original 12 columns and scrolls inside its own frame",
+    "mobile damaged-water table keeps original 10 columns and scrolls inside its own frame",
+    "mobile filters, gallery, maps and modals remain constrained to viewport width"
   ],
   "intentionallyUnchanged": {
     "maekaHtml": true,
@@ -32,27 +36,27 @@
     "production deployment approval"
   ],
   "hashes": {
-    "areaResponsibility": "3e3dce9133fd9cfffcd06a053e885d29a1d15731abdd309c64529e543fc50bb5",
-    "siteIndex": "f778cf977ef9ab4a7060927e83b925b84e2b46b8f9f64c7468bf8e16d38b6dd6",
-    "netlifyStore": "c1a64d4f8e3b0dd6c658501f3a8ef5b9a7eb94a94a6aec1ba084f47c4e76a39a",
-    "authorityMappingContract": "8fef95ad007ed8463f1e4295919f41e1825b1a4991b2880a414337502d5e6c22",
-    "localAuthorityPolicyContract": "a58ca368765ce373d54e29144b64aca63e06d33f3df5358ea66f3642aeea4161",
-    "googleAppsScriptSync": "c3d45b9787132f074739d29f21a5d264f0501dc35889b41fb65cc2fcd89f75a5",
-    "maekaHtml": "d992edcb7d182e2cbc48132fb5ea9f47fa794c0795b027e065749fb3d101be56",
+    "siteIndex": "a97e5e62a966c39bfd54705c3ab3479f145775b75a72d4a570b1315089cf0167",
+    "areaResponsibility": "d502f23810baad27a64c2d2b6e2215b29c47644e7d6c0cce422a4393bae0b7f6",
     "waterDataLoader": "d83358e58220637aa07b104cd33f09b630d7fb4a804dde88b21fda93a16f42b4",
     "tambonCombobox": "2b2d5800d368ce261de1f5206483e59c24955f2826e233d050e04424061cbb1c",
-    "testReport": "398e7e5846ee88a6f89fdd61d4e894df3442477614399c05fea774c182c37610"
+    "netlifyStore": "c1a64d4f8e3b0dd6c658501f3a8ef5b9a7eb94a94a6aec1ba084f47c4e76a39a",
+    "googleAppsScriptSync": "69c085176f4ce9315b84be451e36d05f3544185ceb4ed57b6101e4283449550a",
+    "testReport": "de2e6cdc700c0cbf754ec283b350e21cc9a43fd63b831e4d126f616e44aef157",
+    "mobileResponsiveAuditTest": "7944ba149038e06fa31a55f2be76062d37ac6e30bf5f56a454d0ada46c4a20be",
+    "mobileResponsiveAuditResults": "ad0570a14568b0726c90b1343144fa69c96908e199189c384d4aeaf58641f54d"
   },
   "tests": {
-    "kebNamV12ExactMapping": "PASS (47 combinations, three-way parity)",
-    "kebNamV12ServerResolver": "PASS (6960 cases)",
-    "areaResponsibility": "PASS (including authority Tambon scope labels)",
+    "areaResponsibility": "PASS",
     "gasSyncContract": "PASS",
     "staticIntegrity": "PASS",
-    "netlifyFunctions": "PASS (10/10)",
     "playwrightDashboard": "PASS (23/23)",
-    "playwrightCache": "PASS (5/5)"
+    "playwrightCache": "PASS (5/5)",
+    "mobileResponsiveAudit": "PASS (27 checks across 360/390/412 px)",
+    "netlifyBackend": "UNCHANGED byte-for-byte from v1.4.4 candidate (previously validated)"
   },
-  "change": "Remove “ทุกหมู่” suffix from full-tambon authority dropdown entries; keep partial moo scope text.",
-  "builtAt": "2026-08-27T20:55:00+07:00"
+  "change": "Preserve original table layouts on mobile. Remove v1.4.4 card conversion and use local horizontal scrolling inside compare/data/damaged table wrappers, with all columns retained.",
+  "builtAt": "2026-08-30T01:20:00+07:00",
+  "candidate": "MobileScrollTables",
+  "mobile_table_strategy": "preserve original tables; horizontal scroll inside table wrappers"
 }

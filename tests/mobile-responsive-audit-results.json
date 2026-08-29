@@ -1,0 +1,175 @@
+{
+  "ok": true,
+  "viewports": [
+    360,
+    390,
+    412
+  ],
+  "results": [
+    {
+      "viewport": 360,
+      "test": "executive_no_page_overflow",
+      "ok": true
+    },
+    {
+      "viewport": 360,
+      "test": "pivot_internal_scroll_sticky_first_column",
+      "ok": true,
+      "client": 342,
+      "scroll": 1638
+    },
+    {
+      "viewport": 360,
+      "test": "tabs_internal_scroll_no_label_clipping",
+      "ok": true,
+      "client": 348,
+      "scroll": 562
+    },
+    {
+      "viewport": 360,
+      "test": "overview_mobile_width",
+      "ok": true
+    },
+    {
+      "viewport": 360,
+      "test": "tambon_compare_original_table_internal_scroll",
+      "ok": true,
+      "client": 316,
+      "scroll": 920
+    },
+    {
+      "viewport": 360,
+      "test": "data_table_original_columns_internal_scroll",
+      "ok": true,
+      "client": 316,
+      "scroll": 1590
+    },
+    {
+      "viewport": 360,
+      "test": "gallery_mobile_width",
+      "ok": true
+    },
+    {
+      "viewport": 360,
+      "test": "damaged_original_table_internal_scroll",
+      "ok": true,
+      "client": 316,
+      "scroll": 1412
+    },
+    {
+      "viewport": 360,
+      "test": "no_uncaught_mobile_errors",
+      "ok": true
+    },
+    {
+      "viewport": 390,
+      "test": "executive_no_page_overflow",
+      "ok": true
+    },
+    {
+      "viewport": 390,
+      "test": "pivot_internal_scroll_sticky_first_column",
+      "ok": true,
+      "client": 368,
+      "scroll": 1638
+    },
+    {
+      "viewport": 390,
+      "test": "tabs_internal_scroll_no_label_clipping",
+      "ok": true,
+      "client": 374,
+      "scroll": 562
+    },
+    {
+      "viewport": 390,
+      "test": "overview_mobile_width",
+      "ok": true
+    },
+    {
+      "viewport": 390,
+      "test": "tambon_compare_original_table_internal_scroll",
+      "ok": true,
+      "client": 342,
+      "scroll": 920
+    },
+    {
+      "viewport": 390,
+      "test": "data_table_original_columns_internal_scroll",
+      "ok": true,
+      "client": 342,
+      "scroll": 1590
+    },
+    {
+      "viewport": 390,
+      "test": "gallery_mobile_width",
+      "ok": true
+    },
+    {
+      "viewport": 390,
+      "test": "damaged_original_table_internal_scroll",
+      "ok": true,
+      "client": 342,
+      "scroll": 1412
+    },
+    {
+      "viewport": 390,
+      "test": "no_uncaught_mobile_errors",
+      "ok": true
+    },
+    {
+      "viewport": 412,
+      "test": "executive_no_page_overflow",
+      "ok": true
+    },
+    {
+      "viewport": 412,
+      "test": "pivot_internal_scroll_sticky_first_column",
+      "ok": true,
+      "client": 390,
+      "scroll": 1638
+    },
+    {
+      "viewport": 412,
+      "test": "tabs_internal_scroll_no_label_clipping",
+      "ok": true,
+      "client": 396,
+      "scroll": 562
+    },
+    {
+      "viewport": 412,
+      "test": "overview_mobile_width",
+      "ok": true
+    },
+    {
+      "viewport": 412,
+      "test": "tambon_compare_original_table_internal_scroll",
+      "ok": true,
+      "client": 364,
+      "scroll": 920
+    },
+    {
+      "viewport": 412,
+      "test": "data_table_original_columns_internal_scroll",
+      "ok": true,
+      "client": 364,
+      "scroll": 1590
+    },
+    {
+      "viewport": 412,
+      "test": "gallery_mobile_width",
+      "ok": true
+    },
+    {
+      "viewport": 412,
+      "test": "damaged_original_table_internal_scroll",
+      "ok": true,
+      "client": 364,
+      "scroll": 1412
+    },
+    {
+      "viewport": 412,
+      "test": "no_uncaught_mobile_errors",
+      "ok": true
+    }
+  ]
+}

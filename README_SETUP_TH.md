@@ -1,4 +1,4 @@
-# DashboardWaterResources v1.4.3 — LocalAuthority v1.2 Candidate
+# DashboardWaterResources v1.4.5 — LocalAuthority v1.2 Candidate
 
 สถานะ: **Candidate — ยังไม่ Deploy Production จนกว่าจะทดสอบ Form/Sheet/Sync integration จริง**
 
@@ -40,7 +40,7 @@ python tests/playwright_cache_logic_test.py
 ```text
 KebNamComplete v1.2 กรอกจริงผ่าน
 → Sheet Y = LocalAuthority ถูกต้อง
-→ ใช้ GAS sync v1.4.3
+→ ใช้ GAS sync v1.4.5
 → manual sync
 → ตรวจ /api/waterresources ว่า localAuthority มาครบ
 → ตรวจ Dashboard counts / KPI / Table / Map

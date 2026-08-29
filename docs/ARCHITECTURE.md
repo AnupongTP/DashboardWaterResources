@@ -1,4 +1,4 @@
-# Architecture — DashboardWaterResources v1.4.3 Candidate
+# Architecture — DashboardWaterResources v1.4.5 Candidate
 
 ```text
 Google Sheet: WaterResources
@@ -113,7 +113,7 @@ full loaded dataset
 
 ## GAS integration
 
-`WaterResourcesDashboardSync.gs` ใน v1.4.3 ถูกเตรียมให้รองรับ `LocalAuthority` แบบ optional แล้ว:
+`WaterResourcesDashboardSync.gs` ใน v1.4.5 ถูกเตรียมให้รองรับ `LocalAuthority` แบบ optional แล้ว:
 
 - ถ้ายังไม่มีคอลัมน์ `LocalAuthority` → sync เดิมยังทำงาน
 - ถ้ามีคอลัมน์ → ส่ง `localAuthority`

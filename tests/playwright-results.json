@@ -134,7 +134,7 @@
     {
       "test": "mobile_combobox_tap_no_horizontal_overflow",
       "ok": true,
-      "comboWidth": 320,
+      "comboWidth": 344,
       "horizontalOverflowPx": 0
     }
   ]

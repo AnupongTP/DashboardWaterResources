@@ -1,6 +1,6 @@
 {
   "name": "DashboardWaterResources",
-  "version": "1.4.7",
+  "version": "1.4.8",
   "status": "candidate",
   "productionReady": false,
   "baseVersion": "1.4.6",
@@ -9,7 +9,7 @@
   "createdAt": "2026-08-30",
   "change": "Harden zero-command File Mode with a GET-only Production script bridge fallback so double-clicked HTML can load live data even when file:// CORS fetch is blocked. Preserve original tables/mobile scrolling and all v1.4.6 authority logic.",
   "fileMode": {
-    "defaultProductionOrigin": "https://dashboard-waterresources-phayao-test.netlify.app",
+    "defaultProductionOrigin": "https://dashboard-waterresources.netlify.app",
     "transportOrder": [
       "CORS JSON API",
       "GET-only script bridge",

@@ -1,6 +1,6 @@
-# TEST REPORT — DashboardWaterResources v1.4.7 File Mode Hardened Candidate
+# TEST REPORT — DashboardWaterResources v1.4.8 File Mode Hardened Candidate
 
-สถานะ: **Candidate — ต้อง Deploy v1.4.7 ขึ้น Netlify อย่างน้อย 1 ครั้งก่อนการดับเบิลคลิกไฟล์จะเข้าถึง live Production ผ่าน script bridge ได้**
+สถานะ: **Candidate — ต้อง Deploy v1.4.8 ขึ้น Netlify อย่างน้อย 1 ครั้งก่อนการดับเบิลคลิกไฟล์จะเข้าถึง live Production ผ่าน script bridge ได้**
 
 ## เป้าหมาย
 
@@ -50,4 +50,4 @@ CI browser ถูก policy จำกัด `file://` navigation จึงยั
 5. ดับเบิลคลิก `maeka.html` และตรวจจำนวนแม่กา
 6. ปิดอินเทอร์เน็ตเพื่อยืนยันว่าป้าย `ข้อมูลสำรอง`/cache fallback ไม่ทำให้ผู้ใช้เข้าใจว่าเป็น live data
 
-Production origin ที่ตั้งใน candidate: `https://dashboard-waterresources-phayao-test.netlify.app`
+Production origin ที่ตั้งใน candidate: `https://dashboard-waterresources.netlify.app`

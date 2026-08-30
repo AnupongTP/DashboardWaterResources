@@ -37,9 +37,9 @@ assert len(MASTER_TAMBONS) == 29 and len(set(MASTER_TAMBONS)) == 29
 assert len(bootstrap) == 1158
 assert meta['recordCount'] == 1158
 assert meta['lastId'] == 1164
-assert package['version'] == '1.4.7'
+assert package['version'] == '1.4.8'
 assert package['dependencies']['@netlify/blobs'] == '11.0.1'
-assert build_info['version'] == '1.4.7'
+assert build_info['version'] == '1.4.8'
 assert build_info['status'] == 'candidate'
 assert build_info['productionReady'] is False
 assert build_info['rulesetVersion'] == '2026-08-27.2'
@@ -141,14 +141,14 @@ with (ROOT / 'netlify.toml').open('rb') as f:
 assert config['build']['publish'] == 'site'
 assert config['functions']['directory'] == 'netlify/functions'
 
-# v1.4.7 root files are deliberate zero-command launchers into the published /site copies.
+# v1.4.8 root files are deliberate zero-command launchers into the published /site copies.
 root_index = (ROOT/'index.html').read_text(encoding='utf-8')
 root_maeka = (ROOT/'maeka.html').read_text(encoding='utf-8')
 assert "./site/index.html" in root_index and 'window.location.replace' in root_index
 assert "./site/maeka.html" in root_maeka and 'window.location.replace' in root_maeka
 
 # File mode: one centralized production origin, read-only remote API, local JS bootstrap fallback.
-assert "DEFAULT_PRODUCTION_ORIGIN = 'https://dashboard-waterresources-phayao-test.netlify.app'" in runtime
+assert "DEFAULT_PRODUCTION_ORIGIN = 'https://dashboard-waterresources.netlify.app'" in runtime
 assert "forcedMode || (isFile ? 'file'" in runtime and 'apiUrl' in runtime
 for marker in [
     "runtime.mode === 'file' ? 'production-api-file' : 'netlify-blob-api'",

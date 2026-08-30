@@ -9,10 +9,10 @@
         "transport": "same-origin-fetch",
         "version": "\"v1\"",
         "count": 2,
-        "elapsedMs": 79,
+        "elapsedMs": 5,
         "runtimeMode": "hosted",
         "productionOrigin": null,
-        "timestamp": "2026-08-30T12:24:44.716Z"
+        "timestamp": "2026-08-30T12:46:09.475Z"
       }
     },
     {
@@ -26,7 +26,7 @@
         "elapsedMs": 0,
         "runtimeMode": "hosted",
         "productionOrigin": null,
-        "timestamp": "2026-08-30T12:24:44.728Z",
+        "timestamp": "2026-08-30T12:46:09.488Z",
         "remoteUpdatedAt": "2026-08-25T00:00:00+07:00"
       }
     },
@@ -41,7 +41,7 @@
         "elapsedMs": 0,
         "runtimeMode": "hosted",
         "productionOrigin": null,
-        "timestamp": "2026-08-30T12:24:44.741Z",
+        "timestamp": "2026-08-30T12:46:09.496Z",
         "remoteUpdatedAt": "2026-08-25T00:00:00+07:00"
       }
     },
@@ -56,7 +56,7 @@
         "elapsedMs": 1,
         "runtimeMode": "hosted",
         "productionOrigin": null,
-        "timestamp": "2026-08-30T12:24:44.755Z",
+        "timestamp": "2026-08-30T12:46:09.503Z",
         "remoteUpdatedAt": "2026-08-25T00:00:00+07:00"
       }
     },
@@ -72,7 +72,7 @@
         "elapsedMs": 2,
         "runtimeMode": "hosted",
         "productionOrigin": null,
-        "timestamp": "2026-08-30T12:24:44.873Z"
+        "timestamp": "2026-08-30T12:46:09.621Z"
       }
     }
   ]

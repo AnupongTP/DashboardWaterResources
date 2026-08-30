@@ -12,7 +12,7 @@ LOADER=(SITE/'assets'/'water-data-loader.js').read_text(encoding='utf-8')
 AREA=(SITE/'assets'/'area-responsibility.js').read_text(encoding='utf-8')
 COMBO=(SITE/'assets'/'tambon-combobox.js').read_text(encoding='utf-8')
 ADAPTER=(SITE/'assets'/'maeka-data-adapter.js').read_text(encoding='utf-8')
-PROD='https://dashboard-waterresources-phayao-test.netlify.app'
+PROD='https://dashboard-waterresources.netlify.app'
 SAMPLE=BOOTSTRAP+[{
   'id':990001,'dt':'2026-08-30 18:00','lat':19.05,'lng':99.95,'name':'FILE-MODE-LIVE-MAEKA',
   'owner':'ทดสอบ','phone':None,'type':'ฝาย','width':1,'length':2,'depth':3,'depthnet':2,

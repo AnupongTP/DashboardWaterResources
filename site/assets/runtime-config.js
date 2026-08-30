@@ -1,7 +1,7 @@
 (function (global) {
   'use strict';
 
-  const DEFAULT_PRODUCTION_ORIGIN = 'https://dashboard-waterresources-phayao-test.netlify.app';
+  const DEFAULT_PRODUCTION_ORIGIN = 'https://dashboard-waterresources.netlify.app';
   const STORAGE_KEY = 'water-dashboard-production-origin';
 
   function normalizeOrigin(value) {

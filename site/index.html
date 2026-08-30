@@ -1440,9 +1440,7 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
 </style>
 </head>
 <body>
-<a href="maeka.html">ดูแผนที่แหล่งน้ำ ตำบลแม่กา</a>
-
-<a href="maeka.html" class="btn">ดูแผนที่ตำบลแม่กา</a>
+<a href="maeka.html">ดูแผนที่แหล่งน้ำตำบลแม่กา</a>
 <!-- ===== HEADER ===== -->
 <header class="app-header">
   <div class="header-brand">
@@ -1521,6 +1519,7 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
                 <div class="mlc-mini-list" id="mlcProblemList"></div>
               </div>
 
+            <label class="mlc-opt mlc-parent"><input type="checkbox" id="mlcStreamEnable"><span class="mlc-dot" style="background:#38bdf8;"></span>เส้นทางน้ำ</label>
               <div class="mlc-divider"></div>
               <div class="mlc-section-title">ตำบลที่แสดงบนแผนที่</div>
               <div class="mlc-mini-actions">
@@ -1855,6 +1854,7 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
 <script src="./assets/water-data-loader.js"></script>
 <script src="./assets/area-responsibility.js"></script>
 <script src="./assets/tambon-combobox.js"></script>
+<script src="./assets/stream-data.js"></script>
 <script>(async function(){
 const AREA = window.AreaResponsibility;
 if(!AREA) throw new Error('AreaResponsibility module is unavailable');
@@ -2189,9 +2189,29 @@ function addMapExpandControl(mapInstance, stageId, whichMap){
   ctrl.addTo(mapInstance);
 }
 
+
+var streamLayer = null;
+var STREAM_USE_COLORS = {1:'#1d4ed8',2:'#0ea5e9',4:'#38bdf8',6:'#14b8a6',8:'#a855f7'};
+var STREAM_USE_LABELS = {1:'แม่น้ำ/ลำน้ำหลัก',2:'ลำน้ำสาขา',4:'ลำห้วย/คลองย่อย',6:'คลองชลประทาน',8:'ทางน้ำเทียม'};
+function buildStreamLayer(){
+  if(streamLayer || !window.STREAM_DATA) return;
+  streamLayer = L.geoJSON(window.STREAM_DATA, {
+    style: function(f){
+      var u = f.properties.u;
+      return { color: STREAM_USE_COLORS[u] || '#0a5fb4', weight: (u===1?2.5:1.3), opacity:0.85 };
+    },
+    onEachFeature: function(f, layer){
+      var p = f.properties;
+      layer.bindPopup('<b>' + (p.n || 'ไม่มีชื่อ') + '</b><br>ประเภท: ' + (STREAM_USE_LABELS[p.u]||'อื่นๆ') + (p.l ? '<br>ความยาว: ' + p.l + ' กม.' : ''));
+    }
+  });
+}
 function initMap(){
   map=L.map('map').setView(DEFAULT_CENTER,DEFAULT_ZOOM);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(map);
+  // พื้นหลังภาพถ่ายดาวเทียมจริง (Esri World Imagery — ฟรี ไม่ต้องขอ API key)
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles © Esri',maxZoom:19}).addTo(map);
+  // เลเยอร์ชื่อสถานที่/เส้นถนนซ้อนทับ ให้ยังอ่านชื่อตำบล/ถนนได้เหมือนเดิม
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{attribution:'',maxZoom:19}).addTo(map);
   markerLayer=L.layerGroup().addTo(map);mapInited=true;
   map.on('zoomend',()=>rescaleMarkers(map,markerLayer));
   addMapExpandControl(map,'heroMapStage','hero');
@@ -3565,7 +3585,14 @@ $('#siteCardModal').addEventListener('click', e=>{ if(e.target.id==='siteCardMod
 let damagedMap=null,damagedMarkerLayer=null,damagedMapInited=false;
 let dfState={authority:'',tambon:'',type:'',problem:null};
 function getDamagedData(){let b=RAW.filter(isDamaged);if(dfState.authority)b=b.filter(r=>matchesAuthority(r,dfState.authority));if(dfState.tambon)b=b.filter(r=>r.tambon===dfState.tambon);if(dfState.type)b=b.filter(r=>r.type===dfState.type);if(dfState.problem)b=b.filter(r=>r.problem&&r.problem.includes(dfState.problem));return b;}
-function initDamagedMap(){damagedMap=L.map('damaged-map').setView(DEFAULT_CENTER,DEFAULT_ZOOM);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(damagedMap);damagedMarkerLayer=L.layerGroup().addTo(damagedMap);damagedMapInited=true;damagedMap.on('zoomend',()=>rescaleMarkers(damagedMap,damagedMarkerLayer));addMapExpandControl(damagedMap,'damagedMapStage','damaged');}
+function initDamagedMap(){
+  damagedMap=L.map('damaged-map').setView(DEFAULT_CENTER,DEFAULT_ZOOM);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles © Esri',maxZoom:19}).addTo(damagedMap);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{attribution:'',maxZoom:19}).addTo(damagedMap);
+  damagedMarkerLayer=L.layerGroup().addTo(damagedMap);damagedMapInited=true;
+  damagedMap.on('zoomend',()=>rescaleMarkers(damagedMap,damagedMarkerLayer));
+  addMapExpandControl(damagedMap,'damagedMapStage','damaged');
+}
 let lastDamagedFilterKey='||';
 function renderDamagedMapFn(data){
   if(!damagedMapInited)initDamagedMap();

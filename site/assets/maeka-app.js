@@ -234,10 +234,12 @@ function initCharts(){
     }
   });
 
-  map = L.map('mapbox', {scrollWheelZoom:false}).setView([19.06,99.94],12);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18, attribution:'&copy; OpenStreetMap'}).addTo(map);
-  markersLayer = L.layerGroup().addTo(map);
-
+ map = L.map('mapbox', {scrollWheelZoom:false}).setView([19.06,99.94],12);
+// พื้นหลังภาพถ่ายดาวเทียมจริง (Esri World Imagery — ฟรี ไม่ต้องขอ API key)
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:18, attribution:'Tiles &copy; Esri'}).addTo(map);
+// เลเยอร์ชื่อสถานที่/เส้นถนนซ้อนทับ ให้ยังอ่านชื่อหมู่บ้าน/ถนนได้เหมือนเดิม
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:18, attribution:''}).addTo(map);
+markersLayer = L.layerGroup().addTo(map);
   initMapFullscreenControl();
 }
 

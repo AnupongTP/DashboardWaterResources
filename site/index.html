@@ -1284,7 +1284,7 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
 }
 
 
-/* ===== MOBILE RESPONSIVE AUDIT v1.4.5 =====
+/* ===== MOBILE RESPONSIVE AUDIT v1.4.6 =====
    เป้าหมาย: รักษารูปแบบตารางเดิมทุกหน้า และให้ตารางเลื่อนซ้าย–ขวาภายในกรอบของตนเองบนมือถือ
    ไม่แปลงตารางเป็นการ์ด ไม่ซ่อนคอลัมน์ และไม่สร้าง horizontal overflow ให้ทั้งหน้า */
 .main{min-width:0;}
@@ -1851,9 +1851,10 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
   </div>
 </div>
 
-<script src="/assets/water-data-loader.js"></script>
-<script src="/assets/area-responsibility.js"></script>
-<script src="/assets/tambon-combobox.js"></script>
+<script src="./assets/runtime-config.js"></script>
+<script src="./assets/water-data-loader.js"></script>
+<script src="./assets/area-responsibility.js"></script>
+<script src="./assets/tambon-combobox.js"></script>
 <script>(async function(){
 const AREA = window.AreaResponsibility;
 if(!AREA) throw new Error('AreaResponsibility module is unavailable');
@@ -2459,9 +2460,12 @@ function runBuildExec(){
   var efCountEl = document.getElementById('efCount');
   var isFiltered = execFilter.authority||execFilter.tambon||execFilter.type||crossFilter.type||crossFilter.tambon||crossFilter.problem;
   if(efCountEl){
-    efCountEl.textContent = isFiltered ? 'กำลังแสดง: '+fmtN(N)+' รายการ' : 'ข้อมูลทั้งหมด '+fmtN(N)+' รายการ';
-    efCountEl.style.background = isFiltered?'#e8f5e9':'#e3f2fd';
-    efCountEl.style.color = isFiltered?'#2e7d32':'#5a7080';
+    var dataDiag = window.__WATER_DATA_DIAGNOSTICS__ || {};
+    var usingBootstrapFile = !isFiltered && dataDiag.source === 'static-bootstrap-file';
+    efCountEl.textContent = isFiltered ? 'กำลังแสดง: '+fmtN(N)+' รายการ' : (usingBootstrapFile ? 'ข้อมูลสำรอง '+fmtN(N)+' รายการ' : 'ข้อมูลทั้งหมด '+fmtN(N)+' รายการ');
+    efCountEl.title = usingBootstrapFile ? 'ไฟล์นี้เชื่อมข้อมูล Production ไม่สำเร็จ จึงกำลังใช้ข้อมูลสำรองที่ติดมากับไฟล์' : '';
+    efCountEl.style.background = isFiltered?'#e8f5e9':(usingBootstrapFile?'#fff3cd':'#e3f2fd');
+    efCountEl.style.color = isFiltered?'#2e7d32':(usingBootstrapFile?'#8a5a00':'#5a7080');
   }
   // หมายเหตุ: ตัดตัวเลขสรุป (แหล่งน้ำทั้งหมด/ปริมาตร) ออกจากแถบหัวเดิมแล้ว —
   // ประเภท/ตำบล/มีปัญหา ย้ายไปแสดงเป็นการ์ด interactive ด้านล่าง (ดู execKpi)

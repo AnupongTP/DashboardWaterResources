@@ -21,6 +21,12 @@
   force = true
 
 [[redirects]]
+  from = "/api/waterresources/file-bridge"
+  to = "/.netlify/functions/waterresources-file-bridge"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/api/waterresources"
   to = "/.netlify/functions/waterresources"
   status = 200

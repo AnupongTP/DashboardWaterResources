@@ -29,15 +29,23 @@
       "version": "\"mock-2\""
     },
     {
-      "test": "version_endpoint_current",
+      "test": "version_endpoint_current_and_file_cors",
       "ok": true
     },
     {
-      "test": "dataset_endpoint_etag_and_304",
+      "test": "dataset_endpoint_etag_304_and_file_cors",
       "ok": true
     },
     {
       "test": "sandbox_without_blob_etag_uses_sourcehash_version",
+      "ok": true
+    },
+    {
+      "test": "read_options_cors_without_opening_sync",
+      "ok": true
+    },
+    {
+      "test": "file_bridge_get_only_and_callback_hardened",
       "ok": true
     },
     {

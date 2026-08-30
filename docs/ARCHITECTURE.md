@@ -1,4 +1,4 @@
-# Architecture — DashboardWaterResources v1.4.5 Candidate
+# Architecture — DashboardWaterResources v1.4.6 Candidate
 
 ```text
 Google Sheet: WaterResources
@@ -113,7 +113,7 @@ full loaded dataset
 
 ## GAS integration
 
-`WaterResourcesDashboardSync.gs` ใน v1.4.5 ถูกเตรียมให้รองรับ `LocalAuthority` แบบ optional แล้ว:
+`WaterResourcesDashboardSync.gs` ใน v1.4.6 ถูกเตรียมให้รองรับ `LocalAuthority` แบบ optional แล้ว:
 
 - ถ้ายังไม่มีคอลัมน์ `LocalAuthority` → sync เดิมยังทำงาน
 - ถ้ามีคอลัมน์ → ส่ง `localAuthority`
@@ -123,3 +123,20 @@ full loaded dataset
 ## Cache
 
 IndexedDB เป็น object cache จึงเก็บ `localAuthority` ได้โดยไม่ bump DB schema; dataset version/ETag เป็นตัวควบคุม refresh
+
+
+## Runtime modes v1.4.6
+
+```text
+Hosted Netlify   → relative /api/*
+Netlify Dev      → relative /api/* (local Blob sandbox)
+file://          → configured Production Netlify read API
+                  ↓ fail
+                  IndexedDB cache
+                  ↓ fail
+                  waterresources.initial.js bootstrap
+```
+
+`runtime-config.js` เป็นจุดเดียวที่กำหนด Production origin สำหรับ file mode.
+Root `index.html` และ `maeka.html` เป็น launcher ไปยังไฟล์จริงใน `/site` เพื่อให้ asset path ทำงานเหมือนกันทั้ง file mode และ Netlify publish.
+`maeka.html` ไม่ใช้ dataset ฝังแบบคงที่อีกต่อไป แต่ใช้ `WaterData.load()` แล้ว map/filter เฉพาะ `tambon=แม่กา`.

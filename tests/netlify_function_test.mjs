@@ -41,7 +41,7 @@ let storeSrc = await fs.readFile(path.join(ROOT, 'netlify', 'lib', 'water-store.
 storeSrc = storeSrc.replace("import { getStore } from '@netlify/blobs';", mockPrelude);
 await fs.writeFile(path.join(TMP, 'water-store.mjs'), storeSrc, 'utf8');
 
-for (const name of ['waterresources-sync.mjs', 'waterresources-version.mjs', 'waterresources.mjs']) {
+for (const name of ['waterresources-sync.mjs', 'waterresources-version.mjs', 'waterresources.mjs', 'waterresources-file-bridge.mjs']) {
   let src = await fs.readFile(path.join(ROOT, 'netlify', 'functions', name), 'utf8');
   src = src.replace("../lib/water-store.mjs", "./water-store.mjs");
   await fs.writeFile(path.join(TMP, name), src, 'utf8');
@@ -51,6 +51,7 @@ const storeMod = await import(pathToFileURL(path.join(TMP, 'water-store.mjs')).h
 const syncFn = (await import(pathToFileURL(path.join(TMP, 'waterresources-sync.mjs')).href + '?x=1')).default;
 const versionFn = (await import(pathToFileURL(path.join(TMP, 'waterresources-version.mjs')).href + '?x=1')).default;
 const dataFn = (await import(pathToFileURL(path.join(TMP, 'waterresources.mjs')).href + '?x=1')).default;
+const fileBridgeFn = (await import(pathToFileURL(path.join(TMP, 'waterresources-file-bridge.mjs')).href + '?x=1')).default;
 
 const SECRET = '0123456789abcdefghijklmnopqrstuvwxyz';
 const MASTER_TAMBONS = [
@@ -161,7 +162,9 @@ assert.equal(res.status, 200);
 body = await res.json();
 assert.equal(body.version, v2);
 assert.equal(body.count, 34);
-ok('version_endpoint_current');
+assert.equal(res.headers.get('access-control-allow-origin'), '*');
+assert.match(res.headers.get('access-control-expose-headers') || '', /ETag/i);
+ok('version_endpoint_current_and_file_cors');
 
 // 7 data endpoint and 304
 res = await dataFn(new Request('https://example.net/api/waterresources'));
@@ -170,11 +173,13 @@ body = await res.json();
 assert.equal(body.version, v2);
 assert.equal(body.data.length, 34);
 assert.equal(res.headers.get('etag'), v2);
+assert.equal(res.headers.get('access-control-allow-origin'), '*');
+assert.match(res.headers.get('access-control-expose-headers') || '', /ETag/i);
 
 res = await dataFn(new Request('https://example.net/api/waterresources', {headers:{'if-none-match':v2}}));
 assert.equal(res.status, 304);
 assert.equal(res.headers.get('etag'), v2);
-ok('dataset_endpoint_etag_and_304');
+ok('dataset_endpoint_etag_304_and_file_cors');
 
 // 8 Netlify Dev sandbox fallback: metadata may be available without a Blob etag.
 globalThis.__TEST_OMIT_ETAG = true;
@@ -197,7 +202,34 @@ assert.equal(res.headers.get('etag'), fallbackVersion);
 globalThis.__TEST_OMIT_ETAG = false;
 ok('sandbox_without_blob_etag_uses_sourcehash_version');
 
-// 9 methods
+// 9 read CORS preflight is allowed; authenticated sync does not become a browser CORS endpoint.
+res = await versionFn(new Request('https://example.net/api/waterresources/version', {method:'OPTIONS'}));
+assert.equal(res.status, 204);
+assert.equal(res.headers.get('access-control-allow-origin'), '*');
+res = await dataFn(new Request('https://example.net/api/waterresources', {method:'OPTIONS'}));
+assert.equal(res.status, 204);
+assert.equal(res.headers.get('access-control-allow-origin'), '*');
+res = await syncFn(new Request('https://example.net/api/waterresources/sync', {method:'OPTIONS'}));
+assert.equal(res.status, 405);
+assert.equal(res.headers.get('access-control-allow-origin'), null);
+ok('read_options_cors_without_opening_sync');
+
+// 10 file:// script bridge: GET-only JSONP-style transport for browsers that block fetch CORS from local files.
+res = await fileBridgeFn(new Request('https://example.net/api/waterresources/file-bridge?callback=__waterFileBridge_test'));
+assert.equal(res.status, 200);
+assert.match(res.headers.get('content-type') || '', /application\/javascript/i);
+assert.equal(res.headers.get('x-water-file-bridge'), '1');
+let jsBody = await res.text();
+assert.ok(jsBody.startsWith('__waterFileBridge_test('));
+assert.ok(jsBody.includes('"success":true'));
+assert.ok(jsBody.includes('"data":['));
+res = await fileBridgeFn(new Request('https://example.net/api/waterresources/file-bridge?callback=alert(1)'));
+assert.equal(res.status, 400);
+res = await fileBridgeFn(new Request('https://example.net/api/waterresources/file-bridge?callback=ok', {method:'POST'}));
+assert.equal(res.status, 405);
+ok('file_bridge_get_only_and_callback_hardened');
+
+// 11 methods
 res = await versionFn(new Request('https://example.net/api/waterresources/version', {method:'POST'}));
 assert.equal(res.status, 405);
 res = await dataFn(new Request('https://example.net/api/waterresources', {method:'POST'}));

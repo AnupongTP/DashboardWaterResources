@@ -1,4 +1,4 @@
-DashboardWaterResources v1.4.5 — LocalAuthority v1.2 Candidate
+DashboardWaterResources v1.4.6 — LocalAuthority v1.2 Candidate
 
 สถานะ
 - ยังไม่ใช่ Production rollout
@@ -29,3 +29,10 @@ README_SETUP_TH.md
 docs/AREA_RESPONSIBILITY_RULES_TH.md
 docs/ARCHITECTURE.md
 docs/TEST_REPORT.md
+
+
+FILE MODE v1.4.6
+- หลัง Deploy candidate นี้ขึ้น Netlify แล้ว ดับเบิลคลิก index.html หรือ maeka.html ที่ root ได้ทันที
+- file:// จะอ่านข้อมูลล่าสุดจาก Production Netlify read API
+- ไม่ต้องรัน npm / netlify dev / Cloudflare เพื่อใช้งานปกติ
+- ถ้า Production hostname เปลี่ยน ให้แก้ DEFAULT_PRODUCTION_ORIGIN ใน site/assets/runtime-config.js จุดเดียว

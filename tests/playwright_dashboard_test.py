@@ -84,9 +84,10 @@ TOTAL = len(TEST_DATA)
 def make_test_html(data):
     html = INDEX
     stub = '<script>window.__TEST_DATA__=' + json.dumps(data, ensure_ascii=False) + ';window.WaterData={load:async()=>window.__TEST_DATA__};</script>'
-    html = html.replace('<script src="/assets/water-data-loader.js"></script>', stub)
-    html = html.replace('<script src="/assets/area-responsibility.js"></script>', '<script>' + AREA_JS + '</script>')
-    html = html.replace('<script src="/assets/tambon-combobox.js"></script>', '<script>' + COMBO_JS + '</script>')
+    html = html.replace('<script src="./assets/runtime-config.js"></script>', '')
+    html = html.replace('<script src="./assets/water-data-loader.js"></script>', stub)
+    html = html.replace('<script src="./assets/area-responsibility.js"></script>', '<script>' + AREA_JS + '</script>')
+    html = html.replace('<script src="./assets/tambon-combobox.js"></script>', '<script>' + COMBO_JS + '</script>')
     html = html.replace('<link rel="preconnect" href="https://fonts.googleapis.com">', '')
     html = html.replace('<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">', '')
     return html

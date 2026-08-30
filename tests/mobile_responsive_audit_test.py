@@ -119,7 +119,7 @@ def audit(width,height,browser,results):
     assert sticky['pos']=='sticky',sticky
     assert doc_overflow(page)<=2
     assert_no_unintended_overflow(page)
-    page.screenshot(path=str(SCREENSHOTS/f'mobile-{width}-compare-v1.4.5.png'),full_page=False)
+    page.screenshot(path=str(SCREENSHOTS/f'mobile-{width}-compare-v1.4.6.png'),full_page=False)
     results.append({'viewport':width,'test':'tambon_compare_original_table_internal_scroll','ok':True,'client':cvals['client'],'scroll':cvals['scroll']})
 
     # Data table: preserve all 12 columns, header visible, local horizontal scroll only.
@@ -136,7 +136,7 @@ def audit(width,height,browser,results):
     assert_no_unintended_overflow(page)
     results.append({'viewport':width,'test':'data_table_original_columns_internal_scroll','ok':True,'client':tvals['client'],'scroll':tvals['scroll']})
     if width==390:
-        page.screenshot(path=str(SCREENSHOTS/'mobile-390-table-v1.4.5.png'),full_page=False)
+        page.screenshot(path=str(SCREENSHOTS/'mobile-390-table-v1.4.6.png'),full_page=False)
 
     # Gallery
     click_tab(page,'gallery')
@@ -157,7 +157,7 @@ def audit(width,height,browser,results):
     assert page.locator('#panel-damaged .table-scroll-hint').is_visible()
     assert_no_unintended_overflow(page)
     assert doc_overflow(page)<=2
-    page.screenshot(path=str(SCREENSHOTS/f'mobile-{width}-damaged-v1.4.5.png'),full_page=False)
+    page.screenshot(path=str(SCREENSHOTS/f'mobile-{width}-damaged-v1.4.6.png'),full_page=False)
     results.append({'viewport':width,'test':'damaged_original_table_internal_scroll','ok':True,'client':dvals['client'],'scroll':dvals['scroll']})
 
     # Modal responsive audit with a synthetic visible record.

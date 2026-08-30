@@ -1,66 +1,53 @@
-# TEST REPORT — DashboardWaterResources v1.4.5 Mobile Scroll Tables Candidate
+# TEST REPORT — DashboardWaterResources v1.4.7 File Mode Hardened Candidate
 
-วันที่: 2026-08-30  
-สถานะ: **PASS — Candidate**
+สถานะ: **Candidate — ต้อง Deploy v1.4.7 ขึ้น Netlify อย่างน้อย 1 ครั้งก่อนการดับเบิลคลิกไฟล์จะเข้าถึง live Production ผ่าน script bridge ได้**
 
-## เป้าหมายรอบนี้
+## เป้าหมาย
 
-แก้ Mobile Responsive โดย **ไม่เปลี่ยนตารางเป็น Card**:
+แก้กรณีดับเบิลคลิก `index.html`/`maeka.html` แล้ว browser เปิด `file://` แต่ CORS ของ Production API ใช้งานไม่ได้ จนระบบ fallback ไป bootstrap 1,158 รายการและตัวกรอง อปท. ไม่มีรายการจริง
 
-- `เปรียบเทียบตำบล` คงตารางเดิม 10 คอลัมน์
-- `ตารางข้อมูลแหล่งน้ำ` คงตารางเดิม 12 คอลัมน์
-- `แหล่งน้ำชำรุด` คงตารางเดิม 10 คอลัมน์
-- มือถือเลื่อนซ้าย–ขวา **เฉพาะภายในกรอบตาราง**
-- หน้าเว็บทั้งหน้าไม่มี horizontal overflow
-- ไม่มีการซ่อนคอลัมน์
-- ตารางเปรียบเทียบตำบลตรึงคอลัมน์ `ตำบล` ไว้ทางซ้ายระหว่างเลื่อน
-- มีข้อความช่วย `← เลื่อนตารางซ้าย–ขวาเพื่อดูข้อมูลครบ →` บนมือถือ
+## Data path ใหม่สำหรับ file://
 
-## Tests ที่รันหลังแก้
+1. Production JSON API ผ่าน CORS
+2. ถ้า fetch ถูกบล็อก → GET-only script bridge `/api/waterresources/file-bridge`
+3. ถ้า Production ใช้ไม่ได้ → IndexedDB cache ที่ตรงกับ Production origin
+4. ถ้ายังไม่มี → local bootstrap
 
-```text
-static_integrity_test.py           PASS
-playwright_dashboard_test.py       PASS 23/23
-playwright_cache_logic_test.py     PASS 5/5
-area_responsibility_test.mjs       PASS
-gas_sync_contract_test.mjs         PASS
-mobile_responsive_audit_test.py    PASS 27 checks
-```
+เมื่อใช้ local bootstrap หน้าหลักจะแสดง `ข้อมูลสำรอง ... รายการ` อย่างชัดเจน ไม่แสดงเสมือนเป็นข้อมูล Production ล่าสุด
 
-Mobile audit ทดสอบที่ viewport:
+## Security
 
-```text
-360 × 800
-390 × 844
-412 × 915
-```
+- Script bridge เป็น GET/HEAD เท่านั้น
+- callback ต้องผ่าน allowlist identifier regex
+- ไม่มี secret ใน browser
+- `/api/waterresources/sync` ยังเป็น POST + Bearer secret และไม่ได้เปิด CORS
+- JSON read API เดิมยังเป็น read-only
 
-ตรวจโดยตรงว่าแต่ละตาราง:
+## Automated tests
 
-- header ยังแสดง
-- จำนวนคอลัมน์ครบ
-- `scrollWidth > clientWidth` บนมือถือ
-- สามารถเปลี่ยน `scrollLeft` ได้จริง
-- overflow อยู่ใน wrapper ไม่ดันทั้งหน้า
+- `area_responsibility_test.mjs` — PASS
+- `gas_sync_contract_test.mjs` — PASS
+- `static_integrity_test.py` — PASS
+- `netlify_function_test.mjs` — PASS, 12 tests
+- `playwright_cache_logic_test.py` — PASS, 5/5
+- `playwright_dashboard_test.py` — PASS, 23/23
+- `mobile_responsive_audit_test.py` — PASS, 27 checks ที่ 360/390/412 px
+- `file_mode_test.py` — PASS, 5 tests
+  - live CORS API
+  - CORS fetch fail → script bridge live data
+  - Mae Ka adapter
+  - offline bootstrap fallback
+  - root double-click launchers
 
-## Backend
+## Manual Windows gate
 
-โฟลเดอร์ `netlify/` และ assets ด้าน authority/data loader/combobox ไม่มีการเปลี่ยนจาก v1.4.4 ในรอบนี้ จึงไม่เปลี่ยน data contract หรือ LocalAuthority logic
+CI browser ถูก policy จำกัด `file://` navigation จึงยังต้อง UAT บน Windows จริงหลัง Deploy:
 
-## Screenshots
+1. Deploy candidate ไป Netlify
+2. ดับเบิลคลิก root `index.html`
+3. ตัวเลขต้องเป็นข้อมูล Production ล่าสุด ไม่ใช่ 1,158 bootstrap
+4. Dropdown อปท. ต้องมี Active Authorities จาก dataset จริง
+5. ดับเบิลคลิก `maeka.html` และตรวจจำนวนแม่กา
+6. ปิดอินเทอร์เน็ตเพื่อยืนยันว่าป้าย `ข้อมูลสำรอง`/cache fallback ไม่ทำให้ผู้ใช้เข้าใจว่าเป็น live data
 
-- `tests/screenshots/mobile-390-compare-v1.4.5.png`
-- `tests/screenshots/mobile-390-table-v1.4.5.png`
-- `tests/screenshots/mobile-390-damaged-v1.4.5.png`
-
-## Result
-
-```text
-Original table layout on mobile     PASS
-Internal horizontal table scroll    PASS
-All columns retained                PASS
-No page-level horizontal overflow   PASS
-Authority/LocalAuthority logic      PASS
-Existing dashboard functional tests PASS
-Cache behavior                      PASS
-```
+Production origin ที่ตั้งใน candidate: `https://dashboard-waterresources-phayao-test.netlify.app`

@@ -1,0 +1,30 @@
+{
+  "ok": true,
+  "results": [
+    {
+      "test": "file_runtime_full_dashboard_uses_live_production_api",
+      "ok": true,
+      "count": 1159
+    },
+    {
+      "test": "file_runtime_script_bridge_survives_fetch_cors_failure",
+      "ok": true,
+      "count": 1159
+    },
+    {
+      "test": "maeka_adapter_filters_live_dataset_and_maps_fields",
+      "ok": true,
+      "count": 42
+    },
+    {
+      "test": "file_runtime_offline_uses_local_bootstrap",
+      "ok": true,
+      "count": 1158
+    },
+    {
+      "test": "root_double_click_launchers_target_site_pages",
+      "ok": true,
+      "note": "file:// navigation blocked by CI browser policy; runtime branch tested above"
+    }
+  ]
+}

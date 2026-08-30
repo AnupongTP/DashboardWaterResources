@@ -9,6 +9,10 @@ SITE = ROOT / 'site'
 index = (SITE / 'index.html').read_text(encoding='utf-8')
 area = (SITE / 'assets' / 'area-responsibility.js').read_text(encoding='utf-8')
 combo = (SITE / 'assets' / 'tambon-combobox.js').read_text(encoding='utf-8')
+runtime = (SITE / 'assets' / 'runtime-config.js').read_text(encoding='utf-8')
+maeka_adapter = (SITE / 'assets' / 'maeka-data-adapter.js').read_text(encoding='utf-8')
+maeka_app = (SITE / 'assets' / 'maeka-app.js').read_text(encoding='utf-8')
+maeka = (SITE / 'maeka.html').read_text(encoding='utf-8')
 loader = (SITE / 'assets' / 'water-data-loader.js').read_text(encoding='utf-8')
 store = (ROOT / 'netlify' / 'lib' / 'water-store.mjs').read_text(encoding='utf-8')
 gas = (ROOT / 'google-apps-script' / 'WaterResourcesDashboardSync.gs').read_text(encoding='utf-8')
@@ -33,9 +37,9 @@ assert len(MASTER_TAMBONS) == 29 and len(set(MASTER_TAMBONS)) == 29
 assert len(bootstrap) == 1158
 assert meta['recordCount'] == 1158
 assert meta['lastId'] == 1164
-assert package['version'] == '1.4.5'
+assert package['version'] == '1.4.7'
 assert package['dependencies']['@netlify/blobs'] == '11.0.1'
-assert build_info['version'] == '1.4.5'
+assert build_info['version'] == '1.4.7'
 assert build_info['status'] == 'candidate'
 assert build_info['productionReady'] is False
 assert build_info['rulesetVersion'] == '2026-08-27.2'
@@ -46,12 +50,12 @@ for marker in [
     'id="efAuthority"', 'id="efTambon"', 'id="efTambonListbox"', 'id="efTambonError"',
     'id="fAuthority"', 'id="fTambon"', 'id="fTambonListbox"', 'id="fMoo"', 'id="fVillage"',
     'id="dfAuthority"', 'id="dfTambon"', 'id="dfTambonListbox"',
-    '/assets/water-data-loader.js', '/assets/area-responsibility.js', '/assets/tambon-combobox.js',
+    './assets/runtime-config.js', './assets/water-data-loader.js', './assets/area-responsibility.js', './assets/tambon-combobox.js',
     'ACTIVE_AUTHORITIES', 'AREA.activeAuthorities(RAW)', 'authorityDisplay', 'TambonCombobox',
     'AREA.validConfiguredMoos(state.authority,state.tambon)', 'AREA.authorityTambonScopeText(state.authority,tambon)',
     'tambon-combobox-option-scope', '__AUTHORITY_RESOLUTION_STATS__',
     'table-scroll-hint', 'mobile-tab-hint', 'pivot-scroll-hint',
-    'MOBILE RESPONSIVE AUDIT v1.4.5'
+    'MOBILE RESPONSIVE AUDIT v1.4.6'
 ]:
     assert marker in index, f'missing index marker: {marker}'
 
@@ -137,14 +141,47 @@ with (ROOT / 'netlify.toml').open('rb') as f:
 assert config['build']['publish'] == 'site'
 assert config['functions']['directory'] == 'netlify/functions'
 
-# Production HTML copies at root must be byte-identical to published /site copies.
-assert (ROOT/'index.html').read_bytes() == (SITE/'index.html').read_bytes()
-assert (ROOT/'maeka.html').read_bytes() == (SITE/'maeka.html').read_bytes()
+# v1.4.7 root files are deliberate zero-command launchers into the published /site copies.
+root_index = (ROOT/'index.html').read_text(encoding='utf-8')
+root_maeka = (ROOT/'maeka.html').read_text(encoding='utf-8')
+assert "./site/index.html" in root_index and 'window.location.replace' in root_index
+assert "./site/maeka.html" in root_maeka and 'window.location.replace' in root_maeka
 
-# Components intentionally outside this Dashboard authority change remain byte-identical to validated v1.3.1.
-expected_maeka = 'd992edcb7d182e2cbc48132fb5ea9f47fa794c0795b027e065749fb3d101be56'
-expected_loader = 'd83358e58220637aa07b104cd33f09b630d7fb4a804dde88b21fda93a16f42b4'
-assert hashlib.sha256((SITE/'maeka.html').read_bytes()).hexdigest() == expected_maeka
-assert hashlib.sha256((SITE/'assets'/'water-data-loader.js').read_bytes()).hexdigest() == expected_loader
+# File mode: one centralized production origin, read-only remote API, local JS bootstrap fallback.
+assert "DEFAULT_PRODUCTION_ORIGIN = 'https://dashboard-waterresources-phayao-test.netlify.app'" in runtime
+assert "forcedMode || (isFile ? 'file'" in runtime and 'apiUrl' in runtime
+for marker in [
+    "runtime.mode === 'file' ? 'production-api-file' : 'netlify-blob-api'",
+    "runtime.mode === 'file' ? 'static-bootstrap-file' : 'static-bootstrap'",
+    'BOOTSTRAP_SCRIPT_URL', 'remoteOrigin', "mode: runtime.mode === 'file' ? 'cors' : 'same-origin'",
+    'FILE_BRIDGE_ENDPOINT', 'getRemoteDatasetViaFileBridge', "source: 'production-script-bridge-file'"
+]:
+    assert marker in loader, f'missing file-mode loader marker: {marker}'
+bootstrap_js = (SITE/'data'/'waterresources.initial.js').read_text(encoding='utf-8')
+assert bootstrap_js.startswith('window.__WATER_BOOTSTRAP_DATA__ = ') and len(bootstrap) == 1158
+
+# Mae Ka page now consumes the same WaterData dataset and adapts only ตำบลแม่กา.
+for marker in ['./assets/runtime-config.js','./assets/water-data-loader.js','./assets/maeka-data-adapter.js','./assets/maeka-app.js']:
+    assert marker in maeka or marker in maeka_app, f'missing Mae Ka file-mode marker: {marker}'
+assert 'window.WaterData.load()' in maeka
+assert "String(record.tambon || '').trim() === 'แม่กา'" in maeka_adapter
+assert 'record.depthnet' in maeka_adapter and 'record.imglink' in maeka_adapter and 'record.volume' in maeka_adapter
+assert 'const DATA = Array.isArray(window.__MAEKA_DATA__) ? window.__MAEKA_DATA__ : [];' in maeka_app
+assert 'const DATA = [{' not in maeka, 'Mae Ka HTML must not keep a frozen embedded dataset'
+
+# CORS is intentionally opened only on JSON read endpoints. A separate GET-only script bridge supports file:// without CORS; sync stays closed.
+read_fn = (ROOT/'netlify'/'functions'/'waterresources.mjs').read_text(encoding='utf-8')
+version_fn = (ROOT/'netlify'/'functions'/'waterresources-version.mjs').read_text(encoding='utf-8')
+sync_fn = (ROOT/'netlify'/'functions'/'waterresources-sync.mjs').read_text(encoding='utf-8')
+bridge_fn = (ROOT/'netlify'/'functions'/'waterresources-file-bridge.mjs').read_text(encoding='utf-8')
+for text in [read_fn, version_fn]:
+    assert "'Access-Control-Allow-Origin': '*'" in text
+    assert "request.method === 'OPTIONS'" in text
+    assert 'Access-Control-Expose-Headers' in text
+assert 'Access-Control-Allow-Origin' not in sync_fn
+assert "request.method !== 'POST'" in sync_fn and 'isAuthorizedSyncRequest' in sync_fn
+assert 'CALLBACK_RE' in bridge_fn and "request.method !== 'GET' && request.method !== 'HEAD'" in bridge_fn
+assert 'application/javascript' in bridge_fn and 'isAuthorizedSyncRequest' not in bridge_fn
+assert '/api/waterresources/file-bridge' in (ROOT/'netlify.toml').read_text(encoding='utf-8')
 
 print('static_integrity_test: PASS')

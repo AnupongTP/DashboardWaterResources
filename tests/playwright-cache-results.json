@@ -6,10 +6,13 @@
       "ok": true,
       "diagnostics": {
         "source": "netlify-blob-api",
+        "transport": "same-origin-fetch",
         "version": "\"v1\"",
         "count": 2,
-        "elapsedMs": 3,
-        "timestamp": "2026-08-29T18:34:37.487Z"
+        "elapsedMs": 79,
+        "runtimeMode": "hosted",
+        "productionOrigin": null,
+        "timestamp": "2026-08-30T12:24:44.716Z"
       }
     },
     {
@@ -17,10 +20,13 @@
       "ok": true,
       "diagnostics": {
         "source": "indexeddb-cache",
+        "transport": "version-check",
         "version": "\"v1\"",
         "count": 2,
-        "elapsedMs": 1,
-        "timestamp": "2026-08-29T18:34:37.537Z",
+        "elapsedMs": 0,
+        "runtimeMode": "hosted",
+        "productionOrigin": null,
+        "timestamp": "2026-08-30T12:24:44.728Z",
         "remoteUpdatedAt": "2026-08-25T00:00:00+07:00"
       }
     },
@@ -29,10 +35,13 @@
       "ok": true,
       "diagnostics": {
         "source": "netlify-blob-api",
+        "transport": "same-origin-fetch",
         "version": "\"v2\"",
         "count": 3,
-        "elapsedMs": 1,
-        "timestamp": "2026-08-29T18:34:37.552Z",
+        "elapsedMs": 0,
+        "runtimeMode": "hosted",
+        "productionOrigin": null,
+        "timestamp": "2026-08-30T12:24:44.741Z",
         "remoteUpdatedAt": "2026-08-25T00:00:00+07:00"
       }
     },
@@ -41,10 +50,13 @@
       "ok": true,
       "diagnostics": {
         "source": "indexeddb-cache-offline",
+        "transport": "cache",
         "version": "\"v2\"",
         "count": 3,
         "elapsedMs": 1,
-        "timestamp": "2026-08-29T18:34:37.567Z",
+        "runtimeMode": "hosted",
+        "productionOrigin": null,
+        "timestamp": "2026-08-30T12:24:44.755Z",
         "remoteUpdatedAt": "2026-08-25T00:00:00+07:00"
       }
     },
@@ -53,10 +65,14 @@
       "ok": true,
       "diagnostics": {
         "source": "static-bootstrap",
+        "transport": "local-bootstrap",
         "version": "bootstrap:3",
         "count": 3,
-        "elapsedMs": 4,
-        "timestamp": "2026-08-29T18:34:37.905Z"
+        "warning": null,
+        "elapsedMs": 2,
+        "runtimeMode": "hosted",
+        "productionOrigin": null,
+        "timestamp": "2026-08-30T12:24:44.873Z"
       }
     }
   ]

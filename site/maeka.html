@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>แผนที่และแดชบอร์ดจัดการแหล่งน้ำ ตำบลแม่กา</title>
+<title>กว๊านกักเก็บ แดชบอร์ดศูนย์ข้อมูลแหล่งน้ำและประปา ตำบลแม่กา จังหวัดพะเยา </title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
@@ -39,31 +39,29 @@
   }
   .wrap{max-width:1650px;margin:0 auto;padding:16px;overflow-x:hidden;}
 
-  header{
-    background:linear-gradient(120deg,var(--abyss),var(--channel) 55%,var(--shallow) 140%);
-    border-radius:var(--radius);
-    padding:22px 28px;
-    color:#fff;
-    display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:14px;
-    position:relative;overflow:hidden;
-    box-shadow:0 8px 24px rgba(6,58,107,.25);
+  /* ===== TOP HEADER (เทมเพลตเดียวกับแดชบอร์ดแหล่งน้ำผู้บริหาร) ===== */
+  .app-header{
+    background:linear-gradient(135deg,#0d47a1 0%,#1976d2 60%,#00838f 100%);
+    padding:0 28px;
+    display:flex;align-items:center;gap:0;
+    box-shadow:0 2px 12px rgba(13,71,161,.25);
+    position:sticky;top:0;z-index:1200;
+    flex-wrap:wrap;
   }
-  header::before{
-    content:"";position:absolute;inset:0;
-    background:
-      radial-gradient(ellipse at 85% -20%, rgba(255,255,255,.18), transparent 55%),
-      radial-gradient(ellipse at 10% 130%, rgba(79,180,232,.4), transparent 60%);
+  .header-brand{padding:16px 0;margin-right:28px;}
+  .header-brand .eyebrow{font-size:21.5px;letter-spacing:.03em;color:#fff;font-weight:800;text-transform:none;line-height:1.25;}
+  .header-brand h1{font-size:14.5px;color:rgba(255,255,255,.8);font-weight:400;line-height:1.3;margin-top:4px;}
+  @media(max-width:960px){
+    .app-header{padding:12px 16px;flex-wrap:wrap;row-gap:8px;}
+    .header-brand{margin-right:0;padding:0;flex-basis:100%;}
+    .header-brand .eyebrow{font-size:18px;}
+    .header-brand h1{font-size:12.5px;margin-top:3px;}
   }
-  header .htxt{position:relative;z-index:1;}
-  header .eyebrow{font-size:25px;letter-spacing:.04em;text-transform:none;color:#fff;font-weight:700;font-family:'Kanit',sans-serif;}
-  header h1{margin:6px 0 0;font-family:'Kanit',sans-serif;font-weight:500;font-size:17px;color:#d9edfa;}
-  header .sub{margin:4px 0 0;font-size:14.5px;color:#d9edfa;}
-  .hbadge{
-    position:relative;z-index:1;background:rgba(255,255,255,.16);
-    border:1px solid rgba(255,255,255,.35);border-radius:12px;padding:10px 20px;text-align:center;backdrop-filter:blur(4px);
+  @media(max-width:640px){
+    .app-header{padding:10px 12px;row-gap:8px;position:sticky;top:0;}
+    .header-brand .eyebrow{font-size:18px;line-height:1.2;overflow-wrap:anywhere;}
+    .header-brand h1{font-size:12px;line-height:1.35;}
   }
-  .hbadge .n{font-family:'Kanit',sans-serif;font-size:28px;font-weight:700;line-height:1;}
-  .hbadge .l{font-size:11px;color:#cfe8fa;margin-top:3px;}
 
   /* ===== ตัวนับผู้เข้าชมเว็บ (ผู้เข้าชม + แยกตามประเทศ) — วางไว้ด้านล่างสุดตรงกลางของหน้า ===== */
   .visitor-counter-wrap{display:flex;justify-content:center;margin-top:18px;}
@@ -98,28 +96,29 @@
 
   .toolbar{
     margin-top:14px;background:var(--card);border-radius:var(--radius);
-    padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+    padding:14px 20px;display:flex;flex-direction:column;gap:10px;
     box-shadow:0 2px 10px rgba(10,60,110,.06);
   }
-  .toolbar .left-controls{display:flex;align-items:center;gap:14px;flex-wrap:wrap;flex:1;}
   .toolbar .ttitle{font-family:'Kanit',sans-serif;font-weight:600;font-size:17px;color:var(--abyss);display:flex;align-items:center;gap:8px;}
   .toolbar .ttitle::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--channel);}
+  /* ช่องค้นหา + ตัวกรองอยู่แถวเดียวกันเสมอ โดยยืด/หดตามพื้นที่แทนการมีความกว้างตายตัว — จะ wrap เป็นรายช่องก็ต่อเมื่อจอแคบมากจริงๆ (มือถือ) เท่านั้น */
+  .toolbar .toolbar-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 
-  .search-box{position:relative;}
+  .search-box{position:relative;flex:1 1 220px;min-width:170px;}
   .search-box input{
-    font-size:15px;padding:10px 14px;border-radius:10px;width:280px;
+    font-size:15px;padding:10px 14px;border-radius:10px;width:100%;
     border:1px solid var(--line);background-color:#f8fbfd;
   }
   .search-box input:focus{outline:none;border-color:var(--channel);box-shadow:0 0 0 3px rgba(10,95,180,.15);}
 
-  .toolbar .filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .toolbar .filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;flex:2 1 420px;}
   .toolbar .filters select{
-    font-size:15px;padding:10px 14px;border-radius:10px;width:235px;
+    font-size:15px;padding:10px 14px;border-radius:10px;flex:1 1 130px;min-width:120px;
     border:1px solid var(--line);background-color:#f8fbfd;
     overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
   }
   @media (max-width:700px){
-    .toolbar .filters select{width:100%;}
+    .toolbar .filters select{flex-basis:100%;}
   }
   .toolbar .filters select option.opt-nodata{color:#9aa8ac;font-style:italic;}
   .toolbar .filters select:focus{outline:none;border-color:var(--shallow);box-shadow:0 0 0 3px rgba(79,180,232,.3);}
@@ -351,7 +350,7 @@
     width:34px;height:34px;border-radius:50%;font-size:16px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3);
   }
   .img-modal-close:hover{background:var(--paper);}
-  
+
   .dss-container {
     margin-top: 14px;
     transition: all 0.3s ease;
@@ -408,36 +407,36 @@
 </style>
 </head>
 <body>
-  <div style="padding: 8px 16px;"><a href="index.html" style="color: var(--channel); text-decoration: none; font-size: 14.5px;">← กลับสู่หน้าหลักจังหวัดพะเยา</a></div>
+<!-- ===== HEADER (เทมเพลตเดียวกับแดชบอร์ดแหล่งน้ำผู้บริหาร) ===== -->
+<div style="padding: 8px 16px;"><a href="index.html" style="color: var(--channel); text-decoration: none; font-size: 14.5px;">← กลับสู่หน้าหลักจังหวัดพะเยา</a></div>
+<header class="app-header">
+  <div class="header-brand">
+    <div class="eyebrow">กว๊านกักเก็บ แดชบอร์ดศูนย์ข้อมูลแหล่งน้ำและประปา จังหวัดพะเยา</div>
+    <h1>KwanKakKeb – Phayao Water Resources and Water Supply Data Center Dashboard</h1>
+    <h1>ตำบลแม่กา อำเภอเมืองพะเยา จังหวัดพะเยา</h1>
+  </div>
+</header>
 <div class="wrap">
 
-  <header>
-    <div class="htxt">
-      <div class="eyebrow">KwanKakKeb – Phayao Water Resources and Water Supply Data Center Dashboard</div>
-      <h1>ตำบลแม่กา อำเภอเมืองพะเยา จังหวัดพะเยา</h1>
-      <div class="sub">วิเคราะห์ ค้นหา และตรวจสอบสภาพปัญหาแหล่งน้ำในพื้นที่</div>
-    </div>
-  </header>
-
   <div class="toolbar">
-    <div class="left-controls">
-      <div class="ttitle">ตัวกรองข้อมูล</div>
+    <div class="ttitle">ตัวกรองข้อมูล</div>
+    <div class="toolbar-row">
       <div class="search-box">
         <input type="text" id="txtSearch" placeholder="🔍 ค้นหาชื่อแหล่งน้ำ หรือ หมู่บ้าน...">
       </div>
-    </div>
-    <div class="filters">
-      <select id="fMoo"><option value="all">หมู่ที่ : ทั้งหมด</option></select>
-      <select id="fType"><option value="all">ประเภทแหล่งน้ำ : ทั้งหมด</option></select>
-      <select id="fStatus">
-        <option value="all">สถานะการใช้งาน : ทั้งหมด</option>
+      <div class="filters">
+        <select id="fMoo"><option value="all">หมู่ที่ : ทั้งหมด</option></select>
+        <select id="fType"><option value="all">ประเภทแหล่งน้ำ : ทั้งหมด</option></select>
+        <select id="fStatus">
+          <option value="all">สถานะการใช้งาน : ทั้งหมด</option>
         <option value="ใช้งานได้">ใช้งานได้</option>
         <option value="ใช้งานไม่ได้">ใช้งานไม่ได้</option>
         <option value="ชำรุด">ชำรุด</option>
       </select>
+      </div>
     </div>
   </div>
-  
+
   <div class="activefilter" id="probFilterNote" style="display:none;">
     กำลังกรองเฉพาะปัญหา: <b id="probFilterLabel"></b> <span class="x" id="probFilterClear">✕</span>
   </div>

@@ -1438,14 +1438,16 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
   .gallery{grid-template-columns:1fr;}
 }
 </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
 </head>
 <body>
 <a href="maeka.html">ดูแผนที่แหล่งน้ำตำบลแม่กา</a>
 <!-- ===== HEADER ===== -->
 <header class="app-header">
   <div class="header-brand">
-    <div class="eyebrow">Dashboard KukKubNam Phayao</div>
-    <h1>แดชบอร์ดสถานการณ์น้ำและการกักเก็บน้ำพะเยา</h1>
+    <div class="eyebrow">กว๊านกักเก็บ แดชบอร์ดศูนย์ข้อมูลแหล่งน้ำและประปา จังหวัดพะเยา</div>
+    <h1>KwanKakKeb – Phayao Water Resources and Water Supply Data Center Dashboard</h1>
   </div>
   <nav class="main-nav">
     <button class="active" data-view="exec"><span>📊 บทสรุปผู้บริหาร</span></button>
@@ -1855,6 +1857,7 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
 <script src="./assets/area-responsibility.js"></script>
 <script src="./assets/tambon-combobox.js"></script>
 <script src="./assets/stream-data.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>(async function(){
 const AREA = window.AreaResponsibility;
 if(!AREA) throw new Error('AreaResponsibility module is unavailable');
@@ -2206,13 +2209,37 @@ function buildStreamLayer(){
     }
   });
 }
+
+// ไอคอนกลุ่ม (cluster) ทรงหมุดหยดน้ำ ไล่สี — หมุดเดี่ยวยังคงเป็นวงกลมแบบเดิมทุกจุด ไม่เปลี่ยน
+function clusterIcon(color1, color2){
+  color2 = color2 || color1;
+  return function(cluster){
+    const count=cluster.getChildCount();
+    const w=count<10?38:count<50?46:56;      // ความกว้างหมุด
+    const h=Math.round(w*1.32);              // หมุดสูงกว่ากว้าง (ทรงหยดน้ำ)
+    const fs=count<10?13:count<100?12.5:11.5;
+    const uid='c'+Math.random().toString(36).slice(2,9);
+    const html=`
+      <svg width="${w}" height="${h}" viewBox="0 0 24 32" xmlns="http://www.w3.org/2000/svg" style="display:block;filter:drop-shadow(0 2px 4px rgba(0,20,60,.45));">
+        <defs>
+          <linearGradient id="${uid}" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="${color1}"/>
+            <stop offset="100%" stop-color="${color2}"/>
+          </linearGradient>
+        </defs>
+        <path d="M12 0C5.4 0 0 5.3 0 11.8 0 20.6 12 32 12 32s12-11.4 12-20.2C24 5.3 18.6 0 12 0z" fill="url(#${uid})" stroke="#ffffff" stroke-width="1.4"/>
+        <text x="12" y="11.8" text-anchor="middle" dominant-baseline="central" font-family="'Sarabun',sans-serif" font-weight="800" font-size="${fs}" fill="#ffffff" stroke="#08355e" stroke-width="0.6" paint-order="stroke">${count}</text>
+      </svg>`;
+    return L.divIcon({ html, className:'', iconSize:[w,h], iconAnchor:[w/2,h] });
+  };
+}
 function initMap(){
   map=L.map('map').setView(DEFAULT_CENTER,DEFAULT_ZOOM);
   // พื้นหลังภาพถ่ายดาวเทียมจริง (Esri World Imagery — ฟรี ไม่ต้องขอ API key)
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles © Esri',maxZoom:19}).addTo(map);
   // เลเยอร์ชื่อสถานที่/เส้นถนนซ้อนทับ ให้ยังอ่านชื่อตำบล/ถนนได้เหมือนเดิม
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{attribution:'',maxZoom:19}).addTo(map);
-  markerLayer=L.layerGroup().addTo(map);mapInited=true;
+  markerLayer=L.markerClusterGroup({maxClusterRadius:70,disableClusteringAtZoom:16,spiderfyOnMaxZoom:true,showCoverageOnHover:false,chunkedLoading:true,iconCreateFunction:clusterIcon('#0a5fb4','#29b6f6')}).addTo(map);mapInited=true;
   map.on('zoomend',()=>rescaleMarkers(map,markerLayer));
   addMapExpandControl(map,'heroMapStage','hero');
 }
@@ -2286,6 +2313,15 @@ function buildMapLegend(data){
   $('#mapLegend').innerHTML=html;
 }
 let lastMapFilterKey='||||';
+
+function buildExecPopup(d){
+  const damaged=isDamaged(d);
+  const gmapUrl=`https://www.google.com/maps?q=${d.lat},${d.lng}&z=17`;
+  const appleUrl=`https://maps.apple.com/?ll=${d.lat},${d.lng}&q=${encodeURIComponent(d.name||'แหล่งน้ำ')}`;
+  const damageBadge=damaged?`<div class="popup-damage-badge">⚠️ ${(d.problem||'').split(',').filter(p=>DAMAGE_KEYWORDS.some(k=>p.includes(k))).join(', ')}</div>`:'';
+  const photoBox=d.imglink?`<div style="margin:8px 0;border-radius:8px;overflow:hidden;background:#eef;min-height:120px;display:flex;align-items:center;justify-content:center;position:relative;">${imgTag(d.imglink,'width:100%;max-height:180px;object-fit:cover;display:block;border-radius:8px;')}<a href="${d.imglink}" target="_blank" rel="noopener" style="position:absolute;bottom:5px;right:5px;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:3px 7px;border-radius:5px;text-decoration:none;">🔍 ขนาดเต็ม</a></div>`:`<div style="margin:8px 0;height:80px;background:#eef0f4;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:12px;">ไม่มีภาพถ่าย</div>`;
+  return `<div style="font-family:'Sarabun',sans-serif;width:255px;font-size:13px;"><b style="color:#0d47a1;font-size:14px;">${d.name||'ไม่ระบุชื่อ'}</b><div style="color:#666;font-size:11.5px;margin-top:2px;">${typeIcon(d.type)} ${d.type||''} · ${d.tambon||''} ${d.village?'· '+d.village:''}</div><div style="color:#546e7a;font-size:11px;margin-top:2px;">🏛️ ${authorityDisplay(d)}</div>${damageBadge}${photoBox}<div style="font-size:12px;color:#333;line-height:1.8;margin-bottom:6px;"><div>📐 ${d.width||'-'}×${d.length||'-'}×${d.depth||'-'} ม.</div><div>💧 ${fmtN(d.volume)} ลบ.ม.</div><div>👤 ${d.owner||'-'}</div><div style="color:#999;font-size:11px;">📍 ${d.lat.toFixed(5)}, ${d.lng.toFixed(5)}</div></div><a href="${gmapUrl}" target="_blank" rel="noopener" class="popup-nav-btn">🗺️ นำทางด้วย Google Maps</a><a href="${appleUrl}" target="_blank" rel="noopener" style="display:block;margin-top:5px;text-align:center;font-size:11px;color:#888;text-decoration:none;">🍎 Apple Maps</a></div>`;
+}
 function renderMap(data){
   if(!mapInited)initMap();
   if(mapState.tambons) data=data.filter(d=>mapState.tambons.has(d.tambon));
@@ -2295,15 +2331,10 @@ function renderMap(data){
   data.forEach(d=>{
     if(d.lat==null||d.lng==null)return;n++;
     latlngs.push([d.lat,d.lng]);
-    const damaged=isDamaged(d);
     const st=markerStyle(d);
-    const m=L.marker([d.lat,d.lng],{icon:makeExecIcon(d,st)});
-    const gmapUrl=`https://www.google.com/maps?q=${d.lat},${d.lng}&z=17`;
-    const appleUrl=`https://maps.apple.com/?ll=${d.lat},${d.lng}&q=${encodeURIComponent(d.name||'แหล่งน้ำ')}`;
-    const damageBadge=damaged?`<div class="popup-damage-badge">⚠️ ${(d.problem||'').split(',').filter(p=>DAMAGE_KEYWORDS.some(k=>p.includes(k))).join(', ')}</div>`:'';
-    const photoBox=d.imglink?`<div style="margin:8px 0;border-radius:8px;overflow:hidden;background:#eef;min-height:120px;display:flex;align-items:center;justify-content:center;position:relative;">${imgTag(d.imglink,'width:100%;max-height:180px;object-fit:cover;display:block;border-radius:8px;')}<a href="${d.imglink}" target="_blank" rel="noopener" style="position:absolute;bottom:5px;right:5px;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:3px 7px;border-radius:5px;text-decoration:none;">🔍 ขนาดเต็ม</a></div>`:`<div style="margin:8px 0;height:80px;background:#eef0f4;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:12px;">ไม่มีภาพถ่าย</div>`;
-    m.bindPopup(`<div style="font-family:'Sarabun',sans-serif;width:255px;font-size:13px;"><b style="color:#0d47a1;font-size:14px;">${d.name||'ไม่ระบุชื่อ'}</b><div style="color:#666;font-size:11.5px;margin-top:2px;">${typeIcon(d.type)} ${d.type||''} · ${d.tambon||''} ${d.village?'· '+d.village:''}</div><div style="color:#546e7a;font-size:11px;margin-top:2px;">🏛️ ${authorityDisplay(d)}</div>${damageBadge}${photoBox}<div style="font-size:12px;color:#333;line-height:1.8;margin-bottom:6px;"><div>📐 ${d.width||'-'}×${d.length||'-'}×${d.depth||'-'} ม.</div><div>💧 ${fmtN(d.volume)} ลบ.ม.</div><div>👤 ${d.owner||'-'}</div><div style="color:#999;font-size:11px;">📍 ${d.lat.toFixed(5)}, ${d.lng.toFixed(5)}</div></div><a href="${gmapUrl}" target="_blank" rel="noopener" class="popup-nav-btn">🗺️ นำทางด้วย Google Maps</a><a href="${appleUrl}" target="_blank" rel="noopener" style="display:block;margin-top:5px;text-align:center;font-size:11px;color:#888;text-decoration:none;">🍎 Apple Maps</a></div>`,{maxWidth:275,minWidth:255});
-    markerLayer.addLayer(m);
+const m=L.marker([d.lat,d.lng],{icon:makeExecIcon(d,st)});
+m.bindPopup(()=>buildExecPopup(d),{maxWidth:275,minWidth:255});
+markerLayer.addLayer(m);
   });
   $('#n-map').textContent=`(${fmtN(n)} จุดที่มีพิกัด)`;
   buildMapLegend(data);
@@ -3589,7 +3620,7 @@ function initDamagedMap(){
   damagedMap=L.map('damaged-map').setView(DEFAULT_CENTER,DEFAULT_ZOOM);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles © Esri',maxZoom:19}).addTo(damagedMap);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{attribution:'',maxZoom:19}).addTo(damagedMap);
-  damagedMarkerLayer=L.layerGroup().addTo(damagedMap);damagedMapInited=true;
+  damagedMarkerLayer=L.markerClusterGroup({maxClusterRadius:60,disableClusteringAtZoom:16,spiderfyOnMaxZoom:true,showCoverageOnHover:false,chunkedLoading:true,iconCreateFunction:clusterIcon('#c62828','#ff7043')}).addTo(damagedMap);damagedMapInited=true;
   damagedMap.on('zoomend',()=>rescaleMarkers(damagedMap,damagedMarkerLayer));
   addMapExpandControl(damagedMap,'damagedMapStage','damaged');
 }

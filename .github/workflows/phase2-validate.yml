@@ -46,7 +46,7 @@ jobs:
           s=p.read_text(encoding='utf-8')
           line="    text = replace_once(text, \"refreshTambonOptions();refreshMooOptions();refreshVillageOptions();\", \"refreshDetailAuthorities();refreshTambonOptions();refreshMooOptions();refreshVillageOptions();\", 'detail initial refresh')\n"
           if s.count(line) != 1:
-              raise SystemExit('patcher guard: expected obsolete detail initial refresh assertion exactly once')
+              raise SystemExit('patcher guard failed')
           p.write_text(s.replace(line,''), encoding='utf-8')
           PY
           python tools/apply_phase2_filters.py
@@ -57,27 +57,25 @@ jobs:
           old="'ทต.บ้านถ้ำ','อบต.ดอนศรีชุม','อบต.แม่อิง','ทต.ดงเจน','อบต.สันโค้ง'"
           new="'ทต.บ้านถ้ำ','อบต.ดอนศรีชุม','อบต.สันโค้ง','อบต.แม่อิง','ทต.ดงเจน'"
           if s.count(old) != 1:
-              raise SystemExit(f'authority order guard: expected 1, found {s.count(old)}')
+              raise SystemExit('authority order guard failed')
           p.write_text(s.replace(old,new), encoding='utf-8')
           PY
           python - <<'PY'
           from pathlib import Path
+          import re
           p=Path('tests/netlify_function_test.mjs')
           s=p.read_text(encoding='utf-8')
-          old="""const AUTHORITIES = [
-  'ทม.ดอกคำใต้','อบต.คือเวียง','อบต.บ้านปิน','อบต.ดอกคำใต้','อบต.จำป่าหวาย',
-  'ทต.บ้านถ้ำ','อบต.ดอนศรีชุม','อบต.แม่อิง','ทต.ดงเจน','อบต.สันโค้ง'
-];"""
-          new="""const AUTHORITIES = [
-  'ทม.พะเยา','ทต.แม่กา','อบต.แม่นาเรือ','อบต.แม่ใส','อบต.บ้านตุ่น','ทต.บ้านสาง',
-  'ทต.สันป่าม่วง','ทต.บ้านต๋อม','ทต.บ้านต๊ำ','ทต.ท่าจำปี','ทต.แม่ปืม','ทต.บ้านใหม่',
-  'ทต.แม่ใจ','ทต.รวมใจพัฒนา','ทต.ศรีถ้อย','อบต.แม่สุก','ทต.ป่าแฝก','ทต.บ้านเหล่า','ทต.เจริญราษฎร์',
-  'ทม.ดอกคำใต้','อบต.คือเวียง','อบต.บ้านปิน','อบต.ดอกคำใต้','อบต.จำป่าหวาย',
-  'ทต.บ้านถ้ำ','อบต.ดอนศรีชุม','อบต.สันโค้ง','อบต.แม่อิง','ทต.ดงเจน'
-];"""
-          if s.count(old) != 1:
-              raise SystemExit(f'netlify authority fixture guard: expected 1, found {s.count(old)}')
-          s=s.replace(old,new)
+          authorities=[
+              'ทม.พะเยา','ทต.แม่กา','อบต.แม่นาเรือ','อบต.แม่ใส','อบต.บ้านตุ่น','ทต.บ้านสาง',
+              'ทต.สันป่าม่วง','ทต.บ้านต๋อม','ทต.บ้านต๊ำ','ทต.ท่าจำปี','ทต.แม่ปืม','ทต.บ้านใหม่',
+              'ทต.แม่ใจ','ทต.รวมใจพัฒนา','ทต.ศรีถ้อย','อบต.แม่สุก','ทต.ป่าแฝก','ทต.บ้านเหล่า','ทต.เจริญราษฎร์',
+              'ทม.ดอกคำใต้','อบต.คือเวียง','อบต.บ้านปิน','อบต.ดอกคำใต้','อบต.จำป่าหวาย',
+              'ทต.บ้านถ้ำ','อบต.ดอนศรีชุม','อบต.สันโค้ง','อบต.แม่อิง','ทต.ดงเจน'
+          ]
+          replacement='const AUTHORITIES = [\n  '+',\n  '.join(repr(x) for x in authorities)+'\n];'
+          s,n=re.subn(r'const AUTHORITIES = \[.*?\];',replacement,s,count=1,flags=re.S)
+          if n != 1:
+              raise SystemExit('netlify authority fixture guard failed')
           if s.count('assert.equal(storeMod.ALLOWED_AUTHORITIES.size, 10);') != 1:
               raise SystemExit('netlify allowlist size guard failed')
           s=s.replace('assert.equal(storeMod.ALLOWED_AUTHORITIES.size, 10);','assert.equal(storeMod.ALLOWED_AUTHORITIES.size, 29);')
@@ -114,31 +112,19 @@ jobs:
 
       - name: Write test report
         run: |
-          cat > docs/TEST_REPORT_PHASE2_20260902.md <<EOF
-          # TEST REPORT — Phase 2 District / Authority Filter
-
-          Status: PASS
-
-          Baseline: 8fb363281eec12706717712b8e1f814af6ca4737 (Dashboard v1.5.1)
-          Branch: phase2-district-authority-filter-20260902
-          Tested commit before final test commit: ${GITHUB_SHA}
-
-          Validated:
-          - Phase 2 authority master and district master
-          - Existing Dok Kham Tai / Phu Kam Yao authority regression contract
-          - Netlify authority allowlist parity
-          - Google Apps Script sync contract
-          - Static integrity
-          - Netlify function contract
-          - Cascading filter: District -> SAO/Municipality -> Tambon
-          - Executive, Detail and Damaged filter surfaces
-          - Partial/overlap jurisdiction is never guessed
-          - Playwright desktop 1440px
-          - Playwright mobile 360px, 390px, 412px
-          - JavaScript pageerror gate
-
-          Production deploy: NOT PERFORMED
-          EOF
+          printf '%s\n' \
+            '# TEST REPORT — Phase 2 District / Authority Filter' \
+            '' \
+            'Status: PASS' \
+            '' \
+            'Baseline: 8fb363281eec12706717712b8e1f814af6ca4737 (Dashboard v1.5.1)' \
+            'Branch: phase2-district-authority-filter-20260902' \
+            "Tested commit before final test commit: ${GITHUB_SHA}" \
+            '' \
+            'Validated: Phase 2 authority/district master; Dok Kham Tai/Phu Kam Yao regression; Netlify/GAS/static contracts; cascading District -> SAO/Municipality -> Tambon; Executive/Detail/Damaged filters; overlap non-guessing; Playwright desktop 1440 and mobile 360/390/412; JavaScript pageerror gate.' \
+            '' \
+            'Production deploy: NOT PERFORMED' \
+            > docs/TEST_REPORT_PHASE2_20260902.md
 
       - name: Commit tested patch to validation branch
         run: |
@@ -153,8 +139,7 @@ jobs:
       - name: Build handoff ZIP
         run: |
           rm -f DashboardWaterResources_Phase2_DistrictAuthority_20260902.zip
-          zip -r DashboardWaterResources_Phase2_DistrictAuthority_20260902.zip . \
-            -x '.git/*' '.github/workflows/phase2-validate.yml' '__pycache__/*' '*/__pycache__/*' '*.pyc'
+          zip -r DashboardWaterResources_Phase2_DistrictAuthority_20260902.zip . -x '.git/*' '.github/workflows/phase2-validate.yml' '__pycache__/*' '*/__pycache__/*' '*.pyc'
           sha256sum DashboardWaterResources_Phase2_DistrictAuthority_20260902.zip > DashboardWaterResources_Phase2_DistrictAuthority_20260902.zip.sha256
 
       - name: Upload handoff artifact

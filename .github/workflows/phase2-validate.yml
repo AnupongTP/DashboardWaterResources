@@ -39,7 +39,20 @@ jobs:
         run: npm ci
 
       - name: Apply deterministic Phase 2 patch
-        run: python tools/apply_phase2_filters.py
+        run: |
+          # The baseline contains the same refresh chain in three event handlers.
+          # The authority refresh is already initialized immediately after its function declaration,
+          # so remove the obsolete single-occurrence patch assertion before executing the patcher.
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('tools/apply_phase2_filters.py')
+          s=p.read_text(encoding='utf-8')
+          line="    text = replace_once(text, \"refreshTambonOptions();refreshMooOptions();refreshVillageOptions();\", \"refreshDetailAuthorities();refreshTambonOptions();refreshMooOptions();refreshVillageOptions();\", 'detail initial refresh')\n"
+          if s.count(line) != 1:
+              raise SystemExit('patcher guard: expected obsolete detail initial refresh assertion exactly once')
+          p.write_text(s.replace(line,''), encoding='utf-8')
+          PY
+          python tools/apply_phase2_filters.py
 
       - name: Validate syntax and contracts
         run: |

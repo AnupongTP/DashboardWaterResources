@@ -60,6 +60,29 @@ jobs:
               raise SystemExit(f'authority order guard: expected 1, found {s.count(old)}')
           p.write_text(s.replace(old,new), encoding='utf-8')
           PY
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('tests/netlify_function_test.mjs')
+          s=p.read_text(encoding='utf-8')
+          old="""const AUTHORITIES = [
+  'ทม.ดอกคำใต้','อบต.คือเวียง','อบต.บ้านปิน','อบต.ดอกคำใต้','อบต.จำป่าหวาย',
+  'ทต.บ้านถ้ำ','อบต.ดอนศรีชุม','อบต.แม่อิง','ทต.ดงเจน','อบต.สันโค้ง'
+];"""
+          new="""const AUTHORITIES = [
+  'ทม.พะเยา','ทต.แม่กา','อบต.แม่นาเรือ','อบต.แม่ใส','อบต.บ้านตุ่น','ทต.บ้านสาง',
+  'ทต.สันป่าม่วง','ทต.บ้านต๋อม','ทต.บ้านต๊ำ','ทต.ท่าจำปี','ทต.แม่ปืม','ทต.บ้านใหม่',
+  'ทต.แม่ใจ','ทต.รวมใจพัฒนา','ทต.ศรีถ้อย','อบต.แม่สุก','ทต.ป่าแฝก','ทต.บ้านเหล่า','ทต.เจริญราษฎร์',
+  'ทม.ดอกคำใต้','อบต.คือเวียง','อบต.บ้านปิน','อบต.ดอกคำใต้','อบต.จำป่าหวาย',
+  'ทต.บ้านถ้ำ','อบต.ดอนศรีชุม','อบต.สันโค้ง','อบต.แม่อิง','ทต.ดงเจน'
+];"""
+          if s.count(old) != 1:
+              raise SystemExit(f'netlify authority fixture guard: expected 1, found {s.count(old)}')
+          s=s.replace(old,new)
+          if s.count('assert.equal(storeMod.ALLOWED_AUTHORITIES.size, 10);') != 1:
+              raise SystemExit('netlify allowlist size guard failed')
+          s=s.replace('assert.equal(storeMod.ALLOWED_AUTHORITIES.size, 10);','assert.equal(storeMod.ALLOWED_AUTHORITIES.size, 29);')
+          p.write_text(s, encoding='utf-8')
+          PY
 
       - name: Validate syntax and contracts
         run: |
@@ -121,7 +144,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add site/index.html site/assets/area-responsibility.js netlify/lib/water-store.mjs tests/area_responsibility_test.mjs docs/TEST_REPORT_PHASE2_20260902.md
+          git add site/index.html site/assets/area-responsibility.js netlify/lib/water-store.mjs tests/area_responsibility_test.mjs tests/netlify_function_test.mjs docs/TEST_REPORT_PHASE2_20260902.md
           if ! git diff --cached --quiet; then
             git commit -m "Apply Phase 2 district authority filters [phase2-tested]"
             git push origin HEAD:phase2-district-authority-filter-20260902

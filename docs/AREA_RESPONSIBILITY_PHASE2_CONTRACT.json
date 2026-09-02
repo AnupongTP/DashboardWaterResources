@@ -1,0 +1,38 @@
+{
+  "version": "2026-09-02.1",
+  "purpose": "District and LocalAuthority master extension for DashboardWaterResources",
+  "districts": {
+    "เมืองพะเยา": ["แม่กา","แม่นาเรือ","แม่ใส","บ้านตุ่น","บ้านสาง","สันป่าม่วง","บ้านต๋อม","บ้านต๊ำ","ท่าจำปี","เทศบาลเมือง","แม่ปืม","บ้านใหม่"],
+    "แม่ใจ": ["เจริญราษฎร์","แม่สุก","ป่าแฝก","บ้านเหล่า","แม่ใจ","ศรีถ้อย"],
+    "ดอกคำใต้": ["สว่างอารมณ์","บุญเกิด","ดอกคำใต้","ดอนศรีชุม","คือเวียง","บ้านปิน","จำป่าหวาย","บ้านถ้ำ","สันโค้ง"],
+    "ภูกามยาว": ["แม่อิง","ดงเจน"]
+  },
+  "phase2WholeTambonAuthorities": {
+    "เทศบาลเมือง": "ทม.พะเยา", "แม่กา": "ทต.แม่กา", "แม่นาเรือ": "อบต.แม่นาเรือ", "แม่ใส": "อบต.แม่ใส",
+    "บ้านตุ่น": "อบต.บ้านตุ่น", "บ้านสาง": "ทต.บ้านสาง", "สันป่าม่วง": "ทต.สันป่าม่วง", "บ้านต๋อม": "ทต.บ้านต๋อม",
+    "บ้านต๊ำ": "ทต.บ้านต๊ำ", "ท่าจำปี": "ทต.ท่าจำปี", "แม่ปืม": "ทต.แม่ปืม", "บ้านใหม่": "ทต.บ้านใหม่",
+    "แม่สุก": "อบต.แม่สุก", "ป่าแฝก": "ทต.ป่าแฝก", "บ้านเหล่า": "ทต.บ้านเหล่า", "เจริญราษฎร์": "ทต.เจริญราษฎร์"
+  },
+  "splitAuthorities": {
+    "ทต.แม่ใจ": {
+      "แม่ใจ": {"fullMoos": [2,3,10], "partialMoos": [1,5]},
+      "ศรีถ้อย": {"fullMoos": [2,3], "partialMoos": [1,4,7,11]}
+    },
+    "ทต.รวมใจพัฒนา": {"แม่ใจ": {"fullMoos": [4,6,7,8,9], "partialMoos": [1,5]}},
+    "ทต.ศรีถ้อย": {"ศรีถ้อย": {"fullMoos": [5,6,8,9,10,12,13], "partialMoos": [1,4,7,11]}}
+  },
+  "sources": [
+    {"title": "สำนักงานส่งเสริมการปกครองท้องถิ่นจังหวัดพะเยา - บัญชีรายชื่อองค์กรปกครองส่วนท้องถิ่นที่มีพื้นที่อยู่รอบกว๊านพะเยา", "url": "https://phayaolocal.go.th/system_files/334/f5075325a4bab91511383db4ec5e8c14.pdf"},
+    {"title": "เทศบาลตำบลแม่ใจ - ข้อมูลพื้นฐานและเขตพื้นที่", "url": "https://maejai.go.th/content/generalinfo"},
+    {"title": "สำนักงานพัฒนาชุมชนอำเภอแม่ใจ - ข้อมูล อปท. ในอำเภอแม่ใจ", "url": "https://maechai.cdd.go.th/th/content/page/index/id/16"},
+    {"title": "เทศบาลตำบลศรีถ้อย - เขตพื้นที่รับผิดชอบ", "url": "https://www.sritoy.go.th/index/?category=menu8254&show_type=1"},
+    {"title": "องค์การบริหารส่วนตำบลแม่อิง - ข้อมูลทั่วไปและหมู่บ้านรับผิดชอบ", "url": "https://www.maeing.go.th/content/generalinfo"}
+  ],
+  "dataPolicy": {
+    "explicitLocalAuthority": "validate against master and use if valid",
+    "legacyWholeTambon": "infer automatically",
+    "legacyUniqueTambonMoo": "infer automatically",
+    "legacyPartialOrOverlap": "do not guess; leave unresolved until explicit authority or stronger spatial evidence exists",
+    "waterOwner": "never use to infer administrative jurisdiction"
+  }
+}

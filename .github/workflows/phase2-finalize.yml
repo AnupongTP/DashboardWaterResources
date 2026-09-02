@@ -39,7 +39,6 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-
           p=Path('tools/apply_phase2_filters.py')
           s=p.read_text(encoding='utf-8')
           line="    text = replace_once(text, \"refreshTambonOptions();refreshMooOptions();refreshVillageOptions();\", \"refreshDetailAuthorities();refreshTambonOptions();refreshMooOptions();refreshVillageOptions();\", 'detail initial refresh')\n"
@@ -80,7 +79,6 @@ jobs:
           s=s.replace('assert.equal(storeMod.ALLOWED_AUTHORITIES.size, 10);','assert.equal(storeMod.ALLOWED_AUTHORITIES.size, 29);')
           p.write_text(s, encoding='utf-8')
 
-          # Reconcile historical static checks with the actual v1.5.1 baseline and compact Phase 2 source formatting.
           p=Path('tests/static_integrity_test.py')
           s=p.read_text(encoding='utf-8')
           old='assert "if (rule.full) return \'\'" in area and \'ทั้งหมู่\' in area and \'บางพื้นที่\' in area'
@@ -88,10 +86,8 @@ jobs:
           if s.count(old) != 1:
               raise SystemExit('static rule.full marker guard failed')
           s=s.replace(old,new)
-          old_root='''assert "./site/index.html" in root_index and 'window.location.replace' in root_index
-assert "./site/maeka.html" in root_maeka and 'window.location.replace' in root_maeka'''
-          new_root='''assert '<!DOCTYPE html>' in root_index and '<html' in root_index
-assert '<!DOCTYPE html>' in root_maeka and '<html' in root_maeka'''
+          old_root="assert \"./site/index.html\" in root_index and 'window.location.replace' in root_index\nassert \"./site/maeka.html\" in root_maeka and 'window.location.replace' in root_maeka"
+          new_root="assert '<!DOCTYPE html>' in root_index and '<html' in root_index\nassert '<!DOCTYPE html>' in root_maeka and '<html' in root_maeka"
           if s.count(old_root) != 1:
               raise SystemExit('static v1.5.1 root HTML guard failed')
           p.write_text(s.replace(old_root,new_root), encoding='utf-8')

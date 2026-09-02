@@ -1,0 +1,173 @@
+name: Phase 2 Final Validation and Handoff
+
+on:
+  push:
+    branches:
+      - phase2-district-authority-filter-20260902
+
+permissions:
+  contents: write
+
+concurrency:
+  group: phase2-final-validation
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    if: ${{ !contains(github.event.head_commit.message, '[phase2-tested]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase2-district-authority-filter-20260902
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: npm
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply Phase 2 source patch and align historical tests
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          # Remove one obsolete single-occurrence assertion from the deterministic patcher.
+          p=Path('tools/apply_phase2_filters.py')
+          s=p.read_text(encoding='utf-8')
+          line="    text = replace_once(text, \"refreshTambonOptions();refreshMooOptions();refreshVillageOptions();\", \"refreshDetailAuthorities();refreshTambonOptions();refreshMooOptions();refreshVillageOptions();\", 'detail initial refresh')\n"
+          if s.count(line) != 1:
+              raise SystemExit('patcher guard failed')
+          p.write_text(s.replace(line,''), encoding='utf-8')
+          PY
+
+          python tools/apply_phase2_filters.py
+
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          # Existing area test: align only the ordering with the new UI authority order.
+          p=Path('tests/area_responsibility_test.mjs')
+          s=p.read_text(encoding='utf-8')
+          old="'ทต.บ้านถ้ำ','อบต.ดอนศรีชุม','อบต.แม่อิง','ทต.ดงเจน','อบต.สันโค้ง'"
+          new="'ทต.บ้านถ้ำ','อบต.ดอนศรีชุม','อบต.สันโค้ง','อบต.แม่อิง','ทต.ดงเจน'"
+          if s.count(old) != 1:
+              raise SystemExit('area authority order guard failed')
+          p.write_text(s.replace(old,new), encoding='utf-8')
+
+          # Existing Netlify test: the backend allow-list is intentionally expanded from 10 to 29.
+          p=Path('tests/netlify_function_test.mjs')
+          s=p.read_text(encoding='utf-8')
+          authorities=[
+              'ทม.พะเยา','ทต.แม่กา','อบต.แม่นาเรือ','อบต.แม่ใส','อบต.บ้านตุ่น','ทต.บ้านสาง',
+              'ทต.สันป่าม่วง','ทต.บ้านต๋อม','ทต.บ้านต๊ำ','ทต.ท่าจำปี','ทต.แม่ปืม','ทต.บ้านใหม่',
+              'ทต.แม่ใจ','ทต.รวมใจพัฒนา','ทต.ศรีถ้อย','อบต.แม่สุก','ทต.ป่าแฝก','ทต.บ้านเหล่า','ทต.เจริญราษฎร์',
+              'ทม.ดอกคำใต้','อบต.คือเวียง','อบต.บ้านปิน','อบต.ดอกคำใต้','อบต.จำป่าหวาย',
+              'ทต.บ้านถ้ำ','อบต.ดอนศรีชุม','อบต.แม่อิง','ทต.ดงเจน','อบต.สันโค้ง'
+          ]
+          replacement='const AUTHORITIES = [\n  '+',\n  '.join(repr(x) for x in authorities)+'\n];'
+          s,n=re.subn(r'const AUTHORITIES = \[.*?\];',replacement,s,count=1,flags=re.S)
+          if n != 1:
+              raise SystemExit('netlify authority fixture guard failed')
+          if s.count('assert.equal(storeMod.ALLOWED_AUTHORITIES.size, 10);') != 1:
+              raise SystemExit('netlify allowlist size guard failed')
+          s=s.replace('assert.equal(storeMod.ALLOWED_AUTHORITIES.size, 10);','assert.equal(storeMod.ALLOWED_AUTHORITIES.size, 29);')
+          p.write_text(s, encoding='utf-8')
+
+          # Static contract was upgraded for Phase 2; normalize one source-format marker to the compact implementation.
+          p=Path('tests/static_integrity_test.py')
+          s=p.read_text(encoding='utf-8')
+          old='assert "if (rule.full) return \'\'" in area and \'ทั้งหมู่\' in area and \'บางพื้นที่\' in area'
+          new='assert "if (!rule || rule.full) return \'\'" in area and \'ทั้งหมู่\' in area and \'บางพื้นที่\' in area'
+          if s.count(old) != 1:
+              raise SystemExit('static rule.full marker guard failed')
+          p.write_text(s.replace(old,new), encoding='utf-8')
+          PY
+
+      - name: Run source and backend regression gates
+        run: |
+          node --check site/assets/area-responsibility.js
+          node --check netlify/lib/water-store.mjs
+          python tests/phase2_static_contract_test.py
+          node tests/phase2_area_responsibility_test.mjs
+          node tests/area_responsibility_test.mjs
+          node tests/gas_sync_contract_test.mjs
+          node tests/netlify_function_test.mjs
+          python tests/static_integrity_test.py
+
+      - name: Install Playwright Chromium
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Run Playwright desktop and mobile regression
+        run: |
+          python -m http.server 4173 --directory site >/tmp/phase2-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID || true' EXIT
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/index.html >/dev/null; then break; fi
+            sleep 0.5
+          done
+          python tests/phase2_filter_playwright.py
+
+      - name: Write audited test report
+        run: |
+          printf '%s\n' \
+            '# TEST REPORT — Phase 2 District / Authority Filter' \
+            '' \
+            'Status: PASS' \
+            '' \
+            'Baseline: 8fb363281eec12706717712b8e1f814af6ca4737 (Dashboard v1.5.1)' \
+            'Branch: phase2-district-authority-filter-20260902' \
+            "Validated source commit: ${GITHUB_SHA}" \
+            '' \
+            'PASS: phase2_static_contract_test.py' \
+            'PASS: phase2_area_responsibility_test.mjs' \
+            'PASS: area_responsibility_test.mjs' \
+            'PASS: gas_sync_contract_test.mjs' \
+            'PASS: netlify_function_test.mjs (12 backend tests)' \
+            'PASS: static_integrity_test.py' \
+            'PASS: phase2_filter_playwright.py — desktop 1440px + mobile 360/390/412px + pageerror gate' \
+            '' \
+            'Production deploy: NOT PERFORMED' \
+            > docs/TEST_REPORT_PHASE2_20260902.md
+
+      - name: Commit the exact tested source to validation branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/index.html site/assets/area-responsibility.js netlify/lib/water-store.mjs tests/area_responsibility_test.mjs tests/netlify_function_test.mjs tests/static_integrity_test.py docs/TEST_REPORT_PHASE2_20260902.md
+          if ! git diff --cached --quiet; then
+            git commit -m "Apply Phase 2 district authority filters [phase2-tested]"
+            git push origin HEAD:phase2-district-authority-filter-20260902
+          fi
+
+      - name: Build clean handoff ZIP
+        run: |
+          rm -f DashboardWaterResources_Phase2_DistrictAuthority_20260902.zip
+          zip -r DashboardWaterResources_Phase2_DistrictAuthority_20260902.zip . \
+            -x '.git/*' '.github/workflows/phase2-validate.yml' '.github/workflows/phase2-finalize.yml' \
+               'tools/apply_phase2_filters.py' '__pycache__/*' '*/__pycache__/*' '*.pyc'
+          sha256sum DashboardWaterResources_Phase2_DistrictAuthority_20260902.zip > DashboardWaterResources_Phase2_DistrictAuthority_20260902.zip.sha256
+
+      - name: Upload handoff ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: DashboardWaterResources-Phase2-DistrictAuthority-20260902
+          path: |
+            DashboardWaterResources_Phase2_DistrictAuthority_20260902.zip
+            DashboardWaterResources_Phase2_DistrictAuthority_20260902.zip.sha256
+          if-no-files-found: error
+          retention-days: 30

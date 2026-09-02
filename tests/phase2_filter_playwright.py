@@ -20,7 +20,7 @@ def option_values(page, selector):
 
 def combobox_values(page, input_sel, list_sel):
     page.locator(input_sel).focus()
-    page.wait_for_function("sel => !document.querySelector(sel).hidden", list_sel)
+    page.wait_for_function("sel => !document.querySelector(sel).hidden", arg=list_sel)
     vals = page.locator(list_sel + ' [role=option]').evaluate_all("els => els.map(e => e.dataset.value)")
     page.locator(input_sel).press('Escape')
     return vals

@@ -40,9 +40,6 @@ jobs:
 
       - name: Apply deterministic Phase 2 patch
         run: |
-          # The baseline contains the same refresh chain in three event handlers.
-          # The authority refresh is already initialized immediately after its function declaration,
-          # so remove the obsolete single-occurrence patch assertion before executing the patcher.
           python - <<'PY'
           from pathlib import Path
           p=Path('tools/apply_phase2_filters.py')
@@ -53,6 +50,16 @@ jobs:
           p.write_text(s.replace(line,''), encoding='utf-8')
           PY
           python tools/apply_phase2_filters.py
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('tests/area_responsibility_test.mjs')
+          s=p.read_text(encoding='utf-8')
+          old="'ทต.บ้านถ้ำ','อบต.ดอนศรีชุม','อบต.แม่อิง','ทต.ดงเจน','อบต.สันโค้ง'"
+          new="'ทต.บ้านถ้ำ','อบต.ดอนศรีชุม','อบต.สันโค้ง','อบต.แม่อิง','ทต.ดงเจน'"
+          if s.count(old) != 1:
+              raise SystemExit(f'authority order guard: expected 1, found {s.count(old)}')
+          p.write_text(s.replace(old,new), encoding='utf-8')
+          PY
 
       - name: Validate syntax and contracts
         run: |

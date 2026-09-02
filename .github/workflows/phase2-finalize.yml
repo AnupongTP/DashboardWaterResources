@@ -39,9 +39,7 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-          import re
 
-          # Remove one obsolete single-occurrence assertion from the deterministic patcher.
           p=Path('tools/apply_phase2_filters.py')
           s=p.read_text(encoding='utf-8')
           line="    text = replace_once(text, \"refreshTambonOptions();refreshMooOptions();refreshVillageOptions();\", \"refreshDetailAuthorities();refreshTambonOptions();refreshMooOptions();refreshVillageOptions();\", 'detail initial refresh')\n"
@@ -56,7 +54,6 @@ jobs:
           from pathlib import Path
           import re
 
-          # Existing area test: align only the ordering with the new UI authority order.
           p=Path('tests/area_responsibility_test.mjs')
           s=p.read_text(encoding='utf-8')
           old="'ทต.บ้านถ้ำ','อบต.ดอนศรีชุม','อบต.แม่อิง','ทต.ดงเจน','อบต.สันโค้ง'"
@@ -65,7 +62,6 @@ jobs:
               raise SystemExit('area authority order guard failed')
           p.write_text(s.replace(old,new), encoding='utf-8')
 
-          # Existing Netlify test: the backend allow-list is intentionally expanded from 10 to 29.
           p=Path('tests/netlify_function_test.mjs')
           s=p.read_text(encoding='utf-8')
           authorities=[
@@ -84,14 +80,21 @@ jobs:
           s=s.replace('assert.equal(storeMod.ALLOWED_AUTHORITIES.size, 10);','assert.equal(storeMod.ALLOWED_AUTHORITIES.size, 29);')
           p.write_text(s, encoding='utf-8')
 
-          # Static contract was upgraded for Phase 2; normalize one source-format marker to the compact implementation.
+          # Reconcile historical static checks with the actual v1.5.1 baseline and compact Phase 2 source formatting.
           p=Path('tests/static_integrity_test.py')
           s=p.read_text(encoding='utf-8')
           old='assert "if (rule.full) return \'\'" in area and \'ทั้งหมู่\' in area and \'บางพื้นที่\' in area'
           new='assert "if (!rule || rule.full) return \'\'" in area and \'ทั้งหมู่\' in area and \'บางพื้นที่\' in area'
           if s.count(old) != 1:
               raise SystemExit('static rule.full marker guard failed')
-          p.write_text(s.replace(old,new), encoding='utf-8')
+          s=s.replace(old,new)
+          old_root='''assert "./site/index.html" in root_index and 'window.location.replace' in root_index
+assert "./site/maeka.html" in root_maeka and 'window.location.replace' in root_maeka'''
+          new_root='''assert '<!DOCTYPE html>' in root_index and '<html' in root_index
+assert '<!DOCTYPE html>' in root_maeka and '<html' in root_maeka'''
+          if s.count(old_root) != 1:
+              raise SystemExit('static v1.5.1 root HTML guard failed')
+          p.write_text(s.replace(old_root,new_root), encoding='utf-8')
           PY
 
       - name: Run source and backend regression gates

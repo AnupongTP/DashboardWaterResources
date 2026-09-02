@@ -1,0 +1,125 @@
+name: Phase 2 District Authority Validation
+
+on:
+  push:
+    branches:
+      - phase2-district-authority-filter-20260902
+
+permissions:
+  contents: write
+
+concurrency:
+  group: phase2-district-authority-filter
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    if: ${{ !contains(github.event.head_commit.message, '[phase2-tested]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: phase2-district-authority-filter-20260902
+          fetch-depth: 0
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: npm
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install project dependencies
+        run: npm ci
+
+      - name: Apply deterministic Phase 2 patch
+        run: python tools/apply_phase2_filters.py
+
+      - name: Validate syntax and contracts
+        run: |
+          node --check site/assets/area-responsibility.js
+          node --check netlify/lib/water-store.mjs
+          python tests/phase2_static_contract_test.py
+          node tests/phase2_area_responsibility_test.mjs
+          node tests/area_responsibility_test.mjs
+          node tests/gas_sync_contract_test.mjs
+          node tests/netlify_function_test.mjs
+          python tests/static_integrity_test.py
+
+      - name: Install Playwright Chromium
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Run Phase 2 Playwright desktop and mobile regression
+        run: |
+          python -m http.server 4173 --directory site >/tmp/phase2-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID || true' EXIT
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:4173/index.html >/dev/null; then break; fi
+            sleep 0.5
+          done
+          python tests/phase2_filter_playwright.py
+
+      - name: Write test report
+        run: |
+          cat > docs/TEST_REPORT_PHASE2_20260902.md <<EOF
+          # TEST REPORT — Phase 2 District / Authority Filter
+
+          Status: PASS
+
+          Baseline: 8fb363281eec12706717712b8e1f814af6ca4737 (Dashboard v1.5.1)
+          Branch: phase2-district-authority-filter-20260902
+          Tested commit before final test commit: ${GITHUB_SHA}
+
+          Validated:
+          - Phase 2 authority master and district master
+          - Existing Dok Kham Tai / Phu Kam Yao authority regression contract
+          - Netlify authority allowlist parity
+          - Google Apps Script sync contract
+          - Static integrity
+          - Netlify function contract
+          - Cascading filter: District -> SAO/Municipality -> Tambon
+          - Executive, Detail and Damaged filter surfaces
+          - Partial/overlap jurisdiction is never guessed
+          - Playwright desktop 1440px
+          - Playwright mobile 360px, 390px, 412px
+          - JavaScript pageerror gate
+
+          Production deploy: NOT PERFORMED
+          EOF
+
+      - name: Commit tested patch to validation branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/index.html site/assets/area-responsibility.js netlify/lib/water-store.mjs tests/area_responsibility_test.mjs docs/TEST_REPORT_PHASE2_20260902.md
+          if ! git diff --cached --quiet; then
+            git commit -m "Apply Phase 2 district authority filters [phase2-tested]"
+            git push origin HEAD:phase2-district-authority-filter-20260902
+          fi
+
+      - name: Build handoff ZIP
+        run: |
+          rm -f DashboardWaterResources_Phase2_DistrictAuthority_20260902.zip
+          zip -r DashboardWaterResources_Phase2_DistrictAuthority_20260902.zip . \
+            -x '.git/*' '.github/workflows/phase2-validate.yml' '__pycache__/*' '*/__pycache__/*' '*.pyc'
+          sha256sum DashboardWaterResources_Phase2_DistrictAuthority_20260902.zip > DashboardWaterResources_Phase2_DistrictAuthority_20260902.zip.sha256
+
+      - name: Upload handoff artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DashboardWaterResources-Phase2-DistrictAuthority-20260902
+          path: |
+            DashboardWaterResources_Phase2_DistrictAuthority_20260902.zip
+            DashboardWaterResources_Phase2_DistrictAuthority_20260902.zip.sha256
+          if-no-files-found: error
+          retention-days: 30

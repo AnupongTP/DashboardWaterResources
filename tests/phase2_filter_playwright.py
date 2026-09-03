@@ -47,10 +47,38 @@ def test_desktop(browser):
     assert 'อปท./เทศบาล' not in body
     assert 'ทุก อปท./เทศบาล' not in body
 
+    # Overview KPI: broad provincial view is capped at Top 10, with explicit expand/collapse.
+    page.wait_for_selector('#kpiDetail.open')
+    assert page.locator('#kpiDetail .kpi-detail-rows .bar-row').count() == 10
+    toggle = page.locator('#kpiDetail .kpi-detail-toggle')
+    assert toggle.count() == 1 and 'ดูทั้งหมด' in toggle.inner_text()
+    layout = page.evaluate("""() => ({
+      heroAlign:getComputedStyle(document.querySelector('.exec-hero')).alignItems,
+      panelGrow:getComputedStyle(document.querySelector('.exec-hero-cards .kpi-detail')).flexGrow,
+      panelHeight:document.querySelector('#kpiDetail').getBoundingClientRect().height,
+      mapHeight:document.querySelector('.exec-hero-map').getBoundingClientRect().height
+    })""")
+    assert layout['heroAlign'] == 'flex-start'
+    assert layout['panelGrow'] == '0'
+    assert layout['panelHeight'] < 520, layout
+    toggle.click()
+    page.wait_for_timeout(80)
+    expanded_count = page.locator('#kpiDetail .kpi-detail-rows .bar-row').count()
+    assert expanded_count > 10
+    assert page.locator('#kpiDetail .kpi-detail-rows.is-expanded').count() == 1
+    assert 'ย่อเหลือ 10 อันดับ' in page.locator('#kpiDetail .kpi-detail-toggle').inner_text()
+    page.locator('#kpiDetail .kpi-detail-toggle').click()
+    page.wait_for_timeout(80)
+    assert page.locator('#kpiDetail .kpi-detail-rows .bar-row').count() == 10
+
     page.select_option('#efDistrict', 'เมืองพะเยา')
     page.wait_for_timeout(120)
     assert set(option_values(page, '#efAuthority')) == MUEANG_AUTHORITIES
     assert set(combobox_values(page, '#efTambon', '#efTambonListbox')) == MUEANG_TAMBONS
+    # District scope shows every data-bearing tambon in that district; Top-10 control disappears.
+    district_rows = page.locator('#kpiDetail .kpi-detail-rows .bar-row')
+    assert set(district_rows.locator('.lbl').all_inner_texts()) == MUEANG_TAMBONS
+    assert page.locator('#kpiDetail .kpi-detail-toggle').count() == 0
 
     page.select_option('#efAuthority', 'ทต.แม่กา')
     page.wait_for_timeout(120)
@@ -84,6 +112,25 @@ def test_desktop(browser):
     page.select_option('#fAuthority', 'อบต.แม่นาเรือ')
     page.wait_for_timeout(100)
     assert combobox_values(page, '#fTambon', '#fTambonListbox') == ['แม่นาเรือ']
+
+    # Regression for the blue "ล้างตัวกรอง" button above detail tabs.
+    page.select_option('#fDistrict', 'แม่ใจ')
+    page.wait_for_timeout(80)
+    page.select_option('#fAuthority', 'ทต.รวมใจพัฒนา')
+    page.wait_for_timeout(80)
+    assert page.locator('#pivotFilterNote').is_visible()
+    assert 'อำเภอ: แม่ใจ' in page.locator('#pivotFilterNote').inner_text()
+    assert 'ทต.รวมใจพัฒนา' in page.locator('#pivotFilterNote').inner_text()
+    page.locator('#pivotFilterNote button').click()
+    page.wait_for_timeout(120)
+    assert page.input_value('#fDistrict') == ''
+    assert page.input_value('#fAuthority') == ''
+    assert page.input_value('#fTambon') == ''
+    assert page.input_value('#fMoo') == ''
+    assert page.input_value('#fVillage') == ''
+    assert page.input_value('#fType') == ''
+    assert page.input_value('#searchBox') == ''
+    assert page.locator('#pivotFilterNote').is_hidden()
 
     page.click('.tab-btn[data-tab="damaged"]')
     page.wait_for_selector('#panel-damaged.active')
@@ -122,6 +169,7 @@ def test_mobile(browser, width):
     page_errors = []
     page.on('pageerror', lambda exc: page_errors.append(str(exc)))
     wait_ready(page)
+    assert page.locator('#kpiDetail .kpi-detail-rows .bar-row').count() == 10
     page.select_option('#efDistrict', 'เมืองพะเยา')
     page.wait_for_timeout(100)
     metrics = page.evaluate("""() => {
@@ -149,7 +197,7 @@ def main():
                 test_mobile(browser, width)
         finally:
             browser.close()
-    print('PASS phase2_filter_playwright desktop + mobile 360/390/412')
+    print('PASS phase2_filter_playwright round2 desktop + mobile 360/390/412')
 
 
 if __name__ == '__main__':

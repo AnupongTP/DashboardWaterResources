@@ -880,6 +880,11 @@ canvas{max-width:100%!important;}
 .mlc-mini-actions button{background:#eef4fa;border:1px solid #cdd8e3;color:#0d47a1;font-family:'Sarabun',sans-serif;font-size:10.5px;font-weight:700;padding:4px 9px;border-radius:6px;cursor:pointer;}
 .mlc-mini-actions button:hover{background:#dbeafe;}
 .mlc-mini-list{max-height:150px;overflow-y:auto;padding:0 2px;}
+/* ROUND3_DESKTOP_MAP_STRETCH */
+/* Desktop only: the map card follows the actual height of the KPI + Top-10 column.
+   The map-stage is already flex:1, so the extra space becomes usable map area rather
+   than an empty block below the map. Mobile/tablet keep their existing fixed minimum. */
+@media (min-width:981px){.exec-hero-map{align-self:stretch;}}
 @media (max-width:980px){.exec-hero-cards,.exec-hero-map{flex-basis:100%;min-width:0;}.exec-hero-map .map-stage,.exec-hero-map #map{min-height:380px;}}
 
 /* กราฟ "สัดส่วนสภาพการใช้งาน" และ "ปริมาตรน้ำรวมตามประเภท" — แยกเป็นแถวของตัวเอง เป็นการ์ดเดี่ยวๆ ไม่ได้ซ้อนอยู่ในกล่องแผนที่ */
@@ -2067,6 +2072,22 @@ window.toggleKpiDetail = toggleKpiDetail; // exposed: called from inline onclick
     clearTimeout(t);
     t = setTimeout(function(){ if(map) map.invalidateSize(); }, 200);
   });
+})();
+
+/* ROUND3_HERO_MAP_RESIZE_OBSERVER */
+/* When the KPI column changes height (Top 10 expand/collapse or filters), the desktop
+   flex row can change the map container height without a window resize. Observe only
+   the hero map stage and ask Leaflet to recalculate after layout settles. */
+(function(){
+  var stage = document.getElementById('heroMapStage');
+  if(!stage || typeof ResizeObserver === 'undefined') return;
+  var timer = null;
+  var observer = new ResizeObserver(function(){
+    clearTimeout(timer);
+    timer = setTimeout(function(){ if(map) map.invalidateSize({pan:false}); }, 90);
+  });
+  observer.observe(stage);
+  window.__heroMapResizeObserver = observer;
 })();
 
 function updateCrossFilterBar() {

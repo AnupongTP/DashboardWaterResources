@@ -60,8 +60,35 @@ const MASTER_TAMBONS = [
   'สว่างอารมณ์','บุญเกิด','ดอกคำใต้','ดอนศรีชุม','คือเวียง','บ้านปิน','จำป่าหวาย','บ้านถ้ำ','แม่อิง','สันโค้ง','ดงเจน'
 ];
 const AUTHORITIES = [
-  'ทม.ดอกคำใต้','อบต.คือเวียง','อบต.บ้านปิน','อบต.ดอกคำใต้','อบต.จำป่าหวาย',
-  'ทต.บ้านถ้ำ','อบต.ดอนศรีชุม','อบต.แม่อิง','ทต.ดงเจน','อบต.สันโค้ง'
+  'ทม.พะเยา',
+  'ทต.แม่กา',
+  'อบต.แม่นาเรือ',
+  'อบต.แม่ใส',
+  'อบต.บ้านตุ่น',
+  'ทต.บ้านสาง',
+  'ทต.สันป่าม่วง',
+  'ทต.บ้านต๋อม',
+  'ทต.บ้านต๊ำ',
+  'ทต.ท่าจำปี',
+  'ทต.แม่ปืม',
+  'ทต.บ้านใหม่',
+  'ทต.แม่ใจ',
+  'ทต.รวมใจพัฒนา',
+  'ทต.ศรีถ้อย',
+  'อบต.แม่สุก',
+  'ทต.ป่าแฝก',
+  'ทต.บ้านเหล่า',
+  'ทต.เจริญราษฎร์',
+  'ทม.ดอกคำใต้',
+  'อบต.คือเวียง',
+  'อบต.บ้านปิน',
+  'อบต.ดอกคำใต้',
+  'อบต.จำป่าหวาย',
+  'ทต.บ้านถ้ำ',
+  'อบต.ดอนศรีชุม',
+  'อบต.แม่อิง',
+  'ทต.ดงเจน',
+  'อบต.สันโค้ง'
 ];
 process.env.WATER_SYNC_SECRET = SECRET;
 const tests = [];
@@ -95,7 +122,7 @@ ok('sync_rejects_non_json');
 // 3 authorized snapshot: all 29 approved tambons accepted; aliases normalized; out-of-scope excluded.
 assert.equal(storeMod.ALLOWED_TAMBONS.size, 29);
 assert.deepEqual([...storeMod.ALLOWED_TAMBONS], MASTER_TAMBONS);
-assert.equal(storeMod.ALLOWED_AUTHORITIES.size, 10);
+assert.equal(storeMod.ALLOWED_AUTHORITIES.size, 29);
 assert.deepEqual([...storeMod.ALLOWED_AUTHORITIES], AUTHORITIES);
 const records = MASTER_TAMBONS.map((tambon, index) => sample(index + 1, tambon, index + 1));
 records.push(sample(1001, 'บ้านปิ่น', '2'));

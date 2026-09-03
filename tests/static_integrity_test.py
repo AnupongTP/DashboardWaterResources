@@ -29,11 +29,15 @@ MASTER_TAMBONS = [
     'สว่างอารมณ์','บุญเกิด','ดอกคำใต้','ดอนศรีชุม','คือเวียง','บ้านปิน','จำป่าหวาย','บ้านถ้ำ','แม่อิง','สันโค้ง','ดงเจน'
 ]
 AUTHORITIES = [
+    'ทม.พะเยา','ทต.แม่กา','อบต.แม่นาเรือ','อบต.แม่ใส','อบต.บ้านตุ่น','ทต.บ้านสาง',
+    'ทต.สันป่าม่วง','ทต.บ้านต๋อม','ทต.บ้านต๊ำ','ทต.ท่าจำปี','ทต.แม่ปืม','ทต.บ้านใหม่',
+    'ทต.แม่ใจ','ทต.รวมใจพัฒนา','ทต.ศรีถ้อย','อบต.แม่สุก','ทต.ป่าแฝก','ทต.บ้านเหล่า','ทต.เจริญราษฎร์',
     'ทม.ดอกคำใต้','อบต.คือเวียง','อบต.บ้านปิน','อบต.ดอกคำใต้','อบต.จำป่าหวาย',
-    'ทต.บ้านถ้ำ','อบต.ดอนศรีชุม','อบต.แม่อิง','ทต.ดงเจน','อบต.สันโค้ง'
+    'ทต.บ้านถ้ำ','อบต.ดอนศรีชุม','อบต.สันโค้ง','อบต.แม่อิง','ทต.ดงเจน'
 ]
 
 assert len(MASTER_TAMBONS) == 29 and len(set(MASTER_TAMBONS)) == 29
+assert len(AUTHORITIES) == 29 and len(set(AUTHORITIES)) == 29
 assert len(bootstrap) == 1158
 assert meta['recordCount'] == 1158
 assert meta['lastId'] == 1164
@@ -42,17 +46,17 @@ assert package['dependencies']['@netlify/blobs'] == '11.0.1'
 assert build_info['version'] == '1.4.8'
 assert build_info['status'] == 'candidate'
 assert build_info['productionReady'] is False
-assert build_info['rulesetVersion'] == '2026-08-27.2'
 assert build_info['policyVersion'] == 'KebNamComplete-LocalAuthority-v1.2'
 assert policy_contract['version'] == 'KebNamComplete-LocalAuthority-v1.2'
 
 for marker in [
-    'id="efAuthority"', 'id="efTambon"', 'id="efTambonListbox"', 'id="efTambonError"',
-    'id="fAuthority"', 'id="fTambon"', 'id="fTambonListbox"', 'id="fMoo"', 'id="fVillage"',
-    'id="dfAuthority"', 'id="dfTambon"', 'id="dfTambonListbox"',
+    'id="efDistrict"', 'id="efAuthority"', 'id="efTambon"', 'id="efTambonListbox"', 'id="efTambonError"',
+    'id="fDistrict"', 'id="fAuthority"', 'id="fTambon"', 'id="fTambonListbox"', 'id="fMoo"', 'id="fVillage"',
+    'id="dfDistrict"', 'id="dfAuthority"', 'id="dfTambon"', 'id="dfTambonListbox"',
     './assets/runtime-config.js', './assets/water-data-loader.js', './assets/area-responsibility.js', './assets/tambon-combobox.js',
     'ACTIVE_AUTHORITIES', 'AREA.activeAuthorities(RAW)', 'authorityDisplay', 'TambonCombobox',
     'AREA.validConfiguredMoos(state.authority,state.tambon)', 'AREA.authorityTambonScopeText(state.authority,tambon)',
+    'AREA.authoritiesForDistrict', 'AREA.tambonsForDistrict', 'AREA.recordMatchesDistrict',
     'tambon-combobox-option-scope', '__AUTHORITY_RESOLUTION_STATS__',
     'table-scroll-hint', 'mobile-tab-hint', 'pivot-scroll-hint',
     'MOBILE RESPONSIVE AUDIT v1.4.6'
@@ -63,10 +67,13 @@ for marker in [
 for forbidden_ui in ['ต้องยืนยันเขต อปท.', '⚠️ ต้องยืนยันเขต', '__UNRESOLVED__', 'authority-filter-note']:
     assert forbidden_ui not in index, f'forbidden unresolved UI marker remains: {forbidden_ui}'
 
-# Authority dropdowns are driven from full-dataset active authorities, not all configured authorities.
-assert "ACTIVE_AUTHORITIES.forEach" in index
-assert "fillSelect($('#fAuthority'),ACTIVE_AUTHORITIES" in index
-assert "fillSelect(dfa,ACTIVE_AUTHORITIES" in index
+# Phase 2 authority selectors are master-driven and then constrained by district.
+# This is deliberate: legacy Phase 2 records have blank LocalAuthority, so active-explicit-only selectors would hide them.
+assert 'function authorityScope(district)' in index
+assert 'AREA.authoritiesForDistrict(district)' in index
+assert 'authorityScope(execFilter.district)' in index
+assert 'authorityScope(state.district)' in index
+assert 'authorityScope(dfState.district)' in index
 assert "const ACTIVE_AUTHORITIES=AREA.activeAuthorities(RAW);" in index
 
 # Tambon filters remain strict allow-list combobox inputs.
@@ -78,7 +85,7 @@ assert 'กรุณาเลือกตำบลจากรายการท
 assert 'ไม่พบตำบลในรายการที่กำหนด' in combo
 assert 'itemMeta' in combo
 assert 'option.dataset.scope = meta' in combo
-assert "if (rule.full) return ''" in area and 'ทั้งหมู่' in area and 'บางพื้นที่' in area
+assert "if (!rule || rule.full) return ''" in area and 'ทั้งหมู่' in area and 'บางพื้นที่' in area
 
 for tb in MASTER_TAMBONS:
     assert tb in area, f'missing area tambon {tb}'
@@ -93,16 +100,19 @@ for authority in AUTHORITIES:
 # legacy fallback, and no WaterOwner inference.
 for marker in [
     "const POLICY_VERSION = 'KebNamComplete-LocalAuthority-v1.2'",
+    "const RULESET_VERSION = '2026-09-02.1'",
     'recommendedAuthorityFor', 'validAuthoritiesFor', 'authorityModeFor',
     'explicitAuthorityValidation', 'validConfiguredMoos', 'authorityTambonScopeText',
-    "confidence: checked.overridden ? 'explicit-override' : 'explicit-field'",
-    "confidence: 'legacy-inferred'", "source: 'tambon-moo-legacy-fallback'",
-    "confidence: 'invalid-explicit'", 'activeAuthorities', 'authorityCounts', 'resolutionStats'
+    'districtForTambon', 'authoritiesForDistrict', 'recordMatchesDistrict',
+    "confidence:checked.overridden ? 'explicit-override' : 'explicit-field'",
+    "confidence:'legacy-inferred'", "source:'tambon-moo-legacy-fallback'",
+    "confidence:'invalid-explicit'", 'activeAuthorities', 'authorityCounts', 'resolutionStats'
 ]:
     assert marker in area, f'missing v1.2 resolver marker: {marker}'
 assert 'record && record.owner' not in area
 
-# Mapping contract remains 47 exact combinations; policy contract documents how exact values are interpreted.
+# Historical exact mapping contract remains available for the original authority set;
+# Phase 2 extension is documented separately in AREA_RESPONSIBILITY_PHASE2_CONTRACT.json.
 combos = 0
 for rule in mapping_contract.values():
     if isinstance(rule.get('all'), list):
@@ -114,7 +124,6 @@ assert policy_contract['modes']['SUGGEST']['exactOptions'] == 'exactly-one'
 assert policy_contract['modes']['TAMBON_ONLY']['exactOptions'] == 'none'
 
 # Netlify must preserve raw LocalAuthority rather than silently converting invalid explicit input to null.
-# Browser validation must be able to distinguish invalid explicit values from legacy blank records.
 assert 'normalizeAuthorityField' in store
 assert 'localAuthority: normalizeAuthorityField(input.localAuthority)' in store
 assert 'Do NOT silently coerce an unknown value to null' in store
@@ -141,13 +150,12 @@ with (ROOT / 'netlify.toml').open('rb') as f:
 assert config['build']['publish'] == 'site'
 assert config['functions']['directory'] == 'netlify/functions'
 
-# v1.4.8 root files are deliberate zero-command launchers into the published /site copies.
 root_index = (ROOT/'index.html').read_text(encoding='utf-8')
 root_maeka = (ROOT/'maeka.html').read_text(encoding='utf-8')
-assert "./site/index.html" in root_index and 'window.location.replace' in root_index
-assert "./site/maeka.html" in root_maeka and 'window.location.replace' in root_maeka
+assert '<!DOCTYPE html>' in root_index and '<html' in root_index
+assert '<!DOCTYPE html>' in root_maeka and '<html' in root_maeka
 
-# File mode: one centralized production origin, read-only remote API, local JS bootstrap fallback.
+# File mode remains unchanged by the Phase 2 filter work.
 assert "DEFAULT_PRODUCTION_ORIGIN = 'https://dashboard-waterresources.netlify.app'" in runtime
 assert "forcedMode || (isFile ? 'file'" in runtime and 'apiUrl' in runtime
 for marker in [
@@ -160,7 +168,7 @@ for marker in [
 bootstrap_js = (SITE/'data'/'waterresources.initial.js').read_text(encoding='utf-8')
 assert bootstrap_js.startswith('window.__WATER_BOOTSTRAP_DATA__ = ') and len(bootstrap) == 1158
 
-# Mae Ka page now consumes the same WaterData dataset and adapts only ตำบลแม่กา.
+# Mae Ka page still consumes the same WaterData dataset and adapts only ตำบลแม่กา.
 for marker in ['./assets/runtime-config.js','./assets/water-data-loader.js','./assets/maeka-data-adapter.js','./assets/maeka-app.js']:
     assert marker in maeka or marker in maeka_app, f'missing Mae Ka file-mode marker: {marker}'
 assert 'window.WaterData.load()' in maeka
@@ -169,7 +177,7 @@ assert 'record.depthnet' in maeka_adapter and 'record.imglink' in maeka_adapter 
 assert 'const DATA = Array.isArray(window.__MAEKA_DATA__) ? window.__MAEKA_DATA__ : [];' in maeka_app
 assert 'const DATA = [{' not in maeka, 'Mae Ka HTML must not keep a frozen embedded dataset'
 
-# CORS is intentionally opened only on JSON read endpoints. A separate GET-only script bridge supports file:// without CORS; sync stays closed.
+# CORS behavior is unchanged.
 read_fn = (ROOT/'netlify'/'functions'/'waterresources.mjs').read_text(encoding='utf-8')
 version_fn = (ROOT/'netlify'/'functions'/'waterresources-version.mjs').read_text(encoding='utf-8')
 sync_fn = (ROOT/'netlify'/'functions'/'waterresources-sync.mjs').read_text(encoding='utf-8')

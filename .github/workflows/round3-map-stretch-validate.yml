@@ -1,0 +1,132 @@
+name: Round3 Desktop Map Stretch Validation
+
+on:
+  push:
+    branches:
+      - phase2-district-authority-filter-20260902
+
+permissions:
+  contents: write
+
+concurrency:
+  group: round3-map-stretch-validation
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    if: ${{ !contains(github.event.head_commit.message, '[round3-tested]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase2-district-authority-filter-20260902
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: npm
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply deterministic desktop map stretch patch
+        run: python tools/apply_round3_desktop_map_stretch.py
+
+      - name: Run source and backend regression gates
+        run: |
+          node --check site/assets/area-responsibility.js
+          node --check netlify/lib/water-store.mjs
+          python tests/phase2_static_contract_test.py
+          node tests/phase2_area_responsibility_test.mjs
+          node tests/area_responsibility_test.mjs
+          node tests/gas_sync_contract_test.mjs
+          node tests/netlify_function_test.mjs
+          python tests/static_integrity_test.py
+
+      - name: Install Playwright Chromium
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Run Playwright full regression
+        run: |
+          python -m http.server 4173 --directory site >/tmp/round3-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID || true' EXIT
+          for i in {1..40}; do
+            if curl -fsS http://127.0.0.1:4173/index.html >/dev/null; then break; fi
+            sleep 0.25
+          done
+          python tests/phase2_filter_playwright.py
+          python tests/round3_map_stretch_playwright.py
+
+      - name: Audit patch scope
+        run: |
+          git diff -- site/index.html > /tmp/round3-site.diff
+          test -s /tmp/round3-site.diff
+          grep -q 'ROUND3_DESKTOP_MAP_STRETCH' site/index.html
+          grep -q 'ROUND3_HERO_MAP_RESIZE_OBSERVER' site/index.html
+          if git diff --name-only | grep -Ev '^(site/index.html)$' | grep -q .; then
+            echo 'Unexpected source file changed by round3 patch:'
+            git diff --name-only
+            exit 1
+          fi
+
+      - name: Write audited Round3 test report
+        run: |
+          printf '%s\n' \
+            '# TEST REPORT — Round 3 Desktop Map Stretch' \
+            '' \
+            'Status: PASS' \
+            '' \
+            'Scope: desktop layout only; no business/filter/backend behavior changed.' \
+            "Validation input commit: ${GITHUB_SHA}" \
+            '' \
+            'PASS: phase2_static_contract_test.py' \
+            'PASS: phase2_area_responsibility_test.mjs' \
+            'PASS: area_responsibility_test.mjs' \
+            'PASS: gas_sync_contract_test.mjs' \
+            'PASS: netlify_function_test.mjs (12 backend tests)' \
+            'PASS: static_integrity_test.py' \
+            'PASS: phase2_filter_playwright.py — existing filter/reset/Top10 desktop + mobile regression' \
+            'PASS: round3_map_stretch_playwright.py — desktop map stretches to KPI column, Leaflet resizes after expand/collapse, mobile 360/390/412 unchanged' \
+            '' \
+            'Production deploy: NOT PERFORMED' \
+            > docs/TEST_REPORT_ROUND3_MAP_STRETCH_20260903.md
+
+      - name: Commit exact tested source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/index.html docs/TEST_REPORT_ROUND3_MAP_STRETCH_20260903.md
+          if ! git diff --cached --quiet; then
+            git commit -m "Stretch executive map to KPI column on desktop [round2-tested] [round3-tested]"
+            git push origin HEAD:phase2-district-authority-filter-20260902
+          fi
+
+      - name: Build clean handoff ZIP
+        run: |
+          ZIP=DashboardWaterResources_Round3_DesktopMapStretch_20260903.zip
+          rm -f "$ZIP" "$ZIP.sha256"
+          zip -r "$ZIP" . \
+            -x '.git/*' '.github/workflows/*' \
+               'tools/apply_phase2_filters.py' 'tools/apply_phase2_no_data_guard.py' 'tools/apply_round2_ui_fixes.py' 'tools/apply_round3_desktop_map_stretch.py' \
+               '__pycache__/*' '*/__pycache__/*' '*.pyc'
+          sha256sum "$ZIP" > "$ZIP.sha256"
+
+      - name: Upload handoff ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: DashboardWaterResources-Round3-DesktopMapStretch-20260903
+          path: |
+            DashboardWaterResources_Round3_DesktopMapStretch_20260903.zip
+            DashboardWaterResources_Round3_DesktopMapStretch_20260903.zip.sha256
+          if-no-files-found: error
+          retention-days: 30

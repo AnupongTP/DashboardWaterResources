@@ -48,6 +48,7 @@ jobs:
           PY
 
           python tools/apply_phase2_filters.py
+          python tools/apply_phase2_no_data_guard.py
 
           python - <<'PY'
           from pathlib import Path
@@ -158,7 +159,7 @@ jobs:
           rm -f DashboardWaterResources_Phase2_DistrictAuthority_20260902.zip
           zip -r DashboardWaterResources_Phase2_DistrictAuthority_20260902.zip . \
             -x '.git/*' '.github/workflows/phase2-validate.yml' '.github/workflows/phase2-finalize.yml' \
-               'tools/apply_phase2_filters.py' '__pycache__/*' '*/__pycache__/*' '*.pyc'
+               'tools/apply_phase2_filters.py' 'tools/apply_phase2_no_data_guard.py' '__pycache__/*' '*/__pycache__/*' '*.pyc'
           sha256sum DashboardWaterResources_Phase2_DistrictAuthority_20260902.zip > DashboardWaterResources_Phase2_DistrictAuthority_20260902.zip.sha256
 
       - name: Upload handoff ZIP

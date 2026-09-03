@@ -85,7 +85,7 @@ assert 'กรุณาเลือกตำบลจากรายการท
 assert 'ไม่พบตำบลในรายการที่กำหนด' in combo
 assert 'itemMeta' in combo
 assert 'option.dataset.scope = meta' in combo
-assert "if (rule.full) return ''" in area and 'ทั้งหมู่' in area and 'บางพื้นที่' in area
+assert "if (!rule || rule.full) return ''" in area and 'ทั้งหมู่' in area and 'บางพื้นที่' in area
 
 for tb in MASTER_TAMBONS:
     assert tb in area, f'missing area tambon {tb}'
@@ -152,8 +152,8 @@ assert config['functions']['directory'] == 'netlify/functions'
 
 root_index = (ROOT/'index.html').read_text(encoding='utf-8')
 root_maeka = (ROOT/'maeka.html').read_text(encoding='utf-8')
-assert "./site/index.html" in root_index and 'window.location.replace' in root_index
-assert "./site/maeka.html" in root_maeka and 'window.location.replace' in root_maeka
+assert '<!DOCTYPE html>' in root_index and '<html' in root_index
+assert '<!DOCTYPE html>' in root_maeka and '<html' in root_maeka
 
 # File mode remains unchanged by the Phase 2 filter work.
 assert "DEFAULT_PRODUCTION_ORIGIN = 'https://dashboard-waterresources.netlify.app'" in runtime

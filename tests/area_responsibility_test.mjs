@@ -14,11 +14,14 @@ const MASTER_TAMBONS = [
 const ORIGINAL_18 = MASTER_TAMBONS.slice(0, 18);
 const AUTHORITY_11 = MASTER_TAMBONS.slice(18);
 const AUTHORITIES = [
+  'ทม.พะเยา','ทต.แม่กา','อบต.แม่นาเรือ','อบต.แม่ใส','อบต.บ้านตุ่น','ทต.บ้านสาง',
+  'ทต.สันป่าม่วง','ทต.บ้านต๋อม','ทต.บ้านต๊ำ','ทต.ท่าจำปี','ทต.แม่ปืม','ทต.บ้านใหม่',
+  'ทต.แม่ใจ','ทต.รวมใจพัฒนา','ทต.ศรีถ้อย','อบต.แม่สุก','ทต.ป่าแฝก','ทต.บ้านเหล่า','ทต.เจริญราษฎร์',
   'ทม.ดอกคำใต้','อบต.คือเวียง','อบต.บ้านปิน','อบต.ดอกคำใต้','อบต.จำป่าหวาย',
-  'ทต.บ้านถ้ำ','อบต.ดอนศรีชุม','อบต.แม่อิง','ทต.ดงเจน','อบต.สันโค้ง'
+  'ทต.บ้านถ้ำ','อบต.ดอนศรีชุม','อบต.สันโค้ง','อบต.แม่อิง','ทต.ดงเจน'
 ];
 
-assert.equal(A.RULESET_VERSION, '2026-08-27.2');
+assert.equal(A.RULESET_VERSION, '2026-09-02.1');
 assert.equal(A.POLICY_VERSION, 'KebNamComplete-LocalAuthority-v1.2');
 assert.deepEqual(A.TAMBON_ORDER, MASTER_TAMBONS);
 assert.deepEqual(A.OLD_TAMBONS, ORIGINAL_18);
@@ -86,7 +89,8 @@ assert.deepEqual(A.validAuthoritiesFor('บ้านปิน',1), ['อบต.�
 assert.equal(A.authorityModeFor('ดงเจน',6), 'TAMBON_ONLY');
 assert.deepEqual(A.authorityOptionsFor('ดงเจน',6), []);
 assert.deepEqual(A.validAuthoritiesFor('ดงเจน',6), []);
-assert.equal(A.authorityModeFor('แม่กา',1), 'TAMBON_ONLY');
+assert.equal(A.authorityModeFor('แม่กา',1), 'SUGGEST');
+assert.deepEqual(A.authorityOptionsFor('แม่กา',1), ['ทต.แม่กา']);
 
 // Legacy helpers are kept, while v1.2 cascading helper reflects every authority users can validly confirm.
 assert.deepEqual(A.autoConfiguredMoos('อบต.แม่อิง', 'แม่อิง'), [4,5,6,8]);
@@ -188,12 +192,23 @@ A.decorateRecord(override);
 assert.equal(override.localAuthorityRaw, 'ทม.ดอกคำใต้');
 assert.equal(override.authorityConfidence, 'explicit-override');
 
-// Out-of-brief tambons remain normal Tambon data and receive no invented authority.
-for (const tb of ORIGINAL_18) {
+// Phase 2 master: whole-tambon authorities are inferred for legacy rows; split areas remain ambiguous.
+const PHASE2_WHOLE = {
+  'แม่กา':'ทต.แม่กา','แม่นาเรือ':'อบต.แม่นาเรือ','แม่ใส':'อบต.แม่ใส','บ้านตุ่น':'อบต.บ้านตุ่น',
+  'บ้านสาง':'ทต.บ้านสาง','สันป่าม่วง':'ทต.สันป่าม่วง','บ้านต๋อม':'ทต.บ้านต๋อม','บ้านต๊ำ':'ทต.บ้านต๊ำ',
+  'ท่าจำปี':'ทต.ท่าจำปี','เทศบาลเมือง':'ทม.พะเยา','แม่ปืม':'ทต.แม่ปืม','บ้านใหม่':'ทต.บ้านใหม่',
+  'เจริญราษฎร์':'ทต.เจริญราษฎร์','แม่สุก':'อบต.แม่สุก','ป่าแฝก':'ทต.ป่าแฝก','บ้านเหล่า':'ทต.บ้านเหล่า'
+};
+for (const [tb, expected] of Object.entries(PHASE2_WHOLE)) {
   const item = A.decorateRecord({tambon:tb,moo:1});
-  assert.equal(item.localAuthority, null, tb);
-  assert.equal(item.authorityConfidence, 'out-of-brief', tb);
+  assert.equal(item.localAuthority, expected, tb);
+  assert.equal(item.authorityConfidence, 'legacy-inferred', tb);
 }
+assert.deepEqual(A.authorityOptionsFor('แม่ใจ',1), ['ทต.แม่ใจ','ทต.รวมใจพัฒนา']);
+assert.deepEqual(A.authorityOptionsFor('แม่ใจ',2), ['ทต.แม่ใจ']);
+assert.deepEqual(A.authorityOptionsFor('แม่ใจ',4), ['ทต.รวมใจพัฒนา']);
+assert.deepEqual(A.authorityOptionsFor('ศรีถ้อย',4), ['ทต.แม่ใจ','ทต.ศรีถ้อย']);
+assert.deepEqual(A.authorityOptionsFor('ศรีถ้อย',5), ['ทต.ศรีถ้อย']);
 
 // Active authority list is based on the full resolved dataset, including explicit overrides and legacy fallback.
 const sample = A.decorateRecords([

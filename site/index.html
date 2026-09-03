@@ -1463,7 +1463,8 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
   <!-- TOP FILTER BAR -->
   <div class="exec-filter-bar">
     <span class="ef-label">🔍 กรองข้อมูล:</span>
-    <select id="efAuthority" aria-label="อปท. หรือเทศบาล"><option value="">ทุก อปท./เทศบาล</option></select>
+    <select id="efDistrict" aria-label="อำเภอ"><option value="">ทุกอำเภอ</option></select>
+    <select id="efAuthority" aria-label="อบต. หรือเทศบาล"><option value="">ทุก อบต./เทศบาล</option></select>
     <div class="tambon-combobox" id="efTambonBox">
       <div class="tambon-combobox-inputwrap">
         <input type="text" id="efTambon" aria-label="ตำบล" placeholder="ทุกตำบล — พิมพ์ค้นหา...">
@@ -1705,7 +1706,8 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
       <div class="filter-head"><h3>🔍 ตัวกรองข้อมูล</h3></div>
       <div class="filter-body">
         <div class="f-group"><label>ค้นหา</label><input type="text" id="searchBox" placeholder="ชื่อ / เจ้าของ / หมู่บ้าน..."></div>
-        <div class="f-group"><label>อปท./เทศบาล</label><select id="fAuthority"><option value="">ทั้งหมด</option></select></div>
+        <div class="f-group"><label>อำเภอ</label><select id="fDistrict"><option value="">ทั้งหมด</option></select></div>
+        <div class="f-group"><label>อบต./เทศบาล</label><select id="fAuthority"><option value="">ทั้งหมด</option></select></div>
         <div class="f-group"><label for="fTambon">ตำบล</label>
           <div class="tambon-combobox" id="fTambonBox">
             <div class="tambon-combobox-inputwrap">
@@ -1760,7 +1762,7 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
           <h3>ตารางข้อมูลแหล่งน้ำ <span class="n" id="n-table"></span></h3>
           <div class="table-scroll-hint" aria-hidden="true">← เลื่อนตารางซ้าย–ขวาเพื่อดูข้อมูลครบ →</div>
           <div class="tbl-wrap">
-            <table class="data-tbl"><thead><tr><th>ID</th><th>ชื่อแหล่งน้ำ</th><th>ประเภท</th><th>อปท./เทศบาล</th><th>ตำบล</th><th>หมู่บ้าน</th><th>ม.</th><th>เจ้าของ</th><th>กว้าง×ยาว×ลึก</th><th>ปริมาตร(ลบ.ม.)</th><th>ปัญหา</th><th>ภาพ</th></tr></thead><tbody id="tblBody"></tbody></table>
+            <table class="data-tbl"><thead><tr><th>ID</th><th>ชื่อแหล่งน้ำ</th><th>ประเภท</th><th>อบต./เทศบาล</th><th>ตำบล</th><th>หมู่บ้าน</th><th>ม.</th><th>เจ้าของ</th><th>กว้าง×ยาว×ลึก</th><th>ปริมาตร(ลบ.ม.)</th><th>ปัญหา</th><th>ภาพ</th></tr></thead><tbody id="tblBody"></tbody></table>
           </div>
         </div>
       </div>
@@ -1777,7 +1779,8 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
         <div class="panel panel-danger">
           <h3><span>⚠️ แหล่งน้ำที่ชำรุด / ไม่สามารถใช้งานได้ <span class="n" id="n-damaged"></span></span></h3>
           <div class="damage-filter-bar">
-            <div class="df-group"><label>อปท./เทศบาล</label><select id="dfAuthority"><option value="">ทุก อปท./เทศบาล</option></select></div>
+            <div class="df-group"><label>อำเภอ</label><select id="dfDistrict"><option value="">ทุกอำเภอ</option></select></div>
+            <div class="df-group"><label>อบต./เทศบาล</label><select id="dfAuthority"><option value="">ทุก อบต./เทศบาล</option></select></div>
             <div class="df-group"><label for="dfTambon">ตำบล</label>
               <div class="tambon-combobox" id="dfTambonBox">
                 <div class="tambon-combobox-inputwrap">
@@ -1798,7 +1801,7 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
           <div class="damaged-list-head"><span>รายการแหล่งน้ำที่มีปัญหา</span><span class="n" id="n-damaged-list"></span></div>
           <div class="table-scroll-hint" aria-hidden="true">← เลื่อนตารางซ้าย–ขวาเพื่อดูข้อมูลครบ →</div>
           <div class="tbl-wrap">
-            <table class="data-tbl"><thead><tr><th>ID</th><th>ชื่อแหล่งน้ำ</th><th>ประเภท</th><th>อปท./เทศบาล</th><th>ตำบล</th><th>หมู่บ้าน</th><th>ม.</th><th>เจ้าของ</th><th>สภาพปัญหา</th><th>นำทาง</th></tr></thead><tbody id="damagedBody"></tbody></table>
+            <table class="data-tbl"><thead><tr><th>ID</th><th>ชื่อแหล่งน้ำ</th><th>ประเภท</th><th>อบต./เทศบาล</th><th>ตำบล</th><th>หมู่บ้าน</th><th>ม.</th><th>เจ้าของ</th><th>สภาพปัญหา</th><th>นำทาง</th></tr></thead><tbody id="damagedBody"></tbody></table>
           </div>
         </div>
       </div>
@@ -1871,6 +1874,7 @@ if (typeof Chart !== 'undefined') {
 }
 
 const TAMBONS_ORDER=AREA.TAMBON_ORDER.slice();
+const DISTRICT_ORDER=AREA.DISTRICT_ORDER.slice();
 const AVAILABLE_TAMBONS=TAMBONS_ORDER.filter(tb=>RAW.some(r=>r.tambon===tb));
 const AUTHORITY_ORDER=AREA.AUTHORITY_ORDER.slice();
 const AUTHORITY_COUNTS=AREA.authorityCounts(RAW);
@@ -1951,23 +1955,33 @@ document.querySelectorAll('.main-nav button').forEach(btn=>{
 
 // ===== EXECUTIVE ANALYTICS ENGINE v2 — FULLY INTERACTIVE =====
 
-var execFilter  = { authority: '', tambon: '', type: '' };
+var execFilter  = { district: '', authority: '', tambon: '', type: '' };
 var crossFilter = { type: null, tambon: null, problem: null };
-// ตัวกรองฝั่งหน้า "ข้อมูลรายละเอียด" (แถบด้านข้าง) — อปท. → ตำบล → หมู่ → หมู่บ้าน
-let state={authority:'',tambon:'',moo:'',type:'',village:'',q:'',problem:null};
+// ตัวกรองฝั่งหน้า "ข้อมูลรายละเอียด" (แถบด้านข้าง) — อำเภอ → อบต./เทศบาล → ตำบล → หมู่ → หมู่บ้าน
+let state={district:'',authority:'',tambon:'',moo:'',type:'',village:'',q:'',problem:null};
 
+function matchesDistrict(r, district){ return AREA.recordMatchesDistrict(r, district); }
 function matchesAuthority(r, authority){ return AREA.recordMatchesAuthority(r, authority); }
-function authorityTambonScope(authority){
-  if(!authority) return TAMBONS_ORDER.slice();
-  return AREA.tambonsForAuthority(authority);
+function districtTambonScope(district){ return district ? AREA.tambonsForDistrict(district) : TAMBONS_ORDER.slice(); }
+function authorityTambonScope(authority,district){
+  var items=authority ? AREA.tambonsForAuthority(authority) : TAMBONS_ORDER.slice();
+  if(district){ var allowed=new Set(AREA.tambonsForDistrict(district)); items=items.filter(function(tb){return allowed.has(tb);}); }
+  return items;
+}
+function authorityScope(district){ return district ? AREA.authoritiesForDistrict(district) : AUTHORITY_ORDER.slice(); }
+function recordMatchesAreaScope(r,district,authority){
+  if(district && !matchesDistrict(r,district)) return false;
+  if(authority && !matchesAuthority(r,authority)) return false;
+  return true;
 }
 function availableTambonsForExec(){
-  const scope=execFilter.authority?authorityTambonScope(execFilter.authority):AVAILABLE_TAMBONS;
-  return scope.filter(tb=>RAW.some(r=>r.tambon===tb && matchesAuthority(r,execFilter.authority)));
+  const scope=authorityTambonScope(execFilter.authority,execFilter.district);
+  return scope.filter(tb=>RAW.some(r=>r.tambon===tb && recordMatchesAreaScope(r,execFilter.district,execFilter.authority)));
 }
 
 function getExecData() {
   return RAW.filter(function(r) {
+    if (execFilter.district && !matchesDistrict(r, execFilter.district)) return false;
     if (execFilter.authority && !matchesAuthority(r, execFilter.authority)) return false;
     if (execFilter.tambon && r.tambon !== execFilter.tambon) return false;
     if (execFilter.type   && r.type   !== execFilter.type)   return false;
@@ -2063,44 +2077,34 @@ function updateCrossFilterBar() {
 
 function setupExecFilters() {
   var types=[...new Set(RAW.map(function(r){return r.type;}).filter(Boolean))].sort(function(a,b){return a.localeCompare(b,'th');});
+  var efD=document.getElementById('efDistrict');
   var efA=document.getElementById('efAuthority');
   var efTy=document.getElementById('efType');
-
-  ACTIVE_AUTHORITIES.forEach(function(v){
-    var o=document.createElement('option');o.value=v;o.textContent=AREA.authorityOptionLabel(v);efA.appendChild(o);
-  });
+  DISTRICT_ORDER.forEach(function(v){var o=document.createElement('option');o.value=v;o.textContent='อำเภอ'+v;efD.appendChild(o);});
   types.forEach(function(v){var o=document.createElement('option');o.value=v;o.textContent=v;efTy.appendChild(o);});
 
   var efTambonCombo=TAMBON_UI.create({
     input:'#efTambon',listbox:'#efTambonListbox',clearButton:'#efTambonClear',errorElement:'#efTambonError',
     items:TAMBONS_ORDER,
     itemMeta:function(tambon){return AREA.authorityTambonScopeText(execFilter.authority,tambon);},
-    onChange:function(value){
-      execFilter.tambon=value;
-      crossFilter={type:null,tambon:null,problem:null};
-      updateCrossFilterBar();
-      runBuildExec();
-    }
+    onChange:function(value){ execFilter.tambon=value; crossFilter={type:null,tambon:null,problem:null}; updateCrossFilterBar(); runBuildExec(); }
   });
-
-  function refreshExecTambons(){
-    var cur=execFilter.tambon;
-    var items=authorityTambonScope(execFilter.authority);
-    if(cur && !items.includes(cur)) execFilter.tambon='';
-    efTambonCombo.setItems(items,{silent:true});
-    efTambonCombo.setValue(execFilter.tambon,{silent:true});
+  function refreshExecAuthorities(){
+    var cur=execFilter.authority, items=authorityScope(execFilter.district);
+    efA.innerHTML='<option value="">ทุก อบต./เทศบาล</option>';
+    items.forEach(function(v){var o=document.createElement('option');o.value=v;o.textContent=AREA.authorityOptionLabel(v);efA.appendChild(o);});
+    if(cur && !items.includes(cur)) execFilter.authority=''; efA.value=execFilter.authority;
   }
-  refreshExecTambons();
-
-  efA.addEventListener('change',function(e){
-    execFilter.authority=e.target.value;execFilter.tambon='';refreshExecTambons();
-    crossFilter={type:null,tambon:null,problem:null};updateCrossFilterBar();runBuildExec();
-  });
+  function refreshExecTambons(){
+    var cur=execFilter.tambon, items=authorityTambonScope(execFilter.authority,execFilter.district);
+    if(cur && !items.includes(cur)) execFilter.tambon='';
+    efTambonCombo.setItems(items,{silent:true}); efTambonCombo.setValue(execFilter.tambon,{silent:true});
+  }
+  refreshExecAuthorities(); refreshExecTambons();
+  efD.addEventListener('change',function(e){ execFilter.district=e.target.value;execFilter.authority='';execFilter.tambon='';refreshExecAuthorities();refreshExecTambons();crossFilter={type:null,tambon:null,problem:null};updateCrossFilterBar();runBuildExec(); });
+  efA.addEventListener('change',function(e){ execFilter.authority=e.target.value;execFilter.tambon='';refreshExecTambons();crossFilter={type:null,tambon:null,problem:null};updateCrossFilterBar();runBuildExec(); });
   efTy.addEventListener('change',function(e){execFilter.type=e.target.value;crossFilter={type:null,tambon:null,problem:null};updateCrossFilterBar();runBuildExec();});
-  document.getElementById('efReset').addEventListener('click',function(){
-    execFilter={authority:'',tambon:'',type:''};crossFilter={type:null,tambon:null,problem:null};
-    efA.value='';efTy.value='';refreshExecTambons();updateCrossFilterBar();runBuildExec();
-  });
+  document.getElementById('efReset').addEventListener('click',function(){ execFilter={district:'',authority:'',tambon:'',type:''};crossFilter={type:null,tambon:null,problem:null};efD.value='';efTy.value='';refreshExecAuthorities();refreshExecTambons();updateCrossFilterBar();runBuildExec(); });
 }
 setupExecFilters();
 
@@ -2343,7 +2347,7 @@ markerLayer.addLayer(m);
   const typeKey=mapState.typeEnabled?(mapState.types?[...mapState.types].sort().join(','):'ALLTYPES'):'TYPEOFF';
   const statusKey=mapState.statusEnabled?(mapState.statuses?[...mapState.statuses].sort().join(','):'ALLSTATUS'):'STATUSOFF';
   const problemKey=mapState.problemEnabled?(mapState.problems?[...mapState.problems].sort().join(','):'ALLPROBLEM'):'PROBLEMOFF';
-  const fKey=[execFilter.authority,execFilter.tambon,execFilter.type,crossFilter.tambon,crossFilter.type,crossFilter.problem||'',tbKey,typeKey,statusKey,problemKey,mapState.sizeByVolume,mapState.photoRing].join('|');
+  const fKey=[execFilter.district,execFilter.authority,execFilter.tambon,execFilter.type,crossFilter.tambon,crossFilter.type,crossFilter.problem||'',tbKey,typeKey,statusKey,problemKey,mapState.sizeByVolume,mapState.photoRing].join('|');
   if(fKey!==lastMapFilterKey){
     lastMapFilterKey=fKey;
     if(fKey.replace(/\|/g,'')!==''){zoomToMarkers(map,latlngs);}
@@ -2509,7 +2513,7 @@ function runBuildExec(){
   var damRate   = N ? (totalDam/N*100).toFixed(1): '0';
   var avgVol    = EDATA.filter(function(r){return vol(r)>0;}).length ? Math.round(totalVol/EDATA.filter(function(r){return vol(r)>0;}).length) : 0;
   var efCountEl = document.getElementById('efCount');
-  var isFiltered = execFilter.authority||execFilter.tambon||execFilter.type||crossFilter.type||crossFilter.tambon||crossFilter.problem;
+  var isFiltered = execFilter.district||execFilter.authority||execFilter.tambon||execFilter.type||crossFilter.type||crossFilter.tambon||crossFilter.problem;
   if(efCountEl){
     var dataDiag = window.__WATER_DATA_DIAGNOSTICS__ || {};
     var usingBootstrapFile = !isFiltered && dataDiag.source === 'static-bootstrap-file';
@@ -2688,6 +2692,7 @@ function runBuildExec(){
   // ใช้ข้อมูลที่กรองด้วย "ประเภท/ปัญหา" เท่านั้น (ไม่กรองด้วยตำบล) เพื่อให้ยังเปรียบเทียบครบทุกตำบลในขอบเขตปัจจุบันได้เสมอ
   // แม้ผู้ใช้จะคลิกเลือกตำบลใดตำบลหนึ่งอยู่ก็ตาม — ตำบลที่ถูกเลือกจะถูกไฮไลต์แทนการยุบแท่งอื่นให้เป็นศูนย์
   var RISK_BASE = RAW.filter(function(r) {
+    if (execFilter.district && !matchesDistrict(r,execFilter.district)) return false;
     if (execFilter.authority && !matchesAuthority(r,execFilter.authority)) return false;
     if (execFilter.type   && r.type   !== execFilter.type)   return false;
     if (crossFilter.type    && r.type    !== crossFilter.type)    return false;
@@ -2867,7 +2872,7 @@ function runBuildExec(){
 
   // 6) โอกาสพัฒนา — ตำบลต้นแบบ: เป็นข้อมูลเชิงบวก ไม่ใช่ปัญหา จึงไม่เข้าสูตรความเร่งด่วน (คะแนนนี้ใช้จัดลำดับภายในหมวดเดียวกันเท่านั้น)
   var bestTb2=tbStats.slice().sort(function(a,b){return a.pct-b.pct;})[0];
-  if(bestTb2.pct<10 && (!selectedTambon||bestTb2.tb===selectedTambon)) policies.push({lvl:'OPPORTUNITY',icon:'🟢',tag:'ต้นแบบจากตำบล'+bestTb2.tb,
+  if(bestTb2 && bestTb2.pct<10 && (!selectedTambon||bestTb2.tb===selectedTambon)) policies.push({lvl:'OPPORTUNITY',icon:'🟢',tag:'ต้นแบบจากตำบล'+bestTb2.tb,
     body:'ชำรุดเพียง '+bestTb2.pct.toFixed(1)+'% — ศึกษาและถ่ายทอดแนวทางการจัดการไปยังตำบลเสี่ยงสูง',
     meta:[TIER_DEADLINE.OPPORTUNITY,'กรณีศึกษาเชิงบวก'],score:Math.round(100-bestTb2.pct),count:bestTb2.n,tambon:bestTb2.tb,detailMode:'good',filter:function(){setCrossFilter('tambon',bestTb2.tb);}});
 
@@ -3297,8 +3302,15 @@ const types=uniqueSorted(RAW.map(r=>r.type));
 function fillSelect(sel,items,labelFn){items.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=labelFn?labelFn(v):v;sel.appendChild(o);});}
 function resetSelect(sel,placeholder){sel.innerHTML='<option value="">'+placeholder+'</option>';}
 
-fillSelect($('#fAuthority'),ACTIVE_AUTHORITIES,v=>AREA.authorityOptionLabel(v));
+fillSelect($('#fDistrict'),DISTRICT_ORDER,v=>'อำเภอ'+v);
 fillSelect($('#fType'),types);
+
+function refreshDetailAuthorities(){
+  const sel=$('#fAuthority');const cur=state.authority;const items=authorityScope(state.district);
+  resetSelect(sel,'ทั้งหมด');fillSelect(sel,items,v=>AREA.authorityOptionLabel(v));
+  if(cur&&items.includes(cur)){sel.value=cur;}else{sel.value='';state.authority='';}
+}
+refreshDetailAuthorities();
 
 const detailTambonCombo=TAMBON_UI.create({
   input:'#fTambon',listbox:'#fTambonListbox',clearButton:'#fTambonClear',errorElement:'#fTambonError',
@@ -3312,7 +3324,7 @@ const detailTambonCombo=TAMBON_UI.create({
 
 function refreshTambonOptions(){
   const cur=state.tambon;
-  const items=authorityTambonScope(state.authority);
+  const items=authorityTambonScope(state.authority,state.district);
   if(cur&&!items.includes(cur)){state.tambon='';state.moo='';state.village='';}
   detailTambonCombo.setItems(items,{silent:true});
   detailTambonCombo.setValue(state.tambon,{silent:true});
@@ -3346,6 +3358,7 @@ function refreshVillageOptions(){
   const vs=$('#fVillage');const cur=state.village;
   resetSelect(vs,'ทั้งหมด');
   let pool=RAW;
+  if(state.district)pool=pool.filter(r=>matchesDistrict(r,state.district));
   if(state.authority)pool=pool.filter(r=>matchesAuthority(r,state.authority));
   if(state.tambon)pool=pool.filter(r=>r.tambon===state.tambon);
   if(state.moo)pool=pool.filter(r=>String(AREA.normalizeMoo(r.moo)||'')===String(state.moo));
@@ -3362,16 +3375,17 @@ PROBLEM_TAGS.forEach(tag=>{
   chipsBox.appendChild(c);
 });
 
+$('#fDistrict').addEventListener('change',e=>{state.district=e.target.value;state.authority='';state.tambon='';state.moo='';state.village='';refreshDetailAuthorities();refreshTambonOptions();refreshMooOptions();refreshVillageOptions();render();runBuildExec();});
 $('#fAuthority').addEventListener('change',e=>{state.authority=e.target.value;state.tambon='';state.moo='';state.village='';refreshTambonOptions();refreshMooOptions();refreshVillageOptions();render();runBuildExec();});
 $('#fMoo').addEventListener('change',e=>{state.moo=e.target.value;state.village='';refreshVillageOptions();render();});
 $('#fType').addEventListener('change',e=>{state.type=e.target.value;render();});
 $('#fVillage').addEventListener('change',e=>{state.village=e.target.value;render();});
 $('#searchBox').addEventListener('input',e=>{state.q=e.target.value.trim().toLowerCase();render();});
 $('#resetBtn').addEventListener('click',()=>{
-  state={authority:'',tambon:'',moo:'',type:'',village:'',q:'',problem:null};
-  $('#fAuthority').value='';$('#fType').value='';$('#searchBox').value='';
+  state={district:'',authority:'',tambon:'',moo:'',type:'',village:'',q:'',problem:null};
+  $('#fDistrict').value='';$('#fType').value='';$('#searchBox').value='';
   document.querySelectorAll('#problemChips .chip').forEach(x=>x.classList.remove('active'));
-  refreshTambonOptions();refreshMooOptions();refreshVillageOptions();render();runBuildExec();
+  refreshDetailAuthorities();refreshTambonOptions();refreshMooOptions();refreshVillageOptions();render();runBuildExec();
 });
 
 document.querySelectorAll('.tab-btn').forEach(btn=>{
@@ -3390,6 +3404,7 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
 
 function getFiltered(){
   return RAW.filter(r=>{
+    if(state.district&&!matchesDistrict(r,state.district))return false;
     if(state.authority&&!matchesAuthority(r,state.authority))return false;
     if(state.tambon&&r.tambon!==state.tambon)return false;
     if(state.moo&&String(AREA.normalizeMoo(r.moo)||'')!==String(state.moo))return false;
@@ -3479,7 +3494,8 @@ window.pvSetCell=pvSetCell;window.pvSetType=pvSetType;window.pvSetTambon=pvSetTa
 function updatePivotFilterNote(){
   const note=$('#pivotFilterNote');if(!note)return;
   const parts=[];
-  if(state.authority)parts.push(`อปท.: <b>${AREA.authorityOptionLabel(state.authority)}</b>`);
+  if(state.district)parts.push(`อำเภอ: <b>${state.district}</b>`);
+  if(state.authority)parts.push(`อบต./เทศบาล: <b>${AREA.authorityOptionLabel(state.authority)}</b>`);
   if(state.type)parts.push(`ประเภท: <b>${state.type}</b>`);
   if(state.tambon)parts.push(`ตำบล: <b>${state.tambon}</b>`);
   if(state.moo)parts.push(`หมู่: <b>${state.moo}</b>`);
@@ -3614,8 +3630,8 @@ $('#siteCardModal').addEventListener('click', e=>{ if(e.target.id==='siteCardMod
 
 // DAMAGED TAB
 let damagedMap=null,damagedMarkerLayer=null,damagedMapInited=false;
-let dfState={authority:'',tambon:'',type:'',problem:null};
-function getDamagedData(){let b=RAW.filter(isDamaged);if(dfState.authority)b=b.filter(r=>matchesAuthority(r,dfState.authority));if(dfState.tambon)b=b.filter(r=>r.tambon===dfState.tambon);if(dfState.type)b=b.filter(r=>r.type===dfState.type);if(dfState.problem)b=b.filter(r=>r.problem&&r.problem.includes(dfState.problem));return b;}
+let dfState={district:'',authority:'',tambon:'',type:'',problem:null};
+function getDamagedData(){let b=RAW.filter(isDamaged);if(dfState.district)b=b.filter(r=>matchesDistrict(r,dfState.district));if(dfState.authority)b=b.filter(r=>matchesAuthority(r,dfState.authority));if(dfState.tambon)b=b.filter(r=>r.tambon===dfState.tambon);if(dfState.type)b=b.filter(r=>r.type===dfState.type);if(dfState.problem)b=b.filter(r=>r.problem&&r.problem.includes(dfState.problem));return b;}
 function initDamagedMap(){
   damagedMap=L.map('damaged-map').setView(DEFAULT_CENTER,DEFAULT_ZOOM);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles © Esri',maxZoom:19}).addTo(damagedMap);
@@ -3645,7 +3661,7 @@ function renderDamagedMapFn(data){
   });
   $('#n-damaged').textContent=`(${fmtN(n)} จุดที่มีพิกัด)`;
   // ซูมอัตโนมัติเมื่อเลือกตำบล/ประเภท/ปัญหาในแท็บจุดชำรุด
-  const fKey=[dfState.authority,dfState.tambon,dfState.type,dfState.problem||''].join('|');
+  const fKey=[dfState.district,dfState.authority,dfState.tambon,dfState.type,dfState.problem||''].join('|');
   if(fKey!==lastDamagedFilterKey){
     lastDamagedFilterKey=fKey;
     if(fKey.replace(/\|/g,'')!==''){zoomToMarkers(damagedMap,latlngs);}
@@ -3666,36 +3682,25 @@ function renderDamagedTab(){
   setTimeout(()=>{if(damagedMap)damagedMap.invalidateSize();},80);
 }
 (function setupDamagedFilters(){
-  const dfa=$('#dfAuthority'),dfty=$('#dfType');
-  fillSelect(dfa,ACTIVE_AUTHORITIES,v=>AREA.authorityOptionLabel(v));
+  const dfd=$('#dfDistrict'),dfa=$('#dfAuthority'),dfty=$('#dfType');
+  fillSelect(dfd,DISTRICT_ORDER,v=>'อำเภอ'+v);
   uniqueSorted(RAW.filter(isDamaged).map(r=>r.type)).forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;dfty.appendChild(o);});
-
-  const damagedTambonCombo=TAMBON_UI.create({
-    input:'#dfTambon',listbox:'#dfTambonListbox',clearButton:'#dfTambonClear',errorElement:'#dfTambonError',
-    items:TAMBONS_ORDER,
-    itemMeta:tambon=>AREA.authorityTambonScopeText(dfState.authority,tambon),
-    onChange:value=>{dfState.tambon=value;renderDamagedTab();}
-  });
-
-  function refreshDamagedTambons(){
-    const cur=dfState.tambon;
-    const items=authorityTambonScope(dfState.authority);
-    if(cur&&!items.includes(cur))dfState.tambon='';
-    damagedTambonCombo.setItems(items,{silent:true});
-    damagedTambonCombo.setValue(dfState.tambon,{silent:true});
-  }
-  refreshDamagedTambons();
+  const damagedTambonCombo=TAMBON_UI.create({ input:'#dfTambon',listbox:'#dfTambonListbox',clearButton:'#dfTambonClear',errorElement:'#dfTambonError',items:TAMBONS_ORDER,itemMeta:tambon=>AREA.authorityTambonScopeText(dfState.authority,tambon),onChange:value=>{dfState.tambon=value;renderDamagedTab();} });
+  function refreshDamagedAuthorities(){ const cur=dfState.authority,items=authorityScope(dfState.district);resetSelect(dfa,'ทุก อบต./เทศบาล');fillSelect(dfa,items,v=>AREA.authorityOptionLabel(v));if(cur&&items.includes(cur)){dfa.value=cur;}else{dfa.value='';dfState.authority='';} }
+  function refreshDamagedTambons(){ const cur=dfState.tambon,items=authorityTambonScope(dfState.authority,dfState.district);if(cur&&!items.includes(cur))dfState.tambon='';damagedTambonCombo.setItems(items,{silent:true});damagedTambonCombo.setValue(dfState.tambon,{silent:true}); }
+  refreshDamagedAuthorities();refreshDamagedTambons();
   const chips=$('#dfProblemChips');
   DAMAGE_PROBLEM_TAGS.forEach(tag=>{const c=document.createElement('div');c.className='df-chip';c.textContent=tag;c.onclick=()=>{dfState.problem=(dfState.problem===tag)?null:tag;document.querySelectorAll('.df-chip').forEach(x=>x.classList.remove('active'));if(dfState.problem)c.classList.add('active');renderDamagedTab();};chips.appendChild(c);});
+  dfd.addEventListener('change',e=>{dfState.district=e.target.value;dfState.authority='';dfState.tambon='';refreshDamagedAuthorities();refreshDamagedTambons();renderDamagedTab();});
   dfa.addEventListener('change',e=>{dfState.authority=e.target.value;dfState.tambon='';refreshDamagedTambons();renderDamagedTab();});
   dfty.addEventListener('change',e=>{dfState.type=e.target.value;renderDamagedTab();});
-  $('#dfReset').addEventListener('click',()=>{dfState={authority:'',tambon:'',type:'',problem:null};dfa.value='';dfty.value='';refreshDamagedTambons();document.querySelectorAll('.df-chip').forEach(x=>x.classList.remove('active'));renderDamagedTab();});
+  $('#dfReset').addEventListener('click',()=>{dfState={district:'',authority:'',tambon:'',type:'',problem:null};dfd.value='';dfty.value='';refreshDamagedAuthorities();refreshDamagedTambons();document.querySelectorAll('.df-chip').forEach(x=>x.classList.remove('active'));renderDamagedTab();});
 })()
 
 // MASTER RENDER
 function render(){
   const data=getFiltered();
-  const pivotBase=state.authority?RAW.filter(r=>matchesAuthority(r,state.authority)):RAW;
+  const pivotBase=RAW.filter(r=>(!state.district||matchesDistrict(r,state.district))&&(!state.authority||matchesAuthority(r,state.authority)));
   buildPivot(pivotBase);renderOverview(data);renderTable(data);renderGallery(data,true);
   $('#countNote').textContent=`กำลังแสดง ${fmtN(data.length)} จาก ${fmtN(RAW.length)} รายการ`;
 }

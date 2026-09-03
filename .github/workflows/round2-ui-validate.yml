@@ -1,0 +1,117 @@
+name: Round2 Clear Filter and Top10 Validation
+
+on:
+  push:
+    branches:
+      - phase2-district-authority-filter-20260902
+
+permissions:
+  contents: write
+
+concurrency:
+  group: round2-ui-validation
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    if: ${{ !contains(github.event.head_commit.message, '[round2-tested]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase2-district-authority-filter-20260902
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: npm
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply deterministic round2 source patch
+        run: python tools/apply_round2_ui_fixes.py
+
+      - name: Run source and backend regression gates
+        run: |
+          node --check site/assets/area-responsibility.js
+          node --check netlify/lib/water-store.mjs
+          python tests/phase2_static_contract_test.py
+          node tests/phase2_area_responsibility_test.mjs
+          node tests/area_responsibility_test.mjs
+          node tests/gas_sync_contract_test.mjs
+          node tests/netlify_function_test.mjs
+          python tests/static_integrity_test.py
+
+      - name: Install Playwright Chromium
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Run Playwright desktop and mobile regression
+        run: |
+          python -m http.server 4173 --directory site >/tmp/round2-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID || true' EXIT
+          for i in {1..40}; do
+            if curl -fsS http://127.0.0.1:4173/index.html >/dev/null; then break; fi
+            sleep 0.25
+          done
+          python tests/phase2_filter_playwright.py
+
+      - name: Write audited round2 test report
+        run: |
+          printf '%s\n' \
+            '# TEST REPORT — Round 2 Clear Filter + Top 10 Tambon KPI' \
+            '' \
+            'Status: PASS' \
+            '' \
+            'Baseline tested branch: phase2-district-authority-filter-20260902' \
+            "Validation input commit: ${GITHUB_SHA}" \
+            '' \
+            'PASS: phase2_static_contract_test.py' \
+            'PASS: phase2_area_responsibility_test.mjs' \
+            'PASS: area_responsibility_test.mjs' \
+            'PASS: gas_sync_contract_test.mjs' \
+            'PASS: netlify_function_test.mjs (12 backend tests)' \
+            'PASS: static_integrity_test.py' \
+            'PASS: phase2_filter_playwright.py — clear-filter regression, Top10 expand/collapse, district full list, desktop 1440px, mobile 360/390/412px, pageerror gate' \
+            '' \
+            'Production deploy: NOT PERFORMED' \
+            > docs/TEST_REPORT_ROUND2_20260903.md
+
+      - name: Commit exact tested source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/index.html tests/phase2_filter_playwright.py docs/TEST_REPORT_ROUND2_20260903.md
+          if ! git diff --cached --quiet; then
+            git commit -m "Fix clear filter and compact tambon KPI [round2-tested]"
+            git push origin HEAD:phase2-district-authority-filter-20260902
+          fi
+
+      - name: Build clean handoff ZIP
+        run: |
+          ZIP=DashboardWaterResources_Round2_ClearFilter_Top10_20260903.zip
+          rm -f "$ZIP" "$ZIP.sha256"
+          zip -r "$ZIP" . \
+            -x '.git/*' '.github/workflows/*' 'tools/apply_phase2_filters.py' 'tools/apply_phase2_no_data_guard.py' 'tools/apply_round2_ui_fixes.py' \
+               '__pycache__/*' '*/__pycache__/*' '*.pyc'
+          sha256sum "$ZIP" > "$ZIP.sha256"
+
+      - name: Upload handoff ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: DashboardWaterResources-Round2-ClearFilter-Top10-20260903
+          path: |
+            DashboardWaterResources_Round2_ClearFilter_Top10_20260903.zip
+            DashboardWaterResources_Round2_ClearFilter_Top10_20260903.zip.sha256
+          if-no-files-found: error
+          retention-days: 30

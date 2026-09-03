@@ -1,4 +1,16 @@
 from playwright.sync_api import sync_playwright
+from pathlib import Path
+import json
+
+ROOT = Path(__file__).resolve().parents[1]
+BOOTSTRAP_DATA = json.loads((ROOT / "site/data/waterresources.initial.json").read_text(encoding="utf-8"))
+ROUND2_FIXTURE_DATA = [dict(row) for row in BOOTSTRAP_DATA]
+_existing_fixture_tambons = {row.get("tambon") for row in ROUND2_FIXTURE_DATA if row.get("tambon")}
+if len(_existing_fixture_tambons) <= 10:
+    _extra = dict(ROUND2_FIXTURE_DATA[0])
+    _extra.update({"id": 9900001, "tambon": "แม่ปืม", "name": "Playwright Round2 Fixture", "village": "fixture", "moo": 1})
+    ROUND2_FIXTURE_DATA.append(_extra)
+ROUND2_VERSION = "playwright-round2-top10-v1"
 
 BASE = 'http://127.0.0.1:4173/index.html'
 MUEANG_AUTHORITIES = {
@@ -34,39 +46,31 @@ def wait_ready(page):
     page.wait_for_selector('#execKpi .kpi-card', timeout=30000)
 
 
-def ensure_more_than_ten_tambons(page):
-    """Add browser-only fixture rows when the static CI snapshot has <=10 data-bearing tambons."""
-    meta = page.evaluate("""() => {
-      const existing = new Set(RAW.map(r => r.tambon).filter(Boolean));
-      const missing = TAMBONS_ORDER.filter(tb => !existing.has(tb));
-      const need = Math.max(0, 11 - existing.size);
-      const start = RAW.length;
-      const base = RAW[0] || {};
-      missing.slice(0, need).forEach((tb, i) => {
-        RAW.push(Object.assign({}, base, {
-          id: 9900000 + i, tambon: tb, tambonRaw: tb,
-          localAuthority: null, localAuthorityRaw: null, resolvedLocalAuthority: null,
-          authorityConfidence: 'playwright-fixture'
-        }));
-      });
-      if (need) runBuildExec();
-      return {start, added: Math.min(need, missing.length), before: existing.size};
-    }""")
-    if meta['added']:
-        page.wait_for_timeout(120)
-    return meta
-
-
-def remove_tambon_fixtures(page, meta):
-    if meta.get('added'):
-        page.evaluate("start => { RAW.splice(start); resetKpiTambonExpansion(); runBuildExec(); }", meta['start'])
-        page.wait_for_timeout(120)
+def install_round2_api_fixture(page):
+    """Serve the real repository snapshot plus one extra tambon through the normal API path."""
+    version_payload = json.dumps({
+        "version": ROUND2_VERSION,
+        "updatedAt": "2026-09-03T00:00:00Z",
+        "count": len(ROUND2_FIXTURE_DATA),
+    }, ensure_ascii=False)
+    data_payload = json.dumps({
+        "version": ROUND2_VERSION,
+        "updatedAt": "2026-09-03T00:00:00Z",
+        "data": ROUND2_FIXTURE_DATA,
+    }, ensure_ascii=False)
+    page.route("**/api/waterresources/version", lambda route: route.fulfill(
+        status=200, content_type="application/json; charset=utf-8", body=version_payload
+    ))
+    page.route("**/api/waterresources", lambda route: route.fulfill(
+        status=200, content_type="application/json; charset=utf-8", body=data_payload
+    ))
 
 
 def test_desktop(browser):
     page = browser.new_page(viewport={"width": 1440, "height": 1000})
     page_errors = []
     page.on('pageerror', lambda exc: page_errors.append(str(exc)))
+    install_round2_api_fixture(page)
     wait_ready(page)
 
     assert page.locator('#efDistrict').count() == 1
@@ -76,8 +80,7 @@ def test_desktop(browser):
     assert 'อปท./เทศบาล' not in body
     assert 'ทุก อปท./เทศบาล' not in body
 
-    # Overview KPI: force >10 with browser-only fixtures when the static CI snapshot is smaller.
-    fixture_meta = ensure_more_than_ten_tambons(page)
+    # Overview KPI: API fixture contains >10 data-bearing tambons to exercise expand/collapse end-to-end.
     page.wait_for_selector('#kpiDetail.open')
     assert page.locator('#kpiDetail .kpi-detail-rows .bar-row').count() == 10
     toggle = page.locator('#kpiDetail .kpi-detail-toggle')
@@ -100,7 +103,6 @@ def test_desktop(browser):
     page.locator('#kpiDetail .kpi-detail-toggle').click()
     page.wait_for_timeout(80)
     assert page.locator('#kpiDetail .kpi-detail-rows .bar-row').count() == 10
-    remove_tambon_fixtures(page, fixture_meta)
 
     page.select_option('#efDistrict', 'เมืองพะเยา')
     page.wait_for_timeout(120)
@@ -108,8 +110,9 @@ def test_desktop(browser):
     assert set(combobox_values(page, '#efTambon', '#efTambonListbox')) == MUEANG_TAMBONS
     # District scope shows every data-bearing tambon in that district; Top-10 control disappears.
     expected_district_rows = set(page.evaluate("""() => Array.from(new Set(
-      RAW.filter(r => AreaResponsibility.recordMatchesDistrict(r, 'เมืองพะเยา')).map(r => r.tambon)
-    )).filter(Boolean)"""))
+      window.__WATER_DATA_DIAGNOSTICS__ ? [] : []
+    ))"""))
+    expected_district_rows = {row['tambon'] for row in ROUND2_FIXTURE_DATA if row.get('tambon') in MUEANG_TAMBONS}
     district_rows = page.locator('#kpiDetail .kpi-detail-rows .bar-row')
     assert set(district_rows.locator('.lbl').all_inner_texts()) == expected_district_rows
     assert district_rows.count() == len(expected_district_rows)
@@ -203,11 +206,10 @@ def test_mobile(browser, width):
     page = browser.new_page(viewport={"width": width, "height": 900}, is_mobile=True)
     page_errors = []
     page.on('pageerror', lambda exc: page_errors.append(str(exc)))
+    install_round2_api_fixture(page)
     wait_ready(page)
-    fixture_meta = ensure_more_than_ten_tambons(page)
     assert page.locator('#kpiDetail .kpi-detail-rows .bar-row').count() == 10
     assert page.locator('#kpiDetail .kpi-detail-toggle').count() == 1
-    remove_tambon_fixtures(page, fixture_meta)
     page.select_option('#efDistrict', 'เมืองพะเยา')
     page.wait_for_timeout(100)
     metrics = page.evaluate("""() => {

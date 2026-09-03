@@ -19,7 +19,9 @@ def option_values(page, selector):
 
 
 def combobox_values(page, input_sel, list_sel):
-    page.locator(input_sel).focus()
+    # Simulate the real user action. focus() alone is insufficient when the input
+    # intentionally retains focus after Escape; clicking must reopen the listbox.
+    page.locator(input_sel).click()
     page.wait_for_function("sel => !document.querySelector(sel).hidden", arg=list_sel)
     vals = page.locator(list_sel + ' [role=option]').evaluate_all("els => els.map(e => e.dataset.value)")
     page.locator(input_sel).press('Escape')
@@ -64,7 +66,7 @@ def test_desktop(browser):
 
     page.select_option('#efAuthority', 'ทต.แม่ใจ')
     page.wait_for_timeout(120)
-    page.locator('#efTambon').focus()
+    page.locator('#efTambon').click()
     page.wait_for_function("() => !document.querySelector('#efTambonListbox').hidden")
     names = page.locator('#efTambonListbox [role=option]').evaluate_all("els => els.map(e => e.dataset.value)")
     scopes = page.locator('#efTambonListbox [role=option]').evaluate_all("els => Object.fromEntries(els.map(e => [e.dataset.value, e.dataset.scope || '']))")

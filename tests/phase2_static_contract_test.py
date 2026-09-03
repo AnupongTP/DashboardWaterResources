@@ -11,7 +11,8 @@ assert 'อปท./เทศบาล' not in index
 assert 'อปท. หรือเทศบาล' not in index
 for token in [
     "execFilter  = { district:", "state={district:", "dfState={district:",
-    "AREA.recordMatchesDistrict", "AREA.authoritiesForDistrict", "AREA.tambonsForDistrict"
+    "AREA.recordMatchesDistrict", "AREA.authoritiesForDistrict", "AREA.tambonsForDistrict",
+    "if(bestTb2 && bestTb2.pct<10"
 ]: assert token in index, token
 for authority in [
     'ทม.พะเยา','ทต.แม่กา','อบต.แม่นาเรือ','อบต.แม่ใส','อบต.บ้านตุ่น','ทต.บ้านสาง',

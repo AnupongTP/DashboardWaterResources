@@ -34,6 +34,35 @@ def wait_ready(page):
     page.wait_for_selector('#execKpi .kpi-card', timeout=30000)
 
 
+def ensure_more_than_ten_tambons(page):
+    """Add browser-only fixture rows when the static CI snapshot has <=10 data-bearing tambons."""
+    meta = page.evaluate("""() => {
+      const existing = new Set(RAW.map(r => r.tambon).filter(Boolean));
+      const missing = TAMBONS_ORDER.filter(tb => !existing.has(tb));
+      const need = Math.max(0, 11 - existing.size);
+      const start = RAW.length;
+      const base = RAW[0] || {};
+      missing.slice(0, need).forEach((tb, i) => {
+        RAW.push(Object.assign({}, base, {
+          id: 9900000 + i, tambon: tb, tambonRaw: tb,
+          localAuthority: null, localAuthorityRaw: null, resolvedLocalAuthority: null,
+          authorityConfidence: 'playwright-fixture'
+        }));
+      });
+      if (need) runBuildExec();
+      return {start, added: Math.min(need, missing.length), before: existing.size};
+    }""")
+    if meta['added']:
+        page.wait_for_timeout(120)
+    return meta
+
+
+def remove_tambon_fixtures(page, meta):
+    if meta.get('added'):
+        page.evaluate("start => { RAW.splice(start); resetKpiTambonExpansion(); runBuildExec(); }", meta['start'])
+        page.wait_for_timeout(120)
+
+
 def test_desktop(browser):
     page = browser.new_page(viewport={"width": 1440, "height": 1000})
     page_errors = []
@@ -47,7 +76,8 @@ def test_desktop(browser):
     assert 'อปท./เทศบาล' not in body
     assert 'ทุก อปท./เทศบาล' not in body
 
-    # Overview KPI: broad provincial view is capped at Top 10, with explicit expand/collapse.
+    # Overview KPI: force >10 with browser-only fixtures when the static CI snapshot is smaller.
+    fixture_meta = ensure_more_than_ten_tambons(page)
     page.wait_for_selector('#kpiDetail.open')
     assert page.locator('#kpiDetail .kpi-detail-rows .bar-row').count() == 10
     toggle = page.locator('#kpiDetail .kpi-detail-toggle')
@@ -70,14 +100,19 @@ def test_desktop(browser):
     page.locator('#kpiDetail .kpi-detail-toggle').click()
     page.wait_for_timeout(80)
     assert page.locator('#kpiDetail .kpi-detail-rows .bar-row').count() == 10
+    remove_tambon_fixtures(page, fixture_meta)
 
     page.select_option('#efDistrict', 'เมืองพะเยา')
     page.wait_for_timeout(120)
     assert set(option_values(page, '#efAuthority')) == MUEANG_AUTHORITIES
     assert set(combobox_values(page, '#efTambon', '#efTambonListbox')) == MUEANG_TAMBONS
     # District scope shows every data-bearing tambon in that district; Top-10 control disappears.
+    expected_district_rows = set(page.evaluate("""() => Array.from(new Set(
+      RAW.filter(r => AreaResponsibility.recordMatchesDistrict(r, 'เมืองพะเยา')).map(r => r.tambon)
+    )).filter(Boolean)"""))
     district_rows = page.locator('#kpiDetail .kpi-detail-rows .bar-row')
-    assert set(district_rows.locator('.lbl').all_inner_texts()) == MUEANG_TAMBONS
+    assert set(district_rows.locator('.lbl').all_inner_texts()) == expected_district_rows
+    assert district_rows.count() == len(expected_district_rows)
     assert page.locator('#kpiDetail .kpi-detail-toggle').count() == 0
 
     page.select_option('#efAuthority', 'ทต.แม่กา')
@@ -169,7 +204,10 @@ def test_mobile(browser, width):
     page_errors = []
     page.on('pageerror', lambda exc: page_errors.append(str(exc)))
     wait_ready(page)
+    fixture_meta = ensure_more_than_ten_tambons(page)
     assert page.locator('#kpiDetail .kpi-detail-rows .bar-row').count() == 10
+    assert page.locator('#kpiDetail .kpi-detail-toggle').count() == 1
+    remove_tambon_fixtures(page, fixture_meta)
     page.select_option('#efDistrict', 'เมืองพะเยา')
     page.wait_for_timeout(100)
     metrics = page.evaluate("""() => {

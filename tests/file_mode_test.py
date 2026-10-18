@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+import os
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
@@ -10,9 +11,10 @@ INDEX=(SITE/'index.html').read_text(encoding='utf-8')
 RUNTIME=(SITE/'assets'/'runtime-config.js').read_text(encoding='utf-8')
 LOADER=(SITE/'assets'/'water-data-loader.js').read_text(encoding='utf-8')
 AREA=(SITE/'assets'/'area-responsibility.js').read_text(encoding='utf-8')
+AUTHORITY_ROUTES=(SITE/'assets'/'authority-routes.js').read_text(encoding='utf-8')
 COMBO=(SITE/'assets'/'tambon-combobox.js').read_text(encoding='utf-8')
 ADAPTER=(SITE/'assets'/'maeka-data-adapter.js').read_text(encoding='utf-8')
-PROD='https://dashboard-waterresources.netlify.app'
+PROD='https://dashboard-waterresources1.netlify.app'
 SAMPLE=BOOTSTRAP+[{
   'id':990001,'dt':'2026-08-30 18:00','lat':19.05,'lng':99.95,'name':'FILE-MODE-LIVE-MAEKA',
   'owner':'ทดสอบ','phone':None,'type':'ฝาย','width':1,'length':2,'depth':3,'depthnet':2,
@@ -26,7 +28,11 @@ def build_index_filemode_html():
   html=html.replace('<script src="./assets/runtime-config.js"></script>', '<script>window.WATER_DASHBOARD_CONFIG={forceMode:"file",productionOrigin:"'+PROD+'"};</script><script>'+RUNTIME+'</script>')
   html=html.replace('<script src="./assets/water-data-loader.js"></script>', '<script>'+LOADER+'</script>')
   html=html.replace('<script src="./assets/area-responsibility.js"></script>', '<script>'+AREA+'</script>')
+  html=html.replace('<script src="./assets/authority-routes.js"></script>', '<script>'+AUTHORITY_ROUTES+'</script>')
   html=html.replace('<script src="./assets/tambon-combobox.js"></script>', '<script>'+COMBO+'</script>')
+  # Keep file-mode data tests offline; map clustering has separate browser coverage.
+  html=html.replace('<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>',
+                    '<script>L.markerClusterGroup = () => L.featureGroup();</script>')
   html=html.replace('<link rel="preconnect" href="https://fonts.googleapis.com">','')
   html=html.replace('<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">','')
   return html
@@ -35,7 +41,7 @@ def build_index_filemode_html():
 def main():
   results=[]
   with sync_playwright() as p:
-    browser=p.chromium.launch(headless=True, executable_path='/usr/bin/chromium')
+    browser=p.chromium.launch(headless=True, executable_path=os.environ.get('PLAYWRIGHT_CHROMIUM_EXECUTABLE'))
 
     # 1) Full Dashboard, forcing the same runtime branch that real file:// uses.
     ctx=browser.new_context(viewport={'width':390,'height':844})
@@ -96,7 +102,7 @@ def main():
     ctx.close()
 
     # 4) File-runtime offline fallback: local bootstrap global is accepted without HTTP fetch.
-    ctx=browser.new_context(); page=ctx.new_page()
+    ctx=browser.new_context(); ctx.route('**/api/waterresources/file-bridge*', lambda route: route.abort()); page=ctx.new_page()
     html='<!doctype html><html><body><script>window.WATER_DASHBOARD_CONFIG={forceMode:"file",productionOrigin:"'+PROD+'"};window.__WATER_BOOTSTRAP_DATA__='+json.dumps(BOOTSTRAP,ensure_ascii=False)+';</script><script>'+RUNTIME+'</script><script>window.fetch=async()=>{throw new TypeError("offline")};</script><script>'+LOADER+'</script></body></html>'
     page.set_content(html)
     data=page.evaluate('WaterData.load()')
@@ -107,12 +113,14 @@ def main():
 
     browser.close()
 
-  # Static launcher checks stand in for actual file:// navigation; this environment blocks file:// by administrator policy.
-  root_index=(ROOT/'index.html').read_text(encoding='utf-8')
-  root_maeka=(ROOT/'maeka.html').read_text(encoding='utf-8')
-  assert './site/index.html' in root_index and 'window.location.replace' in root_index
-  assert './site/maeka.html' in root_maeka and 'window.location.replace' in root_maeka
-  results.append({'test':'root_double_click_launchers_target_site_pages','ok':True,'note':'file:// navigation blocked by CI browser policy; runtime branch tested above'})
+  # The deployed site pages carry the file-mode runtime and loader assets.
+  for page_name in ('index.html', 'maeka.html'):
+    site_html=(SITE/page_name).read_text(encoding='utf-8')
+    assert './assets/runtime-config.js' in site_html
+    assert './assets/water-data-loader.js' in site_html
+    assert (SITE/'assets/runtime-config.js').is_file()
+    assert (SITE/'assets/water-data-loader.js').is_file()
+  results.append({'test':'site_file_pages_reference_existing_runtime_assets','ok':True})
 
   (ROOT/'tests/file-mode-results.json').write_text(json.dumps({'ok':True,'results':results},ensure_ascii=False,indent=2),encoding='utf-8')
   print(json.dumps({'ok':True,'tests':[x['test'] for x in results]},ensure_ascii=False,indent=2))

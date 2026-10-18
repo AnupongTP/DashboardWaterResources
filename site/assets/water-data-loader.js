@@ -13,6 +13,8 @@
   const DATA_KEY = 'waterresources';
   const VERSION_ENDPOINT = runtime.apiUrl('/api/waterresources/version');
   const DATA_ENDPOINT = runtime.apiUrl('/api/waterresources');
+  const IS_CROSS_ORIGIN = runtime.mode === 'file' || runtime.mode === 'development';
+  const API_ORIGIN = IS_CROSS_ORIGIN ? runtime.productionOrigin : global.location.origin;
   const FILE_BRIDGE_ENDPOINT = runtime.mode === 'file'
     ? ((runtime.productionUrl ? runtime.productionUrl('/api/waterresources/file-bridge') : (runtime.productionOrigin + '/api/waterresources/file-bridge')))
     : null;
@@ -35,8 +37,9 @@
 
   function setDiagnostics(patch) {
     const current = global.__WATER_DATA_DIAGNOSTICS__ || {};
-    global.__WATER_DATA_DIAGNOSTICS__ = Object.assign({}, current, patch, {
+    global.__WATER_DATA_DIAGNOSTICS__ = Object.assign({}, current, { warning: null, error: null }, patch, {
       runtimeMode: runtime.mode,
+      apiOrigin: API_ORIGIN,
       productionOrigin: runtime.productionOrigin || null,
       timestamp: new Date().toISOString()
     });
@@ -127,19 +130,16 @@
   }
 
   function cacheMatchesRuntime(cached) {
-    if (!cached) return false;
-    if (runtime.mode !== 'file') return true;
-    const currentOrigin = String(runtime.productionOrigin || '');
-    const cachedOrigin = String(cached.remoteOrigin || '');
-    // Older cache records had no remoteOrigin. Do not trust them in file mode because
-    // they may have come from localhost/another Netlify project.
-    return !!currentOrigin && cachedOrigin === currentOrigin;
+    // Legacy entries without an origin, and bootstrap snapshots, cannot prove they
+    // came from the selected API. They must never pass a Production version check.
+    return !!(cached && cached.remoteOrigin === API_ORIGIN &&
+      cached.version && !String(cached.version).startsWith('bootstrap:'));
   }
 
   async function getRemoteVersion() {
     const response = await fetchWithTimeout(
       VERSION_ENDPOINT,
-      { method: 'GET', mode: runtime.mode === 'file' ? 'cors' : 'same-origin', cache: 'no-store', headers: { Accept: 'application/json' } },
+      { method: 'GET', mode: IS_CROSS_ORIGIN ? 'cors' : 'same-origin', cache: 'no-store', headers: { Accept: 'application/json' } },
       VERSION_TIMEOUT_MS
     );
     if (!response.ok) throw new Error(`Version API returned ${response.status}`);
@@ -150,15 +150,15 @@
 
   async function getRemoteDataset(cachedVersion) {
     const headers = { Accept: 'application/json' };
-    // Cross-origin file:// requests intentionally avoid If-None-Match. That keeps the request
-    // a simple CORS GET and avoids a preflight dependency. Hosted/local mode keeps 304 support.
-    if (runtime.mode !== 'file' && cachedVersion && !String(cachedVersion).startsWith('bootstrap:')) {
+    // Cross-origin requests stay simple CORS GETs; the version endpoint already
+    // avoids downloading an unchanged dataset. Hosted mode keeps 304 support.
+    if (!IS_CROSS_ORIGIN && cachedVersion && !String(cachedVersion).startsWith('bootstrap:')) {
       headers['If-None-Match'] = cachedVersion;
     }
 
     const response = await fetchWithTimeout(
       DATA_ENDPOINT,
-      { method: 'GET', mode: runtime.mode === 'file' ? 'cors' : 'same-origin', cache: 'no-store', headers },
+      { method: 'GET', mode: IS_CROSS_ORIGIN ? 'cors' : 'same-origin', cache: 'no-store', headers },
       DATA_TIMEOUT_MS
     );
     if (response.status === 304) return { notModified: true };
@@ -173,9 +173,10 @@
       notModified: false,
       data,
       version,
+      reportedCount: payload && Number.isInteger(payload.count) ? payload.count : null,
       updatedAt: payload && payload.updatedAt ? payload.updatedAt : null,
       count: data.length,
-      transport: runtime.mode === 'file' ? 'fetch-cors' : 'same-origin-fetch'
+      transport: IS_CROSS_ORIGIN ? 'fetch-cors' : 'same-origin-fetch'
     };
   }
 
@@ -212,6 +213,7 @@
             notModified: false,
             data,
             version: payload.version || null,
+            reportedCount: Number.isInteger(payload.count) ? payload.count : null,
             updatedAt: payload.updatedAt || null,
             count: data.length,
             transport: 'script-bridge'
@@ -268,23 +270,25 @@
 
     if (remoteMeta && hasValidCache && remoteMeta.version === cached.version) {
       setDiagnostics({
-        source: 'indexeddb-cache', transport: 'version-check', version: cached.version, count: cached.data.length,
+        source: 'indexeddb-cache', transport: 'version-check', validatedBy: 'version-get', version: cached.version, count: cached.data.length,
+        remoteCount: Number.isInteger(remoteMeta.count) ? remoteMeta.count : null,
         remoteUpdatedAt: remoteMeta.updatedAt || null,
         elapsedMs: Math.round(performance.now() - startedAt)
       });
       return cached.data;
     }
 
-    // File mode must always attempt a live remote read before trusting cache/bootstrap.
+    // Cross-origin modes always attempt a live remote read before trusting cache/bootstrap.
     // 1) Prefer the normal CORS JSON API.
     // 2) If file:// CORS is blocked by the browser/old deployment, use the read-only script bridge.
     // This bridge is a GET-only transport and does not expose the authenticated sync endpoint.
-    if (runtime.mode === 'file' || remoteMeta || !hasValidCache) {
+    if (IS_CROSS_ORIGIN || remoteMeta || !hasValidCache) {
       try {
         const remote = await getRemoteDataset(hasValidCache ? cached.version : null);
         if (remote.notModified && hasValidCache) {
           setDiagnostics({
-            source: 'indexeddb-cache-304', transport: 'fetch-cors', version: cached.version, count: cached.data.length,
+            source: 'indexeddb-cache-304', transport: 'fetch-cors', validatedBy: 'dataset-304', version: cached.version, count: cached.data.length,
+            remoteCount: remoteMeta && Number.isInteger(remoteMeta.count) ? remoteMeta.count : null,
             elapsedMs: Math.round(performance.now() - startedAt)
           });
           return cached.data;
@@ -294,13 +298,17 @@
           const cacheRecord = {
             version,
             updatedAt: remote.updatedAt || (remoteMeta && remoteMeta.updatedAt) || new Date().toISOString(),
-            remoteOrigin: runtime.mode === 'file' ? runtime.productionOrigin : global.location.origin,
+            remoteOrigin: API_ORIGIN,
+            reportedCount: remote.reportedCount,
             data: remote.data
           };
           await cacheSet(cacheRecord);
           setDiagnostics({
-            source: runtime.mode === 'file' ? 'production-api-file' : 'netlify-blob-api',
-            transport: remote.transport || (runtime.mode === 'file' ? 'fetch-cors' : 'same-origin-fetch'),
+            source: runtime.mode === 'file' ? 'production-api-file' : (runtime.mode === 'development' ? 'production-api-development' : 'netlify-blob-api'),
+            validatedBy: 'dataset-get',
+            reportedCount: remote.reportedCount,
+            remoteCount: remoteMeta && Number.isInteger(remoteMeta.count) ? remoteMeta.count : null,
+            transport: remote.transport || (IS_CROSS_ORIGIN ? 'fetch-cors' : 'same-origin-fetch'),
             version, count: remote.data.length,
             elapsedMs: Math.round(performance.now() - startedAt)
           });
@@ -320,10 +328,12 @@
             version,
             updatedAt: remote.updatedAt || new Date().toISOString(),
             remoteOrigin: runtime.productionOrigin,
+            reportedCount: remote.reportedCount,
             data: remote.data
           });
           setDiagnostics({
-            source: 'production-script-bridge-file', transport: 'script-bridge',
+            source: 'production-script-bridge-file', transport: 'script-bridge', validatedBy: 'file-bridge-get',
+            reportedCount: remote.reportedCount,
             version, count: remote.data.length,
             remoteUpdatedAt: remote.updatedAt || null,
             elapsedMs: Math.round(performance.now() - startedAt)
@@ -337,7 +347,8 @@
 
     if (hasValidCache) {
       setDiagnostics({
-        source: 'indexeddb-cache-offline', transport: 'cache', version: cached.version, count: cached.data.length,
+        source: 'indexeddb-cache-offline', transport: 'cache', validatedBy: null, version: cached.version, count: cached.data.length,
+        warning: 'Production API ไม่พร้อมใช้งาน กำลังใช้ข้อมูลที่บันทึกไว้จากแหล่งเดิม',
         elapsedMs: Math.round(performance.now() - startedAt)
       });
       return cached.data;
@@ -346,23 +357,17 @@
     try {
       const bootstrapData = await getBootstrapDataset();
       const bootstrapVersion = `bootstrap:${bootstrapData.length}`;
-      await cacheSet({
-        version: bootstrapVersion,
-        updatedAt: null,
-        remoteOrigin: runtime.mode === 'file' ? runtime.productionOrigin : global.location.origin,
-        data: bootstrapData
-      });
       setDiagnostics({
         source: runtime.mode === 'file' ? 'static-bootstrap-file' : 'static-bootstrap',
-        transport: 'local-bootstrap', version: bootstrapVersion, count: bootstrapData.length,
-        warning: runtime.mode === 'file' ? 'กำลังใช้ข้อมูลสำรองในไฟล์ เนื่องจากเชื่อมข้อมูล Production ไม่สำเร็จ' : null,
+        transport: 'local-bootstrap', validatedBy: null, version: bootstrapVersion, count: bootstrapData.length,
+        warning: 'กำลังใช้ข้อมูลสำรองในไฟล์ เนื่องจากเชื่อมข้อมูล Production ไม่สำเร็จ',
         elapsedMs: Math.round(performance.now() - startedAt)
       });
       return bootstrapData;
     } catch (error) {
       console.error('[WaterData] all data sources failed:', error);
       setDiagnostics({
-        source: 'empty-failsafe', transport: 'none', version: null, count: 0,
+        source: 'empty-failsafe', transport: 'none', validatedBy: null, version: null, count: 0,
         error: String(error && error.message ? error.message : error),
         elapsedMs: Math.round(performance.now() - startedAt)
       });
@@ -377,6 +382,7 @@
     constants: Object.freeze({
       RUNTIME_MODE: runtime.mode,
       PRODUCTION_ORIGIN: runtime.productionOrigin || null,
+      API_ORIGIN,
       VERSION_ENDPOINT,
       DATA_ENDPOINT,
       FILE_BRIDGE_ENDPOINT,

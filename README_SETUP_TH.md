@@ -51,14 +51,14 @@ KebNamComplete v1.2 กรอกจริงผ่าน
 ## File Mode (ดับเบิลคลิกได้)
 
 ```text
-index.html  → site/index.html → Production read API
-maeka.html  → site/maeka.html → Production read API → filter แม่กา
+site/index.html  → Production read API
+site/maeka.html  → Production read API → filter แม่กา
 ```
 
 ไม่ต้องรัน `npm`, `netlify dev` หรือ Cloudflare เพื่อเปิดดูข้อมูลผ่านไฟล์ในเครื่อง
 เมื่อเปิดด้วย `file://` ระบบจะใช้ `site/assets/runtime-config.js` เพื่อชี้ไปยัง Production Netlify read API และ fallback เป็น IndexedDB/Bootstrap หาก API ใช้ไม่ได้
 
-ค่าเริ่มต้น Production origin: `https://dashboard-waterresources.netlify.app`
+ค่าเริ่มต้น Production origin: `https://dashboard-waterresources1.netlify.app`
 หากชื่อ Netlify Production เปลี่ยน ให้แก้เพียง `DEFAULT_PRODUCTION_ORIGIN` ใน `site/assets/runtime-config.js` จุดเดียว
 
 CORS เปิดเฉพาะ read endpoints (`/api/waterresources`, `/api/waterresources/version`) ส่วน `/api/waterresources/sync` ยังคงใช้ Bearer Secret และไม่ได้เปิด CORS เพิ่ม
@@ -66,16 +66,16 @@ CORS เปิดเฉพาะ read endpoints (`/api/waterresources`, `/api/wa
 
 ## v1.4.8 — เปิดไฟล์ตรงจาก Windows (File Mode)
 
-หลัง Deploy v1.4.8 ขึ้น Netlify อย่างน้อยหนึ่งครั้ง สามารถดับเบิลคลิก `index.html` หรือ `maeka.html` ได้โดยไม่ต้องเปิด Netlify Dev/Cloudflare Tunnel
+หลัง Deploy v1.4.8 ขึ้น Netlify อย่างน้อยหนึ่งครั้ง สามารถเปิด `site/index.html` หรือ `site/maeka.html` ได้โดยไม่ต้องเปิด Netlify Dev/Cloudflare Tunnel
 
 File Mode ใช้ลำดับการอ่านข้อมูล: Production JSON API (CORS) → read-only script bridge → IndexedDB cache → bootstrap ในไฟล์
 
 ถ้าเห็นป้าย `ข้อมูลสำรอง ... รายการ` แปลว่าไฟล์เชื่อม Production ไม่สำเร็จและยังไม่ควรใช้ตัวกรอง อปท. เป็นข้อมูลล่าสุด
 
-Production origin เริ่มต้น: `https://dashboard-waterresources.netlify.app`
+Production origin เริ่มต้น: `https://dashboard-waterresources1.netlify.app`
 
 ## v1.4.8 — แก้ Production origin สำหรับ File Mode
 
-ค่า Production Netlify ที่ยืนยันแล้ว: `https://dashboard-waterresources.netlify.app`
+ค่า Production Netlify ที่ใช้งานปัจจุบัน: `https://dashboard-waterresources1.netlify.app`
 
-เมื่อเปิด `index.html` / `maeka.html` ด้วย `file://` ระบบจะเรียก read API และ file bridge จากโดเมนนี้โดยตรง ก่อน fallback ไป cache/bootstrap.
+เมื่อเปิด `site/index.html` / `site/maeka.html` ด้วย `file://` ระบบจะเรียก read API และ file bridge จากโดเมนนี้โดยตรง ก่อน fallback ไป cache/bootstrap. ไฟล์ชื่อเดียวกันที่ root เป็นสำเนาเก่าซึ่งอ้าง `./assets` ที่ไม่มีอยู่ จึงควรเปิดไฟล์ใน `site` โดยตรง.

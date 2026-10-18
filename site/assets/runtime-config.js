@@ -1,7 +1,8 @@
 (function (global) {
   'use strict';
 
-  const DEFAULT_PRODUCTION_ORIGIN = 'https://dashboard-waterresources.netlify.app';
+  const DEFAULT_PRODUCTION_ORIGIN = 'https://dashboard-waterresources1.netlify.app';
+  const RETIRED_PRODUCTION_ORIGIN = 'https://dashboard-waterresources.netlify.app';
   const STORAGE_KEY = 'water-dashboard-production-origin';
 
   function normalizeOrigin(value) {
@@ -39,17 +40,21 @@
   const userConfig = global.WATER_DASHBOARD_CONFIG || {};
   const configuredOrigin = normalizeOrigin(userConfig.productionOrigin);
   const storedOrigin = safeStorageGet();
-  const productionOrigin = queryOverride() || storedOrigin || configuredOrigin || DEFAULT_PRODUCTION_ORIGIN;
   const protocol = global.location && global.location.protocol ? global.location.protocol : '';
   const hostname = global.location && global.location.hostname ? global.location.hostname : '';
   const isFile = protocol === 'file:';
   const isLocalhost = !isFile && /^(localhost|127\.0\.0\.1|\[::1\])$/i.test(hostname);
   const forcedMode = ['file','development','hosted'].includes(userConfig.forceMode) ? userConfig.forceMode : '';
   const mode = forcedMode || (isFile ? 'file' : (isLocalhost ? 'development' : 'hosted'));
+  // Development always follows the configured active site; browser storage from an old
+  // Netlify account cannot silently redirect it. File mode retains explicit overrides.
+  const productionOrigin = mode === 'development'
+    ? (configuredOrigin || DEFAULT_PRODUCTION_ORIGIN)
+    : (queryOverride() || configuredOrigin || (storedOrigin !== RETIRED_PRODUCTION_ORIGIN ? storedOrigin : '') || DEFAULT_PRODUCTION_ORIGIN);
 
   function apiUrl(path) {
     const p = String(path || '').startsWith('/') ? String(path) : '/' + String(path || '');
-    if (mode === 'file') return productionOrigin + p;
+    if (mode === 'file' || mode === 'development') return productionOrigin + p;
     return p;
   }
 

@@ -1,7 +1,6 @@
 import {
   getDatasetMetadata,
   getDatasetWithMetadata,
-  seedFromStaticRequest,
   datasetVersion,
   jsonResponse
 } from '../lib/water-store.mjs';
@@ -28,12 +27,7 @@ export default async (request) => {
 
   try {
     const ifNoneMatch = request.headers.get('if-none-match') || undefined;
-    let metaEntry = await getDatasetMetadata();
-
-    if (!metaEntry) {
-      await seedFromStaticRequest(request);
-      metaEntry = await getDatasetMetadata();
-    }
+    const metaEntry = await getDatasetMetadata();
 
     if (!metaEntry) {
       return jsonResponse({ success: false, error: 'Dataset is not initialized' }, 503, withReadCors({

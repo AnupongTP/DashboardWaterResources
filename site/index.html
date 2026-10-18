@@ -2,6 +2,13 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
+<script>
+if (location.protocol !== 'file:' && /^\/authority(?:\/|$)/.test(location.pathname)) {
+  const base = document.createElement('base');
+  base.href = '/';
+  document.head.appendChild(base);
+}
+</script>
 <title>กว๊านกักเก็บ แดชบอร์ดศูนย์ข้อมูลแหล่งน้ำและประปา จังหวัดพะเยา</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1113,6 +1120,12 @@ table.data-tbl tr:hover td{background:#ddeeff;}
 .gcard .img-box{height:120px;background:#e8f0f8;display:flex;align-items:center;justify-content:center;overflow:hidden;}
 .gcard img{width:100%;height:100%;object-fit:cover;display:block;}
 .gcard .img-box .ph{font-size:11px;color:#9ab0c0;}
+.water-image-fallback{width:100%;min-height:72px;box-sizing:border-box;padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center;color:#566d80;font-size:11px;line-height:1.3;}
+.water-image-fallback a{color:#1565c0;font-weight:700;text-decoration:underline;}
+.water-image-fallback button{border:1px solid #90a4ae;border-radius:5px;background:#fff;color:#1565c0;padding:3px 7px;font:inherit;font-weight:700;cursor:pointer;}
+.water-image-fallback.compact{min-height:0;border-radius:6px;background:#eef0f4;font-size:8px;line-height:1.1;}
+.modal .mimg .water-image-fallback{color:#fff;}
+.modal .mimg .water-image-fallback a{color:#90caf9;}
 .gcard .meta{padding:8px 10px;}
 .gcard .meta .nm{font-size:12.5px;font-weight:700;color:#0d47a1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .gcard .meta .sub{font-size:11px;color:#7a8a90;margin-top:2px;}
@@ -1455,6 +1468,7 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
   <div class="header-brand">
     <div class="eyebrow">กว๊านกักเก็บ แดชบอร์ดศูนย์ข้อมูลแหล่งน้ำและประปา จังหวัดพะเยา</div>
     <h1>KwanKakKeb – Phayao Water Resources and Water Supply Data Center Dashboard</h1>
+    <div id="authorityLockBadge" hidden style="display:none;margin-top:5px;font-size:13px;font-weight:700;color:#e3f2fd;">🔒 <span id="authorityLockName"></span></div>
   </div>
   <nav class="main-nav">
     <button class="active" data-view="exec"><span>📊 บทสรุปผู้บริหาร</span></button>
@@ -1865,15 +1879,74 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
 <script src="./assets/runtime-config.js"></script>
 <script src="./assets/water-data-loader.js"></script>
 <script src="./assets/area-responsibility.js"></script>
+<script src="./assets/authority-routes.js"></script>
 <script src="./assets/tambon-combobox.js"></script>
 <script src="./assets/stream-data.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>(async function(){
 const AREA = window.AreaResponsibility;
 if(!AREA) throw new Error('AreaResponsibility module is unavailable');
+const ROUTES = window.AuthorityRoutes;
+const AUTHORITY_ROUTE = ROUTES && ROUTES.resolve(location.pathname, location.protocol);
+if (!AUTHORITY_ROUTE || AUTHORITY_ROUTE.kind === 'invalid') {
+  if (ROUTES) ROUTES.showFailure('invalid');
+  else document.body.replaceChildren(document.createTextNode('ไม่พบหน่วยงาน'));
+  return;
+}
 const TAMBON_UI = window.TambonCombobox;
 if(!TAMBON_UI) throw new Error('TambonCombobox module is unavailable');
-const RAW = AREA.decorateRecords(await window.WaterData.load());
+const AUTHORITY_MODE = AUTHORITY_ROUTE.kind === 'authority';
+let LOADED_RECORDS;
+try { LOADED_RECORDS = await window.WaterData.load(); }
+catch (error) {
+  if (!AUTHORITY_MODE) throw error;
+  ROUTES.showFailure('unavailable');
+  return;
+}
+let authorityDataIsCurrent = !AUTHORITY_MODE;
+if (AUTHORITY_MODE) {
+  try { authorityDataIsCurrent = await ROUTES.validateCurrentDataset(
+    LOADED_RECORDS, window.__WATER_DATA_DIAGNOSTICS__, window.WaterDashboardRuntime,
+    window.WaterData, window.location); }
+  catch (_) { authorityDataIsCurrent = false; }
+}
+if (!authorityDataIsCurrent) {
+  ROUTES.showFailure('unavailable');
+  return;
+}
+let DECORATED_RECORDS;
+try { DECORATED_RECORDS = AREA.decorateRecords(LOADED_RECORDS); }
+catch (error) {
+  if (!AUTHORITY_MODE) throw error;
+  ROUTES.showFailure('unavailable');
+  return;
+}
+const RAW = AUTHORITY_MODE
+  ? DECORATED_RECORDS.filter((record) => AREA.recordMatchesAuthority(record, AUTHORITY_ROUTE.authority))
+  : DECORATED_RECORDS;
+const LOCKED_AUTHORITY = AUTHORITY_MODE ? AUTHORITY_ROUTE.authority : '';
+const LOCKED_DISTRICT = AUTHORITY_MODE && AUTHORITY_ROUTE.districts.length === 1 ? AUTHORITY_ROUTE.districts[0] : '';
+if (AUTHORITY_MODE) {
+  const badge = document.getElementById('authorityLockBadge');
+  document.getElementById('authorityLockName').textContent = 'ข้อมูลในความรับผิดชอบ: ' + ROUTES.fullName(LOCKED_AUTHORITY);
+  badge.hidden = false;
+  badge.style.display = 'block';
+  if (RAW.length === 0) {
+    const emptyNotice = document.createElement('div');
+    emptyNotice.id = 'authorityEmptyNotice';
+    emptyNotice.style.cssText = 'margin-top:5px;font-size:12px;color:#fff3cf;';
+    emptyNotice.textContent = 'ยังไม่มีรายการที่ยืนยันว่าอยู่ในความรับผิดชอบของหน่วยงานนี้ในชุดข้อมูลล่าสุด';
+    badge.after(emptyNotice);
+  }
+  const maekaLink = document.querySelector('a[href="maeka.html"]');
+  if (maekaLink) maekaLink.hidden = true;
+  const visitorCounter = document.getElementById('visitorCounter');
+  if (visitorCounter) visitorCounter.style.display = 'none';
+  document.title = ROUTES.fullName(LOCKED_AUTHORITY) + ' | ข้อมูลแหล่งน้ำ';
+  window.__AUTHORITY_PAGE__ = Object.freeze({slug: AUTHORITY_ROUTE.slug,
+    authority: LOCKED_AUTHORITY, count: RAW.length,
+    unresolved: DECORATED_RECORDS.length - DECORATED_RECORDS.filter((r) => !!r.resolvedLocalAuthority).length});
+}
 // ให้ตัวอักษรในกราฟ Chart.js ทั้งหมด (แกน, legend, tooltip) ใช้ฟอนต์ Sarabun เหมือนส่วนอื่นของแดชบอร์ด
 if (typeof Chart !== 'undefined') {
   Chart.defaults.font.family = "'Sarabun', sans-serif";
@@ -1927,12 +2000,56 @@ function makeExecIcon(d, st){
 const $=s=>document.querySelector(s);
 const fmtN=n=>n==null?'-':Number(n).toLocaleString('th-TH');
 function driveId(l){if(!l)return null;const m=l.match(/id=([a-zA-Z0-9_-]+)/);return m?m[1]:null;}
-function imgTag(link,style=''){
-  const id=driveId(link);if(!id)return'';
-  const s1=`https://lh3.googleusercontent.com/d/${id}=w500`;
-  const s2=`https://drive.google.com/thumbnail?id=${id}&sz=w400`;
-  const s3=`https://drive.google.com/uc?export=view&id=${id}`;
-  return `<img src="${s1}" style="${style}" onerror="if(this.dataset.t==='1'){this.src='${s2}';this.dataset.t='2';}else if(this.dataset.t==='2'){this.src='${s3}';this.dataset.t='3';}else{this.style.display='none';}" data-t="1" loading="lazy">`;
+const failedDriveImages=new Set();
+const workingDriveUrls=new Map();
+const driveRetryStage=new Map();
+window.dashboardImageLoaded=function(image,id){
+  if(!image.naturalWidth)return;
+  failedDriveImages.delete(id);
+  workingDriveUrls.set(id,image.src);
+  const fallback=image.nextElementSibling;
+  if(fallback)fallback.style.display='none';
+};
+window.dashboardImageError=function(image,id){
+  failedDriveImages.add(id);
+  workingDriveUrls.delete(id);
+  document.querySelectorAll(`img[data-drive-id="${id}"]`).forEach(function(other){
+    const fallback=other.nextElementSibling;
+    other.removeAttribute('src');
+    other.style.display='none';
+    if(fallback){
+      fallback.style.display='flex';
+      const retry=fallback.querySelector('button');
+      if(retry)retry.hidden=(driveRetryStage.get(id)||0)>=2;
+    }
+  });
+};
+window.dashboardImageRetry=function(button,id){
+  const fallback=button.parentElement;
+  const image=fallback&&fallback.previousElementSibling;
+  const stage=driveRetryStage.get(id)||0;
+  if(!image||image.tagName!=='IMG'||stage>=2)return;
+  const urls=[`https://drive.google.com/thumbnail?id=${id}&sz=w400`,
+    `https://drive.google.com/uc?export=view&id=${id}`];
+  driveRetryStage.set(id,stage+1);
+  image.style.display='block';
+  fallback.style.display='none';
+  image.src=urls[stage];
+};
+function imgTag(link,style='',thumbSize=0){
+  const id=driveId(link);
+  let original='';
+  try{const url=new URL(String(link));if(url.protocol==='https:'&&url.hostname==='drive.google.com')original=url.href.replace(/&/g,'&amp;').replace(/"/g,'&quot;');}catch(_){ }
+  const compact=thumbSize>0;
+  const failed=!id||failedDriveImages.has(id);
+  const sizeStyle=compact?`width:${thumbSize}px;height:${thumbSize}px;flex:none;padding:2px;`:'';
+  const openLink=!compact&&original?`<a href="${original}" target="_blank" rel="noopener" onclick="event.stopPropagation()">เปิดไฟล์ต้นฉบับ</a>`:'';
+  const canRetry=id&&!compact&&(driveRetryStage.get(id)||0)<2;
+  const retry=canRetry?`<button type="button" onclick="event.stopPropagation();window.dashboardImageRetry(this,'${id}')">ลองแหล่งภาพสำรอง</button>`:'';
+  const fallback=`<span class="water-image-fallback${compact?' compact':''}" style="${sizeStyle}display:${failed?'flex':'none'};">${compact?'ภาพไม่พร้อม':'ไม่สามารถแสดงภาพจาก Google Drive'}${retry}${openLink}</span>`;
+  if(!id)return fallback;
+  const src=failed?'':(workingDriveUrls.get(id)||`https://lh3.googleusercontent.com/d/${id}=w500`);
+  return `<img ${src?`src="${src}"`:''} data-drive-id="${id}" style="${style}${failed?';display:none;':''}" onload="window.dashboardImageLoaded(this,'${id}')" onerror="window.dashboardImageError(this,'${id}')" loading="lazy">${fallback}`;
 }
 function isDamaged(r){return r.problem&&DAMAGE_KEYWORDS.some(k=>r.problem.includes(k));}
 function isUsable(r){return r.problem&&r.problem.includes('ใช้งานได้');}
@@ -1962,20 +2079,37 @@ document.querySelectorAll('.main-nav button').forEach(btn=>{
 
 // ===== EXECUTIVE ANALYTICS ENGINE v2 — FULLY INTERACTIVE =====
 
-var execFilter  = { district: '', authority: '', tambon: '', type: '' };
+var execFilter  = { district: LOCKED_DISTRICT, authority: LOCKED_AUTHORITY, tambon: '', type: '' };
 var crossFilter = { type: null, tambon: null, problem: null };
 // ตัวกรองฝั่งหน้า "ข้อมูลรายละเอียด" (แถบด้านข้าง) — อำเภอ → อบต./เทศบาล → ตำบล → หมู่ → หมู่บ้าน
-let state={district:'',authority:'',tambon:'',moo:'',type:'',village:'',q:'',problem:null};
+let state={district:LOCKED_DISTRICT,authority:LOCKED_AUTHORITY,tambon:'',moo:'',type:'',village:'',q:'',problem:null};
 
 function matchesDistrict(r, district){ return AREA.recordMatchesDistrict(r, district); }
 function matchesAuthority(r, authority){ return AREA.recordMatchesAuthority(r, authority); }
 function districtTambonScope(district){ return district ? AREA.tambonsForDistrict(district) : TAMBONS_ORDER.slice(); }
 function authorityTambonScope(authority,district){
+  if (LOCKED_AUTHORITY) { authority = LOCKED_AUTHORITY; district = LOCKED_DISTRICT; }
   var items=authority ? AREA.tambonsForAuthority(authority) : TAMBONS_ORDER.slice();
   if(district){ var allowed=new Set(AREA.tambonsForDistrict(district)); items=items.filter(function(tb){return allowed.has(tb);}); }
   return items;
 }
-function authorityScope(district){ return district ? AREA.authoritiesForDistrict(district) : AUTHORITY_ORDER.slice(); }
+function authorityScope(district){ return LOCKED_AUTHORITY ? [LOCKED_AUTHORITY] :
+  (district ? AREA.authoritiesForDistrict(district) : AUTHORITY_ORDER.slice()); }
+function lockAreaControls(){
+  if (!AUTHORITY_MODE) return;
+  const districtLabel = LOCKED_DISTRICT ? 'อำเภอ' + LOCKED_DISTRICT :
+    'หลายอำเภอ: ' + AUTHORITY_ROUTE.districts.map((name) => 'อำเภอ' + name).join(', ');
+  for (const [districtId, authorityId] of [
+    ['efDistrict','efAuthority'], ['fDistrict','fAuthority'], ['dfDistrict','dfAuthority']
+  ]) {
+    const district = document.getElementById(districtId);
+    const authority = document.getElementById(authorityId);
+    district.replaceChildren(new Option(districtLabel, LOCKED_DISTRICT));
+    authority.replaceChildren(new Option(LOCKED_AUTHORITY, LOCKED_AUTHORITY));
+    district.disabled = true; authority.disabled = true;
+    district.title = 'กำหนดตาม URL หน่วยงาน'; authority.title = 'กำหนดตาม URL หน่วยงาน';
+  }
+}
 function recordMatchesAreaScope(r,district,authority){
   if(district && !matchesDistrict(r,district)) return false;
   if(authority && !matchesAuthority(r,authority)) return false;
@@ -2135,7 +2269,7 @@ function setupExecFilters() {
   efD.addEventListener('change',function(e){ execFilter.district=e.target.value;execFilter.authority='';execFilter.tambon='';resetKpiTambonExpansion();refreshExecAuthorities();refreshExecTambons();crossFilter={type:null,tambon:null,problem:null};updateCrossFilterBar();runBuildExec(); });
   efA.addEventListener('change',function(e){ execFilter.authority=e.target.value;execFilter.tambon='';resetKpiTambonExpansion();refreshExecTambons();crossFilter={type:null,tambon:null,problem:null};updateCrossFilterBar();runBuildExec(); });
   efTy.addEventListener('change',function(e){execFilter.type=e.target.value;crossFilter={type:null,tambon:null,problem:null};updateCrossFilterBar();runBuildExec();});
-  document.getElementById('efReset').addEventListener('click',function(){ execFilter={district:'',authority:'',tambon:'',type:''};resetKpiTambonExpansion();crossFilter={type:null,tambon:null,problem:null};efD.value='';efTy.value='';refreshExecAuthorities();refreshExecTambons();updateCrossFilterBar();runBuildExec(); });
+  document.getElementById('efReset').addEventListener('click',function(){ execFilter={district:LOCKED_DISTRICT,authority:LOCKED_AUTHORITY,tambon:'',type:''};resetKpiTambonExpansion();crossFilter={type:null,tambon:null,problem:null};efD.value=LOCKED_DISTRICT;efTy.value='';refreshExecAuthorities();refreshExecTambons();lockAreaControls();updateCrossFilterBar();runBuildExec(); });
 }
 setupExecFilters();
 
@@ -2400,7 +2534,8 @@ markerLayer.addLayer(m);
 
   // ── ชั้น "ประเภทแหล่งน้ำ" + sub-layer รายประเภท ──
   const typeEnableCb=document.getElementById('mlcTypeEnable'), typeSub=document.getElementById('mlcTypeSub'), typeList=document.getElementById('mlcTypeList');
-  if(typeList) typeList.innerHTML=TYPES_ORDER.map(t=>`<label class="mlc-opt"><input type="checkbox" class="mlc-type-cb" value="${t}" checked>${t}</label>`).join('');
+  const layerTypes=AUTHORITY_MODE ? TYPES_ORDER.filter(t=>RAW.some(r=>r.type===t)) : TYPES_ORDER;
+  if(typeList) typeList.innerHTML=layerTypes.map(t=>`<label class="mlc-opt"><input type="checkbox" class="mlc-type-cb" value="${t}" checked>${t}</label>`).join('');
   function syncTypeState(){
     const boxes=[...typeList.querySelectorAll('.mlc-type-cb')];
     const checked=boxes.filter(b=>b.checked).map(b=>b.value);
@@ -2422,7 +2557,8 @@ markerLayer.addLayer(m);
 
   // ── ชั้น "สถานะการใช้งาน" — เหลือแค่ 2 ตัวเลือกหลัก (ใช้งานได้ / ใช้งานไม่ได้-ชำรุด) ให้เข้าใจง่าย ส่วนรายละเอียดปัญหาย่อยแยกไปอยู่ในชั้น "ตัวกรองปัญหาที่พบเจอ" ──
   const statusEnableCb=document.getElementById('mlcStatusEnable'), statusSub=document.getElementById('mlcStatusSub'), statusList=document.getElementById('mlcStatusList');
-  const STATUS_GROUP_OPTIONS=[{k:'OK',lbl:'ใช้งานได้'},{k:'NOTOK',lbl:'ใช้งานไม่ได้ / ชำรุด'}];
+  const STATUS_GROUP_OPTIONS=[{k:'OK',lbl:'ใช้งานได้'},{k:'NOTOK',lbl:'ใช้งานไม่ได้ / ชำรุด'}]
+    .filter(o=>!AUTHORITY_MODE || RAW.some(r=>o.k==='OK'?isUsable(r):isDamaged(r)));
   if(statusList) statusList.innerHTML=STATUS_GROUP_OPTIONS.map(o=>`<label class="mlc-opt"><input type="checkbox" class="mlc-status-cb" value="${o.k}" checked>${o.lbl}</label>`).join('');
   function syncStatusState(){
     const boxes=[...statusList.querySelectorAll('.mlc-status-cb')];
@@ -2444,7 +2580,8 @@ markerLayer.addLayer(m);
 
   // ── ชั้น "ตัวกรองปัญหาที่พบเจอ" — รายละเอียดปัญหาเฉพาะจุด (วัชพืช/ตื้นเขิน/น้ำมีสี ฯลฯ) แยกจากสถานะการใช้งานหลัก ──
   const problemEnableCb=document.getElementById('mlcProblemEnable'), problemSub=document.getElementById('mlcProblemSub'), problemList=document.getElementById('mlcProblemList');
-  const PROBLEM_GROUP_OPTIONS=[...PROBLEM_FILTER_TAGS,STATUS_NONE_KEY];
+  const PROBLEM_GROUP_OPTIONS=[...PROBLEM_FILTER_TAGS,STATUS_NONE_KEY]
+    .filter(t=>!AUTHORITY_MODE || RAW.some(r=>t===STATUS_NONE_KEY?!r.problem:!!(r.problem&&r.problem.includes(t))));
   if(problemList) problemList.innerHTML=PROBLEM_GROUP_OPTIONS.map(t=>`<label class="mlc-opt"><input type="checkbox" class="mlc-problem-cb" value="${t}" checked>${STATUS_LABELS[t]||t}</label>`).join('');
   function syncProblemState(){
     const boxes=[...problemList.querySelectorAll('.mlc-problem-cb')];
@@ -2547,11 +2684,11 @@ function runBuildExec(){
   var isFiltered = execFilter.district||execFilter.authority||execFilter.tambon||execFilter.type||crossFilter.type||crossFilter.tambon||crossFilter.problem;
   if(efCountEl){
     var dataDiag = window.__WATER_DATA_DIAGNOSTICS__ || {};
-    var usingBootstrapFile = !isFiltered && dataDiag.source === 'static-bootstrap-file';
-    efCountEl.textContent = isFiltered ? 'กำลังแสดง: '+fmtN(N)+' รายการ' : (usingBootstrapFile ? 'ข้อมูลสำรอง '+fmtN(N)+' รายการ' : 'ข้อมูลทั้งหมด '+fmtN(N)+' รายการ');
-    efCountEl.title = usingBootstrapFile ? 'ไฟล์นี้เชื่อมข้อมูล Production ไม่สำเร็จ จึงกำลังใช้ข้อมูลสำรองที่ติดมากับไฟล์' : '';
-    efCountEl.style.background = isFiltered?'#e8f5e9':(usingBootstrapFile?'#fff3cd':'#e3f2fd');
-    efCountEl.style.color = isFiltered?'#2e7d32':(usingBootstrapFile?'#8a5a00':'#5a7080');
+    var usingFallback = !!dataDiag.warning;
+    efCountEl.textContent = usingFallback ? 'ข้อมูลสำรอง '+fmtN(N)+' รายการ' : (isFiltered ? 'กำลังแสดง: '+fmtN(N)+' รายการ' : 'ข้อมูลทั้งหมด '+fmtN(N)+' รายการ');
+    efCountEl.title = dataDiag.warning || '';
+    efCountEl.style.background = usingFallback?'#fff3cd':(isFiltered?'#e8f5e9':'#e3f2fd');
+    efCountEl.style.color = usingFallback?'#8a5a00':(isFiltered?'#2e7d32':'#5a7080');
   }
   // หมายเหตุ: ตัดตัวเลขสรุป (แหล่งน้ำทั้งหมด/ปริมาตร) ออกจากแถบหัวเดิมแล้ว —
   // ประเภท/ตำบล/มีปัญหา ย้ายไปแสดงเป็นการ์ด interactive ด้านล่าง (ดู execKpi)
@@ -2809,7 +2946,7 @@ function runBuildExec(){
         flist.slice(0,5).forEach(function(r){
           var loc=[r.village?(r.village+(r.moo?' ม.'+r.moo:'')):(r.moo?'ม.'+r.moo:'')].filter(Boolean).join(' · ');
           var thumb = r.imglink
-            ? '<img src="'+r.imglink+'" loading="lazy" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex:none;background:#eef;" onerror="this.style.display=\'none\'">'
+            ? imgTag(r.imglink,'width:36px;height:36px;object-fit:cover;border-radius:6px;flex:none;background:#eef;',36)
             : '<div style="width:36px;height:36px;border-radius:6px;flex:none;background:#eef0f4;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:8px;">ไม่มีรูป</div>';
           h+='<div style="display:flex;gap:7px;align-items:center;padding:4px 2px;border-bottom:1px dashed #eef2f7;cursor:pointer;" onclick="showSiteCard('+r.id+','+idsStr+')">'
             +thumb
@@ -3114,7 +3251,7 @@ function runBuildExec(){
     list.slice(0,10).forEach(function(r){
       var loc=[r.tambon?'ต.'+r.tambon:'',r.village?(r.village+(r.moo?' ม.'+r.moo:'')):''].filter(Boolean).join(' · ');
       var thumb = r.imglink
-        ? '<img src="'+r.imglink+'" loading="lazy" style="width:44px;height:44px;object-fit:cover;border-radius:6px;flex:none;background:#eef;" onerror="this.style.display=\'none\'">'
+        ? imgTag(r.imglink,'width:44px;height:44px;object-fit:cover;border-radius:6px;flex:none;background:#eef;',44)
         : '<div style="width:44px;height:44px;border-radius:6px;flex:none;background:#eef0f4;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:9px;">ไม่มีรูป</div>';
       h+='<div style="display:flex;gap:8px;align-items:center;padding:6px 4px;border-bottom:1px dashed #e3eaf1;cursor:pointer;" onclick="showSiteCard('+r.id+','+idsStr+')">'
         +thumb
@@ -3407,7 +3544,7 @@ function refreshVillageOptions(){
 }
 refreshTambonOptions();refreshMooOptions();refreshVillageOptions();
 const chipsBox=$('#problemChips');
-PROBLEM_TAGS.forEach(tag=>{
+(AUTHORITY_MODE ? PROBLEM_TAGS.filter(tag=>RAW.some(r=>r.problem&&r.problem.includes(tag))) : PROBLEM_TAGS).forEach(tag=>{
   const c=document.createElement('div');c.className='chip';c.textContent=tag;c.dataset.tag=tag;
   c.onclick=()=>{state.problem=(state.problem===tag)?null:tag;
     document.querySelectorAll('#problemChips .chip').forEach(x=>x.classList.remove('active'));
@@ -3422,11 +3559,12 @@ $('#fType').addEventListener('change',e=>{state.type=e.target.value;render();});
 $('#fVillage').addEventListener('change',e=>{state.village=e.target.value;render();});
 $('#searchBox').addEventListener('input',e=>{state.q=e.target.value.trim().toLowerCase();render();});
 function resetDetailFilters(){
-  state={district:'',authority:'',tambon:'',moo:'',type:'',village:'',q:'',problem:null};
-  $('#fDistrict').value='';$('#fType').value='';$('#searchBox').value='';
+  state={district:LOCKED_DISTRICT,authority:LOCKED_AUTHORITY,tambon:'',moo:'',type:'',village:'',q:'',problem:null};
+  $('#fDistrict').value=LOCKED_DISTRICT;$('#fType').value='';$('#searchBox').value='';
   document.querySelectorAll('#problemChips .chip').forEach(x=>x.classList.remove('active'));
   crossFilter.tambon=null;
   refreshDetailAuthorities();refreshTambonOptions();refreshMooOptions();refreshVillageOptions();
+  lockAreaControls();
   updateCrossFilterBar();render();runBuildExec();
 }
 $('#resetBtn').addEventListener('click',resetDetailFilters);
@@ -3672,7 +3810,7 @@ $('#siteCardModal').addEventListener('click', e=>{ if(e.target.id==='siteCardMod
 
 // DAMAGED TAB
 let damagedMap=null,damagedMarkerLayer=null,damagedMapInited=false;
-let dfState={district:'',authority:'',tambon:'',type:'',problem:null};
+let dfState={district:LOCKED_DISTRICT,authority:LOCKED_AUTHORITY,tambon:'',type:'',problem:null};
 function getDamagedData(){let b=RAW.filter(isDamaged);if(dfState.district)b=b.filter(r=>matchesDistrict(r,dfState.district));if(dfState.authority)b=b.filter(r=>matchesAuthority(r,dfState.authority));if(dfState.tambon)b=b.filter(r=>r.tambon===dfState.tambon);if(dfState.type)b=b.filter(r=>r.type===dfState.type);if(dfState.problem)b=b.filter(r=>r.problem&&r.problem.includes(dfState.problem));return b;}
 function initDamagedMap(){
   damagedMap=L.map('damaged-map').setView(DEFAULT_CENTER,DEFAULT_ZOOM);
@@ -3732,11 +3870,11 @@ function renderDamagedTab(){
   function refreshDamagedTambons(){ const cur=dfState.tambon,items=authorityTambonScope(dfState.authority,dfState.district);if(cur&&!items.includes(cur))dfState.tambon='';damagedTambonCombo.setItems(items,{silent:true});damagedTambonCombo.setValue(dfState.tambon,{silent:true}); }
   refreshDamagedAuthorities();refreshDamagedTambons();
   const chips=$('#dfProblemChips');
-  DAMAGE_PROBLEM_TAGS.forEach(tag=>{const c=document.createElement('div');c.className='df-chip';c.textContent=tag;c.onclick=()=>{dfState.problem=(dfState.problem===tag)?null:tag;document.querySelectorAll('.df-chip').forEach(x=>x.classList.remove('active'));if(dfState.problem)c.classList.add('active');renderDamagedTab();};chips.appendChild(c);});
+  (AUTHORITY_MODE ? DAMAGE_PROBLEM_TAGS.filter(tag=>RAW.some(r=>isDamaged(r)&&r.problem&&r.problem.includes(tag))) : DAMAGE_PROBLEM_TAGS).forEach(tag=>{const c=document.createElement('div');c.className='df-chip';c.textContent=tag;c.onclick=()=>{dfState.problem=(dfState.problem===tag)?null:tag;document.querySelectorAll('.df-chip').forEach(x=>x.classList.remove('active'));if(dfState.problem)c.classList.add('active');renderDamagedTab();};chips.appendChild(c);});
   dfd.addEventListener('change',e=>{dfState.district=e.target.value;dfState.authority='';dfState.tambon='';refreshDamagedAuthorities();refreshDamagedTambons();renderDamagedTab();});
   dfa.addEventListener('change',e=>{dfState.authority=e.target.value;dfState.tambon='';refreshDamagedTambons();renderDamagedTab();});
   dfty.addEventListener('change',e=>{dfState.type=e.target.value;renderDamagedTab();});
-  $('#dfReset').addEventListener('click',()=>{dfState={district:'',authority:'',tambon:'',type:'',problem:null};dfd.value='';dfty.value='';refreshDamagedAuthorities();refreshDamagedTambons();document.querySelectorAll('.df-chip').forEach(x=>x.classList.remove('active'));renderDamagedTab();});
+  $('#dfReset').addEventListener('click',()=>{dfState={district:LOCKED_DISTRICT,authority:LOCKED_AUTHORITY,tambon:'',type:'',problem:null};dfd.value=LOCKED_DISTRICT;dfty.value='';refreshDamagedAuthorities();refreshDamagedTambons();lockAreaControls();document.querySelectorAll('.df-chip').forEach(x=>x.classList.remove('active'));renderDamagedTab();});
 })()
 
 // MASTER RENDER
@@ -3746,6 +3884,7 @@ function render(){
   buildPivot(pivotBase);renderOverview(data);renderTable(data);renderGallery(data,true);
   $('#countNote').textContent=`กำลังแสดง ${fmtN(data.length)} จาก ${fmtN(RAW.length)} รายการ`;
 }
+lockAreaControls();
 render();
 setTimeout(()=>{if(map)map.invalidateSize();},150);
 
@@ -3755,7 +3894,7 @@ setTimeout(()=>{if(map)map.invalidateSize();},150);
 // หน้านี้ต้องถูกเปิดผ่านเว็บจริง (http/https) อินเทอร์เน็ตถึงจะทำงานได้ — เปิดจากไฟล์ในเครื่อง (file://) จะไม่นับ/ไม่แสดงผล
 // หมายเหตุ: เป็นบริการภายนอกฟรีไม่มีสัญญาระดับการให้บริการ (SLA) หากในอนาคตบริการนี้ปิดตัว/ไม่เสถียร
 // แนะนำให้เปลี่ยนไปใช้ระบบวิเคราะห์เว็บที่มีเจ้าของเป็นทางการแทน เช่น Google Analytics หรือ Cloudflare Web Analytics
-initVisitorCounter();
+if (!AUTHORITY_MODE) initVisitorCounter();
 function initVisitorCounter(){
   // เปลี่ยนชื่อ namespace นี้ได้หากต้องการแยกตัวนับเป็นเว็บใหม่ (ค่านับจะเริ่มจาก 0 ใหม่ตามชื่อ namespace ที่เปลี่ยน)
   const VC_NAMESPACE='pyo-water-dashboard-2026';

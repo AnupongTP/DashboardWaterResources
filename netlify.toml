@@ -32,6 +32,16 @@
   status = 200
   force = true
 
+[[redirects]]
+  from = "/authority"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/authority/*"
+  to = "/index.html"
+  status = 200
+
 [[headers]]
   for = "/api/*"
   [headers.values]

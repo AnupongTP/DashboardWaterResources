@@ -1,9 +1,10 @@
 from playwright.sync_api import sync_playwright
 from pathlib import Path
 import json
+import os
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE = 'http://127.0.0.1:4173/index.html'
+BASE = os.environ.get('ROUND3_TEST_BASE', 'http://127.0.0.1:4173/index.html')
 DATA = json.loads((ROOT / 'site/data/waterresources.initial.json').read_text(encoding='utf-8'))
 VERSION = 'playwright-round3-map-stretch-v1'
 
@@ -127,7 +128,8 @@ def test_mobile(browser, width):
 
 def main():
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=True,
+                                    executable_path=os.environ.get('PLAYWRIGHT_CHROMIUM_EXECUTABLE'))
         try:
             test_desktop(browser)
             for width in (360, 390, 412):

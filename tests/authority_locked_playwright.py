@@ -95,6 +95,10 @@ def install_routes(context, *, data=DATA, fail_version=False, fail_data=False,
             # Offline fixture only; the existing map regressions exercise the real plugin.
             route.fulfill(status=200, content_type='application/javascript',
                           body='L.markerClusterGroup = () => L.featureGroup();')
+        elif url.startswith('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/') or \
+                url.startswith('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/'):
+            # The Maeka-based prototype uses the same public visual libraries as maeka.html.
+            route.continue_()
         elif fail_bootstrap and url.startswith(BASE + '/data/waterresources.initial.json'):
             route.abort('failed')
         elif url.startswith(BASE + '/'):
@@ -105,6 +109,14 @@ def install_routes(context, *, data=DATA, fail_version=False, fail_data=False,
 
 
 def ready(page, slug, count):
+    if slug == 'tt-mae-ka':
+        page.wait_for_function('([slug,count]) => window.__AUTHORITY_PAGE__ && '
+                               'window.__AUTHORITY_PAGE__.slug === slug && '
+                               'window.__AUTHORITY_PAGE__.count === count && '
+                               'document.body.classList.contains("authority-ready") && '
+                               'Number(document.querySelector("#statCount").textContent) === count',
+                               arg=[slug, count], timeout=30000)
+        return
     page.wait_for_function('([slug,count]) => window.__AUTHORITY_PAGE__ && '
                            'window.__AUTHORITY_PAGE__.slug === slug && '
                            'window.__AUTHORITY_PAGE__.count === count && '
@@ -113,6 +125,27 @@ def ready(page, slug, count):
 
 
 def assert_locked(page, entry, count):
+    if entry['slug'] == 'tt-mae-ka':
+        state = page.evaluate('''() => ({page:window.__AUTHORITY_PAGE__,
+            rows:[...document.querySelectorAll('#tblBody tr')].map(row=>row.textContent),
+            count:Number(document.querySelector('#statCount').textContent),
+            types:Number(document.querySelector('#statTypes').textContent),
+            broken:Number(document.querySelector('#statBroken').textContent),
+            scope:window.__AUTHORITY_DATA__.map(row=>row.name)})''')
+        assert state['page']['authority'] == entry['authority'], state
+        assert state['page']['count'] == count == state['count'], state
+        assert len(state['scope']) == count, state
+        assert state['types'] == 1 and state['broken'] == 1, state
+        assert 'เทศบาลตำบลแม่กา' in page.locator('#authorityHeading').inner_text()
+        assert page.locator('#fAuthority').count() == 0
+        assert page.locator('#visitorCounter').is_hidden()
+        assert 'AUTH-tt-mae-ka' in page.locator('#tblBody').inner_text()
+        assert 'MAEKA-DAMAGED' in page.locator('#tblBody').inner_text()
+        for other in ENTRIES:
+            if other['slug'] != entry['slug']:
+                assert 'AUTH-' + other['slug'] not in page.locator('#tblBody').inner_text()
+        assert 'MAENA-DAMAGED' not in page.locator('#tblBody').inner_text()
+        return
     state = page.evaluate('''() => ({page:window.__AUTHORITY_PAGE__,
         countText:document.querySelector('#countNote').textContent,
         execKpi:document.querySelector('#execKpi').textContent,
@@ -276,29 +309,29 @@ def main():
             results.append('valid_zero_records')
             context.close()
 
-            # Resets, damaged table, gallery, and map marker layer remain scoped.
+            # The Maeka-style prototype resets within its locked authority scope.
             context = browser.new_context(viewport={'width': 390, 'height': 844}, is_mobile=True, has_touch=True)
             install_routes(context)
             page = context.new_page()
             page.goto(path)
             ready(page, 'tt-mae-ka', 2)
-            hero_markers = page.locator('#map .leaflet-marker-icon').count()
-            page.locator('#efReset').click()
-            page.locator('.main-nav button[data-view="detail"]').click()
-            page.locator('#resetBtn').click()
-            page.evaluate('pvClearAll()')
-            page.locator('.tab-btn[data-tab="damaged"]').click()
-            page.locator('#dfReset').click()
+            hero_markers = page.locator('#mapbox .leaflet-marker-icon').count()
+            page.locator('#txtSearch').fill('MAEKA-DAMAGED')
+            assert page.locator('#statCount').inner_text() == '1'
+            page.locator('#fStatus').select_option('ชำรุด')
+            assert page.locator('#statCount').inner_text() == '1'
+            page.locator('.kpi[data-kpi="count"]').click()
             assert_locked(page, by_slug['tt-mae-ka'], 2)
-            assert 'MAEKA-DAMAGED' in page.locator('#damagedBody').inner_text()
-            assert 'MAENA-DAMAGED' not in page.locator('#damagedBody').inner_text()
-            assert 'MAENA-DAMAGED' not in page.locator('#galleryGrid').inner_text()
-            damaged_markers = page.locator('#damaged-map path.leaflet-interactive').count()
-            assert hero_markers == 2, (hero_markers, damaged_markers)
-            assert damaged_markers == 1, (hero_markers, damaged_markers)
+            assert hero_markers == 2, hero_markers
+            page.locator('#fStatus').select_option('ชำรุด')
+            assert page.locator('#statCount').inner_text() == '1'
+            assert 'MAEKA-DAMAGED' in page.locator('#tblBody').inner_text()
+            assert 'MAENA-DAMAGED' not in page.locator('#tblBody').inner_text()
+            page.locator('.kpi[data-kpi="count"]').click()
+            assert_locked(page, by_slug['tt-mae-ka'], 2)
             overflow = page.evaluate('document.documentElement.scrollWidth - window.innerWidth')
             assert overflow <= 2, overflow
-            results.append('resets_cross_authority_isolation_mobile_390')
+            results.append('maeka_resets_cross_authority_isolation_mobile_390')
             context.close()
 
             # Check the other required responsive widths with locked controls and no page errors.

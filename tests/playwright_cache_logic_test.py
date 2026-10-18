@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+import os
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
@@ -90,7 +91,8 @@ def make_html():
 def main():
     results=[]
     with sync_playwright() as p:
-        browser=p.chromium.launch(headless=True, executable_path='/usr/bin/chromium')
+        browser=p.chromium.launch(headless=True,
+                                  executable_path=os.environ.get('PLAYWRIGHT_CHROMIUM_EXECUTABLE') or '/usr/bin/chromium')
         page=browser.new_page()
         errors=[]
         page.on('pageerror',lambda e:errors.append(str(e)))

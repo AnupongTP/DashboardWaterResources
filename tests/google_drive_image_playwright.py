@@ -136,8 +136,10 @@ def main():
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True,
             executable_path=os.environ.get('PLAYWRIGHT_CHROMIUM_EXECUTABLE'))
+        # The Mae Ka authority route now uses the Maeka template; its popup and
+        # modal image behavior is covered by authority_maeka_prototype_playwright.py.
         results = [run_case(browser, '/', mode='primary', width=1440),
-                   run_case(browser, '/authority/tt-mae-ka/', mode='secondary', width=390),
+                   run_case(browser, '/', mode='secondary', width=390),
                    run_case(browser, '/', mode='all-fail', width=360)]
         browser.close()
     print(json.dumps({'ok': True, 'results': results}, ensure_ascii=False))

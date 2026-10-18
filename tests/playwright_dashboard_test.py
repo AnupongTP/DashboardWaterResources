@@ -7,13 +7,14 @@ from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / 'site'
-SCREENSHOTS = ROOT / 'tests' / 'screenshots'
+SCREENSHOTS = Path(os.environ.get('DASHBOARD_TEST_SHOTS_DIR', ROOT / 'tests' / 'screenshots'))
 SCREENSHOTS.mkdir(parents=True, exist_ok=True)
 BASE_DATA = json.loads((SITE / 'data' / 'waterresources.initial.json').read_text(encoding='utf-8'))
 INDEX = (SITE / 'index.html').read_text(encoding='utf-8')
 AREA_JS = (SITE / 'assets' / 'area-responsibility.js').read_text(encoding='utf-8')
 AUTHORITY_ROUTES_JS = (SITE / 'assets' / 'authority-routes.js').read_text(encoding='utf-8')
 COMBO_JS = (SITE / 'assets' / 'tambon-combobox.js').read_text(encoding='utf-8')
+CLUSTER_ICON_JS = (SITE / 'assets' / 'cluster-icon.js').read_text(encoding='utf-8')
 
 MASTER_TAMBONS = [
     'แม่กา','แม่นาเรือ','แม่ใส','บ้านตุ่น','บ้านสาง','สันป่าม่วง','บ้านต๋อม','บ้านต๊ำ','ท่าจำปี','เทศบาลเมือง',
@@ -91,6 +92,7 @@ def make_test_html(data):
     html = html.replace('<script src="./assets/area-responsibility.js"></script>', '<script>' + AREA_JS + '</script>')
     html = html.replace('<script src="./assets/authority-routes.js"></script>', '<script>' + AUTHORITY_ROUTES_JS + '</script>')
     html = html.replace('<script src="./assets/tambon-combobox.js"></script>', '<script>' + COMBO_JS + '</script>')
+    html = html.replace('<script src="./assets/cluster-icon.js"></script>', '<script>' + CLUSTER_ICON_JS + '</script>')
     # The filter test runs offline. Map clustering is covered by its dedicated browser tests.
     html = html.replace('<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>',
                         '<script>L.markerClusterGroup = () => L.featureGroup();</script>')

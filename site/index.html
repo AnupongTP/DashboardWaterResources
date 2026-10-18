@@ -1883,6 +1883,7 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
 <script src="./assets/tambon-combobox.js"></script>
 <script src="./assets/stream-data.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="./assets/cluster-icon.js"></script>
 <script>(async function(){
 const AREA = window.AreaResponsibility;
 if(!AREA) throw new Error('AreaResponsibility module is unavailable');
@@ -2379,29 +2380,7 @@ function buildStreamLayer(){
   });
 }
 
-// ไอคอนกลุ่ม (cluster) ทรงหมุดหยดน้ำ ไล่สี — หมุดเดี่ยวยังคงเป็นวงกลมแบบเดิมทุกจุด ไม่เปลี่ยน
-function clusterIcon(color1, color2){
-  color2 = color2 || color1;
-  return function(cluster){
-    const count=cluster.getChildCount();
-    const w=count<10?38:count<50?46:56;      // ความกว้างหมุด
-    const h=Math.round(w*1.32);              // หมุดสูงกว่ากว้าง (ทรงหยดน้ำ)
-    const fs=count<10?13:count<100?12.5:11.5;
-    const uid='c'+Math.random().toString(36).slice(2,9);
-    const html=`
-      <svg width="${w}" height="${h}" viewBox="0 0 24 32" xmlns="http://www.w3.org/2000/svg" style="display:block;filter:drop-shadow(0 2px 4px rgba(0,20,60,.45));">
-        <defs>
-          <linearGradient id="${uid}" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="${color1}"/>
-            <stop offset="100%" stop-color="${color2}"/>
-          </linearGradient>
-        </defs>
-        <path d="M12 0C5.4 0 0 5.3 0 11.8 0 20.6 12 32 12 32s12-11.4 12-20.2C24 5.3 18.6 0 12 0z" fill="url(#${uid})" stroke="#ffffff" stroke-width="1.4"/>
-        <text x="12" y="11.8" text-anchor="middle" dominant-baseline="central" font-family="'Sarabun',sans-serif" font-weight="800" font-size="${fs}" fill="#ffffff" stroke="#08355e" stroke-width="0.6" paint-order="stroke">${count}</text>
-      </svg>`;
-    return L.divIcon({ html, className:'', iconSize:[w,h], iconAnchor:[w/2,h] });
-  };
-}
+const clusterIcon = window.WaterClusterIcon;
 function initMap(){
   map=L.map('map').setView(DEFAULT_CENTER,DEFAULT_ZOOM);
   // พื้นหลังภาพถ่ายดาวเทียมจริง (Esri World Imagery — ฟรี ไม่ต้องขอ API key)

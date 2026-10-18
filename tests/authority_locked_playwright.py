@@ -94,7 +94,9 @@ def install_routes(context, *, data=DATA, fail_version=False, fail_data=False,
         elif 'leaflet.markercluster.js' in url:
             # Offline fixture only; the existing map regressions exercise the real plugin.
             route.fulfill(status=200, content_type='application/javascript',
-                          body='L.markerClusterGroup = () => L.featureGroup();')
+                          body='L.markerClusterGroup = () => { const group=L.featureGroup(); '
+                               'group.addLayers=function(layers){layers.forEach(layer=>this.addLayer(layer));return this}; '
+                               'return group; };')
         elif url.startswith('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/') or \
                 url.startswith('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/'):
             # The Maeka-based prototype uses the same public visual libraries as maeka.html.
@@ -109,73 +111,48 @@ def install_routes(context, *, data=DATA, fail_version=False, fail_data=False,
 
 
 def ready(page, slug, count):
-    if slug == 'tt-mae-ka':
-        page.wait_for_function('([slug,count]) => window.__AUTHORITY_PAGE__ && '
-                               'window.__AUTHORITY_PAGE__.slug === slug && '
-                               'window.__AUTHORITY_PAGE__.count === count && '
-                               'document.body.classList.contains("authority-ready") && '
-                               'Number(document.querySelector("#statCount").textContent) === count',
-                               arg=[slug, count], timeout=30000)
-        return
     page.wait_for_function('([slug,count]) => window.__AUTHORITY_PAGE__ && '
                            'window.__AUTHORITY_PAGE__.slug === slug && '
                            'window.__AUTHORITY_PAGE__.count === count && '
-                           'document.querySelector("#countNote").textContent.includes(count.toLocaleString("th-TH"))',
+                           'document.body.classList.contains("authority-ready") && '
+                           'Number(document.querySelector("#statCount").textContent) === count',
                            arg=[slug, count], timeout=30000)
 
 
 def assert_locked(page, entry, count):
-    if entry['slug'] == 'tt-mae-ka':
-        state = page.evaluate('''() => ({page:window.__AUTHORITY_PAGE__,
-            rows:[...document.querySelectorAll('#tblBody tr')].map(row=>row.textContent),
-            count:Number(document.querySelector('#statCount').textContent),
-            types:Number(document.querySelector('#statTypes').textContent),
-            broken:Number(document.querySelector('#statBroken').textContent),
-            scope:window.__AUTHORITY_DATA__.map(row=>row.name)})''')
-        assert state['page']['authority'] == entry['authority'], state
-        assert state['page']['count'] == count == state['count'], state
-        assert len(state['scope']) == count, state
-        assert state['types'] == 1 and state['broken'] == 1, state
-        assert 'เทศบาลตำบลแม่กา' in page.locator('#authorityHeading').inner_text()
-        assert page.locator('#fAuthority').count() == 0
-        assert page.locator('#visitorCounter').is_hidden()
-        assert 'AUTH-tt-mae-ka' in page.locator('#tblBody').inner_text()
-        assert 'MAEKA-DAMAGED' in page.locator('#tblBody').inner_text()
-        for other in ENTRIES:
-            if other['slug'] != entry['slug']:
-                assert 'AUTH-' + other['slug'] not in page.locator('#tblBody').inner_text()
-        assert 'MAENA-DAMAGED' not in page.locator('#tblBody').inner_text()
-        return
     state = page.evaluate('''() => ({page:window.__AUTHORITY_PAGE__,
-        countText:document.querySelector('#countNote').textContent,
-        execKpi:document.querySelector('#execKpi').textContent,
-        district:document.querySelector('#efDistrict').value,
-        authorities:['efAuthority','fAuthority','dfAuthority'].map(id=>{
-            const el=document.getElementById(id);return {value:el.value,disabled:el.disabled,options:el.options.length};
-        }),
-        districts:['efDistrict','fDistrict','dfDistrict'].map(id=>document.getElementById(id).disabled),
-        names:[...document.querySelectorAll('#tblBody tr')].map(row=>row.textContent)
+        count:Number(document.querySelector('#statCount').textContent),
+        types:Number(document.querySelector('#statTypes').textContent),
+        broken:Number(document.querySelector('#statBroken').textContent),
+        scopeIds:window.__AUTHORITY_DATA__.map(row=>row.id),
+        context:window.__AUTHORITY_CONTEXT__
     })''')
     assert state['page']['authority'] == entry['authority'], state
-    assert state['page']['count'] == count and str(count) in state['countText'], state
-    assert all(x['value'] == entry['authority'] and x['disabled'] and x['options'] == 1
-               for x in state['authorities']), state
-    assert all(state['districts']) and state['district'] == entry['district'], state
-    assert '🔒' in page.locator('#authorityLockBadge').inner_text()
-    assert page.locator('#visitorCounter').is_hidden()
+    assert state['page']['slug'] == entry['slug'], state
+    assert state['page']['count'] == count == state['count'], state
+    assert state['context']['authority'] == entry['authority'], state
+    assert state['context']['slug'] == entry['slug'], state
+    prefix = 'เทศบาลเมือง' if entry['authority'].startswith('ทม.') else (
+        'เทศบาลตำบล' if entry['authority'].startswith('ทต.') else 'องค์การบริหารส่วนตำบล')
+    full_name = prefix + entry['authority'].split('.', 1)[1]
+    assert state['context']['fullName'] == full_name, state
+    assert full_name in page.locator('#authorityHeading').inner_text()
+    assert full_name in page.title()
+    assert page.locator('#fAuthority').count() == 0
+    assert page.locator('#visitorCounter').is_visible()
+    assert page.locator('.kpi[data-kpi]').count() == 5
+    assert page.locator('#fTambon').is_visible() == (len(page.evaluate('window.__AUTHORITY_CONTEXT__.tambons')) > 1)
+    expected_rows = [row for row in DATA if row['localAuthority'] == entry['authority']
+                     and row['name'] != 'SHARED-INVALID']
+    assert len(expected_rows) == count
+    assert set(state['scopeIds']) == {row['id'] for row in expected_rows}, state
+    assert state['types'] == len({row['type'] for row in expected_rows}), state
+    assert state['broken'] == sum(row['problem'] == 'ชำรุด' for row in expected_rows), state
     assert 'AUTH-' + entry['slug'] in page.locator('#tblBody').inner_text()
     for other in ENTRIES:
         if other['slug'] != entry['slug']:
             assert 'AUTH-' + other['slug'] not in page.locator('#tblBody').inner_text()
-    expected_rows = [row for row in DATA if row['localAuthority'] == entry['authority']
-                     and row['name'] != 'SHARED-INVALID']
-    assert len(expected_rows) == count
-    values = page.locator('#execKpi .kv').all_text_contents()
-    assert int(values[0].replace(',', '')) == count, values
-    assert int(values[1].replace(',', '')) == len({row['type'] for row in expected_rows}), values
-    assert int(values[2].replace(',', '')) == len({row['tambon'] for row in expected_rows}), values
-    avg_volume = int(sum(row['volume'] for row in expected_rows) / count + .5)
-    assert str(avg_volume) in page.locator('#execKpi .kpi-card').nth(7).locator('.ks').inner_text()
+    assert page.locator('#tblBody tr[data-id]').count() == count
 
 
 def main():
@@ -207,6 +184,12 @@ def main():
             assert not page.locator('#efAuthority').is_disabled()
             assert page.locator('#efAuthority option').count() == 30
             results.append('root_province_wide')
+            for root_path in ('/authority', '/authority/'):
+                page.goto(BASE + root_path, wait_until='domcontentloaded')
+                page.wait_for_function('() => document.querySelector("#countNote")?.textContent.includes("' + str(len(DATA)) + '")')
+                assert page.url == BASE + '/'
+                assert page.evaluate('window.__AUTHORITY_PAGE__ || null') is None
+            results.append('authority_root_variants_preserve_province')
             api_response = context.request.get(BASE + '/api/waterresources/version')
             assert api_response.headers['content-type'].startswith('application/json')
             results.append('api_route_not_rewritten')
@@ -229,7 +212,7 @@ def main():
             context = browser.new_context()
             install_routes(context)
             page = context.new_page()
-            for path in ['/authority/no-such-office/', '/authority/tt-mae-ka/extra', '/authority/TT-MAE-KA/', '/authority/']:
+            for path in ['/authority/no-such-office/', '/authority/tt-mae-ka/extra', '/authority/TT-MAE-KA/']:
                 page.goto(BASE + path, wait_until='domcontentloaded')
                 page.wait_for_selector('#authorityFailure')
                 assert 'ไม่พบหน่วยงาน' in page.locator('#authorityFailure').inner_text()
@@ -305,7 +288,8 @@ def main():
             page.goto(BASE + '/authority/obt-khue-wiang/')
             ready(page, 'obt-khue-wiang', 0)
             assert page.locator('#authorityFailure').count() == 0
-            assert 'ยังไม่มีรายการที่ยืนยัน' in page.locator('#authorityEmptyNotice').inner_text()
+            assert 'ยังไม่มีรายการสำรวจที่ยืนยัน' in page.locator('#authorityZero').inner_text()
+            assert page.locator('#authorityZero').is_visible()
             results.append('valid_zero_records')
             context.close()
 

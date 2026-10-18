@@ -10,11 +10,14 @@ if (/^\/authority(?:\/|$)/.test(location.pathname)) {
   document.head.appendChild(base);
 }
 </script>
-<title>ข้อมูลแหล่งน้ำ เทศบาลตำบลแม่กา | กว๊านกักเก็บ</title>
+<title>ข้อมูลแหล่งน้ำหน่วยงาน | กว๊านกักเก็บ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="./assets/cluster-icon.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root{
@@ -39,7 +42,6 @@ if (/^\/authority(?:\/|$)/.test(location.pathname)) {
   *{box-sizing:border-box;min-width:0;}
   html,body{overflow-x:hidden;max-width:100%;}
   body:not(.authority-ready) .app-header,body:not(.authority-ready) .wrap{visibility:hidden;}
-  .authority-context{font-size:13px;color:#e3f2fd;font-weight:700;margin-top:4px;}
   .authority-zero{padding:12px 16px;background:#fff8e1;border:1px solid #f0d38b;border-radius:10px;margin:12px 0;color:#6a5000;}
   .authority-image-fallback{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:90px;padding:8px;text-align:center;color:var(--sub);font-size:12px;}
   .authority-image-fallback button{border:1px solid var(--channel);border-radius:5px;background:#fff;color:var(--channel);padding:4px 8px;font:inherit;cursor:pointer;}
@@ -205,6 +207,7 @@ if (/^\/authority(?:\/|$)/.test(location.pathname)) {
   body.map-fs-lock{overflow:hidden;}
 
   .layerbtn-wrap{position:absolute;top:10px;right:10px;z-index:650;}
+  .mapwrap:has(.leaflet-popup) .layerbtn-wrap{top:auto;bottom:10px;}
   .layerbtn{
     background:var(--channel);color:#fff;border:none;padding:8px 14px;border-radius:8px;
     font-size:13.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;
@@ -429,8 +432,7 @@ if (/^\/authority(?:\/|$)/.test(location.pathname)) {
   <div class="header-brand">
     <div class="eyebrow">กว๊านกักเก็บ แดชบอร์ดศูนย์ข้อมูลแหล่งน้ำและประปา จังหวัดพะเยา</div>
     <h1>KwanKakKeb – Phayao Water Resources and Water Supply Data Center Dashboard</h1>
-    <h1 id="authorityHeading">เทศบาลตำบลแม่กา จังหวัดพะเยา</h1>
-    <div class="authority-context" id="authorityContext">ข้อมูลเฉพาะพื้นที่รับผิดชอบของเทศบาลตำบลแม่กา</div>
+    <h1 id="authorityHeading">ข้อมูลแหล่งน้ำหน่วยงาน จังหวัดพะเยา</h1>
   </div>
 </header>
 <div class="wrap">
@@ -445,7 +447,6 @@ if (/^\/authority(?:\/|$)/.test(location.pathname)) {
       <div class="filters">
         <select id="fTambon" hidden><option value="all">ตำบล : ทั้งหมด</option></select>
         <select id="fMoo"><option value="all">หมู่ที่ : ทั้งหมด</option></select>
-        <select id="fVillage"><option value="all">หมู่บ้าน : ทั้งหมด</option></select>
         <select id="fType"><option value="all">ประเภทแหล่งน้ำ : ทั้งหมด</option></select>
         <select id="fStatus">
           <option value="all">สถานะการใช้งาน : ทั้งหมด</option>
@@ -473,12 +474,12 @@ if (/^\/authority(?:\/|$)/.test(location.pathname)) {
       <div class="kpi k2" data-kpi="types" title="คลิกเพื่อดูสัดส่วนแต่ละประเภทที่พบในตัวกรองนี้">
         <span class="kpi-bgicon">🏷️</span>
         <div class="kpi-top"><div class="kpi-icon">🏷️</div><div class="n" id="statTypes">…</div></div>
-        <div class="kpi-labels"><div class="l">ประเภทแหล่งน้ำที่พบ</div><div class="h">นับจากรายการในพื้นที่รับผิดชอบ</div></div>
+        <div class="kpi-labels"><div class="l">ประเภทแหล่งน้ำที่พบ</div><div class="h" id="statTypesHint">ความหลากหลาย จากทั้งหมด … ประเภท</div></div>
       </div>
       <div class="kpi k3" data-kpi="broken" title="คลิกเพื่อกรองเฉพาะจุดที่ชำรุด">
         <span class="kpi-bgicon">🛠️</span>
         <div class="kpi-top"><div class="kpi-icon">🛠️</div><div class="n" id="statBroken">…</div></div>
-        <div class="kpi-labels"><div class="l">จุดที่รายงานว่าชำรุด</div><div class="h">ควรตรวจยืนยันสภาพหน้างาน</div></div>
+        <div class="kpi-labels"><div class="l">จุดชำรุดเสียหาย</div><div class="h">ต้องซ่อมด่วนก่อนหน้าน้ำหลาก</div></div>
       </div>
       <div class="kpi k4" data-kpi="vol" title="คลิกเพื่อดูว่าประเภทใดถือครองความจุน้ำมากที่สุด">
         <span class="kpi-bgicon">🌊</span>
@@ -568,13 +569,13 @@ if (/^\/authority(?:\/|$)/.test(location.pathname)) {
   <div class="card dss-container" id="dssBoard">
     <h3>
       <span id="dssTitleText">🔮 ระบบวิเคราะห์สารสนเทศผลกระทบและระบบแนะนำการแก้ไขปัญหา (DSS)</span>
-      <button class="dss-badge-btn" id="dssResetBtn" style="display:none;" onclick="exitFocus(); renderAll();">🔄 กลับสู่ภาพรวมหน่วยงาน</button>
+      <button class="dss-badge-btn" id="dssResetBtn" style="display:none;" onclick="exitFocus();">ล้างการเลือก</button>
     </h3>
     <div id="dssContent">
     </div>
   </div>
 
-  <div class="visitor-counter-wrap" hidden style="display:none">
+  <div class="visitor-counter-wrap">
     <div class="visitor-counter" id="visitorCounter">
       <button type="button" class="vc-toggle" id="vcToggle">
         <span class="vc-icon">👁️</span>
@@ -620,7 +621,7 @@ if (/^\/authority(?:\/|$)/.test(location.pathname)) {
 (async function bootAuthorityDashboard(){
   const routes = window.AuthorityRoutes;
   const route = routes && routes.resolve(location.pathname, location.protocol);
-  if (!route || route.kind !== 'authority' || route.slug !== 'tt-mae-ka') {
+  if (!route || route.kind !== 'authority') {
     if (routes) routes.showFailure('invalid');
     else document.body.replaceChildren(document.createTextNode('ไม่พบหน่วยงาน'));
     return;
@@ -639,7 +640,6 @@ if (/^\/authority(?:\/|$)/.test(location.pathname)) {
     window.__AUTHORITY_PAGE__ = Object.freeze({slug:route.slug,authority:route.authority,
       count:prepared.records.length,unresolved:prepared.unresolved});
     document.getElementById('authorityHeading').textContent = window.__AUTHORITY_CONTEXT__.fullName + ' จังหวัดพะเยา';
-    document.getElementById('authorityContext').textContent = 'ข้อมูลเฉพาะพื้นที่รับผิดชอบของ' + window.__AUTHORITY_CONTEXT__.fullName;
     document.getElementById('authorityZero').hidden = prepared.records.length !== 0;
     document.title = window.__AUTHORITY_CONTEXT__.fullName + ' | ข้อมูลแหล่งน้ำ';
     const script = document.createElement('script');

@@ -13,6 +13,7 @@ LOADER=(SITE/'assets'/'water-data-loader.js').read_text(encoding='utf-8')
 AREA=(SITE/'assets'/'area-responsibility.js').read_text(encoding='utf-8')
 AUTHORITY_ROUTES=(SITE/'assets'/'authority-routes.js').read_text(encoding='utf-8')
 COMBO=(SITE/'assets'/'tambon-combobox.js').read_text(encoding='utf-8')
+CLUSTER_ICON=(SITE/'assets'/'cluster-icon.js').read_text(encoding='utf-8')
 ADAPTER=(SITE/'assets'/'maeka-data-adapter.js').read_text(encoding='utf-8')
 PROD='https://dashboard-waterresources1.netlify.app'
 SAMPLE=BOOTSTRAP+[{
@@ -30,6 +31,7 @@ def build_index_filemode_html():
   html=html.replace('<script src="./assets/area-responsibility.js"></script>', '<script>'+AREA+'</script>')
   html=html.replace('<script src="./assets/authority-routes.js"></script>', '<script>'+AUTHORITY_ROUTES+'</script>')
   html=html.replace('<script src="./assets/tambon-combobox.js"></script>', '<script>'+COMBO+'</script>')
+  html=html.replace('<script src="./assets/cluster-icon.js"></script>', '<script>'+CLUSTER_ICON+'</script>')
   # Keep file-mode data tests offline; map clustering has separate browser coverage.
   html=html.replace('<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>',
                     '<script>L.markerClusterGroup = () => L.featureGroup();</script>')

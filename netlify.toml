@@ -33,18 +33,14 @@
   force = true
 
 [[redirects]]
-  from = "/authority/tt-mae-ka/"
-  to = "/authority.html"
-  status = 200
-
-[[redirects]]
   from = "/authority"
-  to = "/index.html"
-  status = 200
+  to = "/"
+  status = 302
+  force = true
 
 [[redirects]]
   from = "/authority/*"
-  to = "/index.html"
+  to = "/authority.html"
   status = 200
 
 [[headers]]

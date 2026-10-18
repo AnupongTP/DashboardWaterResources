@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 import json
+import os
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / 'site'
-SCREENSHOTS = ROOT / 'tests' / 'screenshots'
+SCREENSHOTS = Path(os.environ.get('DASHBOARD_TEST_SHOTS_DIR', ROOT / 'tests' / 'screenshots'))
 SCREENSHOTS.mkdir(parents=True, exist_ok=True)
 BASE_DATA = json.loads((SITE / 'data' / 'waterresources.initial.json').read_text(encoding='utf-8'))
 INDEX = (SITE / 'index.html').read_text(encoding='utf-8')
 AREA_JS = (SITE / 'assets' / 'area-responsibility.js').read_text(encoding='utf-8')
+AUTHORITY_ROUTES_JS = (SITE / 'assets' / 'authority-routes.js').read_text(encoding='utf-8')
 COMBO_JS = (SITE / 'assets' / 'tambon-combobox.js').read_text(encoding='utf-8')
+CLUSTER_ICON_JS = (SITE / 'assets' / 'cluster-icon.js').read_text(encoding='utf-8')
 
 MASTER_TAMBONS = [
     'แม่กา','แม่นาเรือ','แม่ใส','บ้านตุ่น','บ้านสาง','สันป่าม่วง','บ้านต๋อม','บ้านต๊ำ','ท่าจำปี','เทศบาลเมือง',
@@ -87,7 +90,12 @@ def make_test_html(data):
     html = html.replace('<script src="./assets/runtime-config.js"></script>', '')
     html = html.replace('<script src="./assets/water-data-loader.js"></script>', stub)
     html = html.replace('<script src="./assets/area-responsibility.js"></script>', '<script>' + AREA_JS + '</script>')
+    html = html.replace('<script src="./assets/authority-routes.js"></script>', '<script>' + AUTHORITY_ROUTES_JS + '</script>')
     html = html.replace('<script src="./assets/tambon-combobox.js"></script>', '<script>' + COMBO_JS + '</script>')
+    html = html.replace('<script src="./assets/cluster-icon.js"></script>', '<script>' + CLUSTER_ICON_JS + '</script>')
+    # The filter test runs offline. Map clustering is covered by its dedicated browser tests.
+    html = html.replace('<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>',
+                        '<script>L.markerClusterGroup = () => L.featureGroup();</script>')
     html = html.replace('<link rel="preconnect" href="https://fonts.googleapis.com">', '')
     html = html.replace('<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">', '')
     return html
@@ -136,7 +144,7 @@ def main():
     html = make_test_html(TEST_DATA)
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True, executable_path='/usr/bin/chromium')
+        browser = p.chromium.launch(headless=True, executable_path=os.environ.get('PLAYWRIGHT_CHROMIUM_EXECUTABLE'))
 
         # ---------- Desktop ----------
         context = browser.new_context(viewport={'width': 1440, 'height': 1000})
@@ -164,16 +172,17 @@ def main():
         page.locator('#efTambon').press('Escape')
         results.append({'test': 'master_tambon_list_exact_29', 'ok': True, 'count': len(options)})
 
-        # 2b. Authority dropdowns show only authorities with resolved data from the full dataset.
-        expected_active = [
-            'ทม.ดอกคำใต้','อบต.บ้านปิน','อบต.ดอกคำใต้','อบต.จำป่าหวาย','ทต.บ้านถ้ำ',
-            'อบต.ดอนศรีชุม','อบต.แม่อิง','ทต.ดงเจน','อบต.สันโค้ง'
-        ]
+        # 2b. Authority dropdowns expose the complete approved master list.
         exec_authorities = page.locator('#efAuthority option').evaluate_all("els => els.slice(1).map(e => e.value)")
-        assert exec_authorities == expected_active, exec_authorities
-        assert 'อบต.คือเวียง' not in exec_authorities
+        master_authorities = page.evaluate('AreaResponsibility.AUTHORITY_ORDER')
+        assert exec_authorities == master_authorities, exec_authorities
+        active_authorities = page.evaluate('AreaResponsibility.activeAuthorities(window.__TEST_DATA__)')
+        authority_counts = page.evaluate('AreaResponsibility.authorityCounts(window.__TEST_DATA__)')
+        assert active_authorities == [a for a in master_authorities if authority_counts[a] > 0]
+        assert len(active_authorities) >= 9, active_authorities
+        assert 'อบต.คือเวียง' in exec_authorities
         assert '__UNRESOLVED__' not in exec_authorities
-        results.append({'test': 'zero_count_authorities_hidden_from_dropdown', 'ok': True, 'authorities': exec_authorities})
+        results.append({'test': 'master_authorities_shown_and_active_authorities_resolved', 'ok': True, 'authorities': exec_authorities})
 
         # 3. Search recommendation works: "แม่" narrows to seven allowed names, still in master order.
         page.locator('#efTambon').fill('แม่')
@@ -313,7 +322,7 @@ def main():
         # 11. No unresolved bucket exists in UI; old ambiguous/invalid records remain visible by Tambon but are not assigned.
         authority_values = page.locator('#fAuthority option').evaluate_all("els => els.map(e => e.value)")
         assert '__UNRESOLVED__' not in authority_values
-        assert 'อบต.คือเวียง' not in authority_values  # zero resolved records => hidden
+        assert 'อบต.คือเวียง' in authority_values  # master option remains selectable
         assert 'ทต.ดงเจน' in authority_values
 
         page.locator('#fAuthority').select_option('')
@@ -348,7 +357,7 @@ def main():
         # 13. Damaged tab uses the same strict combobox and its own independent filter state.
         page.locator('.tab-btn[data-tab="damaged"]').click()
         damaged_authorities = page.locator('#dfAuthority option').evaluate_all("els => els.slice(1).map(e => e.value)")
-        assert 'อบต.คือเวียง' not in damaged_authorities
+        assert 'อบต.คือเวียง' in damaged_authorities
         assert '__UNRESOLVED__' not in damaged_authorities
         page.locator('#dfAuthority').select_option('อบต.สันโค้ง')
         open_combo(page, 'dfTambon')

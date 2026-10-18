@@ -1,7 +1,6 @@
 import {
   getDatasetMetadata,
   getDatasetWithMetadata,
-  seedFromStaticRequest,
   datasetVersion
 } from '../lib/water-store.mjs';
 
@@ -35,11 +34,7 @@ export default async (request) => {
   }
 
   try {
-    let metaEntry = await getDatasetMetadata();
-    if (!metaEntry) {
-      await seedFromStaticRequest(request);
-      metaEntry = await getDatasetMetadata();
-    }
+    const metaEntry = await getDatasetMetadata();
     if (!metaEntry) {
       return jsResponse(`${callback}(${safeJson({success:false,error:'Dataset is not initialized'})});`, 503);
     }

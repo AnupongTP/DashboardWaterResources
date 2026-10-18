@@ -156,12 +156,13 @@ assert '<!DOCTYPE html>' in root_index and '<html' in root_index
 assert '<!DOCTYPE html>' in root_maeka and '<html' in root_maeka
 
 # File mode remains unchanged by the Phase 2 filter work.
-assert "DEFAULT_PRODUCTION_ORIGIN = 'https://dashboard-waterresources.netlify.app'" in runtime
+assert "DEFAULT_PRODUCTION_ORIGIN = 'https://dashboard-waterresources1.netlify.app'" in runtime
+assert "RETIRED_PRODUCTION_ORIGIN = 'https://dashboard-waterresources.netlify.app'" in runtime
 assert "forcedMode || (isFile ? 'file'" in runtime and 'apiUrl' in runtime
 for marker in [
-    "runtime.mode === 'file' ? 'production-api-file' : 'netlify-blob-api'",
+    "runtime.mode === 'development' ? 'production-api-development' : 'netlify-blob-api'",
     "runtime.mode === 'file' ? 'static-bootstrap-file' : 'static-bootstrap'",
-    'BOOTSTRAP_SCRIPT_URL', 'remoteOrigin', "mode: runtime.mode === 'file' ? 'cors' : 'same-origin'",
+    'BOOTSTRAP_SCRIPT_URL', 'remoteOrigin', "mode: IS_CROSS_ORIGIN ? 'cors' : 'same-origin'",
     'FILE_BRIDGE_ENDPOINT', 'getRemoteDatasetViaFileBridge', "source: 'production-script-bridge-file'"
 ]:
     assert marker in loader, f'missing file-mode loader marker: {marker}'

@@ -1,6 +1,7 @@
 from playwright.sync_api import sync_playwright
 from pathlib import Path
 import json
+import os
 
 ROOT = Path(__file__).resolve().parents[1]
 BOOTSTRAP_DATA = json.loads((ROOT / "site/data/waterresources.initial.json").read_text(encoding="utf-8"))
@@ -12,7 +13,7 @@ if len(_existing_fixture_tambons) <= 10:
     ROUND2_FIXTURE_DATA.append(_extra)
 ROUND2_VERSION = "playwright-round2-top10-v1"
 
-BASE = 'http://127.0.0.1:4173/index.html'
+BASE = os.environ.get('PHASE2_TEST_BASE', 'http://127.0.0.1:4173/index.html')
 MUEANG_AUTHORITIES = {
     'ทม.พะเยา','ทต.แม่กา','อบต.แม่นาเรือ','อบต.แม่ใส','อบต.บ้านตุ่น','ทต.บ้านสาง',
     'ทต.สันป่าม่วง','ทต.บ้านต๋อม','ทต.บ้านต๊ำ','ทต.ท่าจำปี','ทต.แม่ปืม','ทต.บ้านใหม่'
@@ -230,7 +231,8 @@ def test_mobile(browser, width):
 
 def main():
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=True,
+                                    executable_path=os.environ.get('PLAYWRIGHT_CHROMIUM_EXECUTABLE'))
         try:
             test_desktop(browser)
             for width in (360, 390, 412):

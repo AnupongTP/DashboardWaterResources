@@ -199,18 +199,6 @@ export async function writeDataset(records, metadata = {}) {
   };
 }
 
-export async function seedFromStaticRequest(request) {
-  const origin = new URL(request.url).origin;
-  const response = await fetch(`${origin}/data/waterresources.initial.json`, {
-    method: 'GET',
-    headers: { Accept: 'application/json' },
-    cache: 'no-store'
-  });
-  if (!response.ok) throw new Error(`Bootstrap fetch failed with ${response.status}`);
-  const records = await response.json();
-  return writeDataset(records, { source: 'bootstrap-static' });
-}
-
 export function isAuthorizedSyncRequest(request) {
   const expected = process.env.WATER_SYNC_SECRET;
   if (!expected || expected.length < 24) return false;

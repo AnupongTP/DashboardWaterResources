@@ -129,7 +129,7 @@ IndexedDB เป็น object cache จึงเก็บ `localAuthority` ไ�
 
 ```text
 Hosted Netlify   → relative /api/*
-Netlify Dev      → relative /api/* (local Blob sandbox)
+Netlify Dev      → active Production read APIs via CORS (no local Blob reads)
 file://          → configured Production Netlify read API
                   ↓ fail
                   IndexedDB cache
@@ -137,6 +137,6 @@ file://          → configured Production Netlify read API
                   waterresources.initial.js bootstrap
 ```
 
-`runtime-config.js` เป็นจุดเดียวที่กำหนด Production origin สำหรับ file mode.
-Root `index.html` และ `maeka.html` เป็น launcher ไปยังไฟล์จริงใน `/site` เพื่อให้ asset path ทำงานเหมือนกันทั้ง file mode และ Netlify publish.
+`runtime-config.js` เป็นจุดเดียวที่กำหนด Production origin สำหรับ development และ file mode. Localhost ใช้ค่า configured/default โดยไม่รับค่าที่ค้างใน localStorage; file mode รับ query/configured override และข้ามค่า stored ของบัญชีเก่า. IndexedDB รับเฉพาะ cache ที่ `remoteOrigin` ตรงกับ API ที่เลือก และไม่ถือ bootstrap เป็น Production cache.
+ไฟล์ที่มี asset path ใช้งานได้สำหรับ file mode คือ `site/index.html` และ `site/maeka.html`. ไฟล์ชื่อเดียวกันที่ root เป็นสำเนาหน้าเต็มรุ่นเดิมและอ้าง `./assets` ซึ่งไม่มีที่ root; จึงไม่ใช่ launcher ตามเอกสารเดิม.
 `maeka.html` ไม่ใช้ dataset ฝังแบบคงที่อีกต่อไป แต่ใช้ `WaterData.load()` แล้ว map/filter เฉพาะ `tambon=แม่กา`.

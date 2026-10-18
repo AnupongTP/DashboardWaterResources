@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TMP = path.join(ROOT, 'tests', '.tmp-netlify-function-test');
 await fs.rm(TMP, { recursive: true, force: true });
 await fs.mkdir(TMP, { recursive: true });
@@ -39,6 +39,10 @@ function getStore(name) {
 
 let storeSrc = await fs.readFile(path.join(ROOT, 'netlify', 'lib', 'water-store.mjs'), 'utf8');
 storeSrc = storeSrc.replace("import { getStore } from '@netlify/blobs';", mockPrelude);
+storeSrc = storeSrc.replace(
+  'export async function writeDataset(records, metadata = {}) {',
+  'export async function writeDataset(records, metadata = {}) { globalThis.__TEST_WRITE_DATASET_CALLS = (globalThis.__TEST_WRITE_DATASET_CALLS || 0) + 1;'
+);
 await fs.writeFile(path.join(TMP, 'water-store.mjs'), storeSrc, 'utf8');
 
 for (const name of ['waterresources-sync.mjs', 'waterresources-version.mjs', 'waterresources.mjs', 'waterresources-file-bridge.mjs']) {
@@ -103,6 +107,26 @@ function sample(id, tambon, moo=1, extra={}) {
   };
 }
 
+// A missing Blob is unavailable to public readers. None may initialize it.
+for (const [fn, url, method, status] of [
+  [versionFn, 'https://example.net/api/waterresources/version', 'GET', 404],
+  [versionFn, 'https://example.net/api/waterresources/version', 'HEAD', 404],
+  [versionFn, 'https://example.net/api/waterresources/version', 'OPTIONS', 204],
+  [dataFn, 'https://example.net/api/waterresources', 'GET', 503],
+  [dataFn, 'https://example.net/api/waterresources', 'HEAD', 503],
+  [dataFn, 'https://example.net/api/waterresources', 'OPTIONS', 204],
+  [fileBridgeFn, 'https://example.net/api/waterresources/file-bridge?callback=ok', 'GET', 503],
+  [fileBridgeFn, 'https://example.net/api/waterresources/file-bridge?callback=ok', 'HEAD', 503],
+  [fileBridgeFn, 'https://example.net/api/waterresources/file-bridge?callback=ok', 'OPTIONS', 405]
+]) {
+  const response = await fn(new Request(url, { method }));
+  assert.equal(response.status, status, `${method} ${url}`);
+}
+assert.equal(globalThis.__TEST_WRITE_DATASET_CALLS || 0, 0);
+assert.equal(globalThis.__TEST_ETAG_COUNTER || 0, 0);
+assert.equal(globalThis.__TEST_BLOB_STORES.get(storeMod.STORE_NAME)?.size || 0, 0);
+ok('empty_blob_public_reads_never_write_or_seed');
+
 // 1 unauthorized
 let req = new Request('https://example.net/api/waterresources/sync', {
   method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({records:[]})
@@ -141,8 +165,10 @@ let body = await res.json();
 assert.equal(body.success, true);
 assert.equal(body.changed, true);
 assert.equal(body.count, 34); // 29 canonical + two aliases + three LocalAuthority fixtures; out-of-scope excluded
+assert.equal(globalThis.__TEST_WRITE_DATASET_CALLS, 1);
+assert.equal(globalThis.__TEST_ETAG_COUNTER, 1);
 const v1 = body.version;
-ok('authorized_sync_accepts_exact_29_tambon_scope', {version:v1,count:body.count});
+ok('authorized_sync_initializes_empty_blob_with_exact_29_tambon_scope', {version:v1,count:body.count});
 
 let entry = await storeMod.getDatasetWithMetadata();
 assert.equal(entry.data.length, 34);
@@ -181,6 +207,8 @@ body = await res.json();
 assert.equal(body.changed, true);
 assert.notEqual(body.version, v1);
 const v2 = body.version;
+const writesAfterSync = globalThis.__TEST_WRITE_DATASET_CALLS;
+const etagsAfterSync = globalThis.__TEST_ETAG_COUNTER;
 ok('changed_sync_changes_version', {version:v2});
 
 // 6 version endpoint
@@ -191,6 +219,9 @@ assert.equal(body.version, v2);
 assert.equal(body.count, 34);
 assert.equal(res.headers.get('access-control-allow-origin'), '*');
 assert.match(res.headers.get('access-control-expose-headers') || '', /ETag/i);
+res = await versionFn(new Request('https://example.net/api/waterresources/version', {method:'HEAD'}));
+assert.equal(res.status, 200);
+assert.equal(res.headers.get('etag'), v2);
 ok('version_endpoint_current_and_file_cors');
 
 // 7 data endpoint and 304
@@ -205,6 +236,9 @@ assert.match(res.headers.get('access-control-expose-headers') || '', /ETag/i);
 
 res = await dataFn(new Request('https://example.net/api/waterresources', {headers:{'if-none-match':v2}}));
 assert.equal(res.status, 304);
+assert.equal(res.headers.get('etag'), v2);
+res = await dataFn(new Request('https://example.net/api/waterresources', {method:'HEAD'}));
+assert.equal(res.status, 200);
 assert.equal(res.headers.get('etag'), v2);
 ok('dataset_endpoint_etag_304_and_file_cors');
 
@@ -250,6 +284,9 @@ let jsBody = await res.text();
 assert.ok(jsBody.startsWith('__waterFileBridge_test('));
 assert.ok(jsBody.includes('"success":true'));
 assert.ok(jsBody.includes('"data":['));
+res = await fileBridgeFn(new Request('https://example.net/api/waterresources/file-bridge?callback=ok', {method:'HEAD'}));
+assert.equal(res.status, 200);
+assert.equal(res.headers.get('x-water-data-version'), v2);
 res = await fileBridgeFn(new Request('https://example.net/api/waterresources/file-bridge?callback=alert(1)'));
 assert.equal(res.status, 400);
 res = await fileBridgeFn(new Request('https://example.net/api/waterresources/file-bridge?callback=ok', {method:'POST'}));
@@ -262,6 +299,10 @@ assert.equal(res.status, 405);
 res = await dataFn(new Request('https://example.net/api/waterresources', {method:'POST'}));
 assert.equal(res.status, 405);
 ok('read_endpoints_reject_wrong_method');
+
+assert.equal(globalThis.__TEST_WRITE_DATASET_CALLS, writesAfterSync);
+assert.equal(globalThis.__TEST_ETAG_COUNTER, etagsAfterSync);
+ok('existing_dataset_public_reads_preserve_blob_and_metadata');
 
 await fs.writeFile(path.join(ROOT,'tests','netlify-function-results.json'), JSON.stringify({ok:true,tests},null,2), 'utf8');
 await fs.rm(TMP, { recursive:true, force:true });

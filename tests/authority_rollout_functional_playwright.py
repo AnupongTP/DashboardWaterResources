@@ -47,8 +47,9 @@ def main():
                 assert page.locator('#mapbox .leaflet-marker-icon').count() == 6
                 assert page.locator('#fTambon').is_visible()
                 assert page.locator('#visitorCounter').is_visible()
-                assert '📊 ปัญหาผลกระทบที่ตรวจพบรวมในเขตคัดกรอง' in page.locator('#dssContent').inner_text()
-                assert '🛠️ ข้อแนะนำยุทธศาสตร์การบริหารงบประมาณ' in page.locator('#dssContent').inner_text()
+                assert page.locator('.dss-summary-card').count() == 4
+                assert page.locator('#dssContent .dss-block').is_hidden()
+                assert '🛠️ ข้อแนะนำยุทธศาสตร์การบริหารงบประมาณ' in page.locator('#dssContent').text_content()
                 assert '28 แห่ง' not in page.locator('#dssContent').inner_text()
                 initial = snapshot(page)
 
@@ -67,7 +68,7 @@ def main():
                 page.locator('.leaflet-popup-close-button').last.click()
                 page.wait_for_function('() => state.focusId === null')
                 assert snapshot(page) == initial
-                assert page.locator('#dssTitleText').inner_text().startswith('🔮 สารสนเทศวิเคราะห์ผลกระทบและข้อแนะนำ')
+                assert page.locator('#dssTitleText').inner_text() == '📊 สรุปข้อมูลปัญหาตามตัวกรอง'
                 assert len(image_requests) == 1, image_requests
 
                 page.locator('#fStatus').select_option('ชำรุด')

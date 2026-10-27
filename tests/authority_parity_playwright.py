@@ -134,10 +134,10 @@ def main():
                 assert dict(zip(charts[2]['labels'], charts[2]['values'])) == {
                     'ชำรุด': 2, 'น้ำเน่าเสีย': 1, 'วัชพืชปกคลุม': 1,
                     'น้ำมีสี': 1, 'ใช้งานได้': 2}
-                dss = page.locator('#dssContent').inner_text()
-                for fragment in ('ปัญหาผลกระทบที่ตรวจพบรวมในเขตคัดกรอง',
-                                 'ข้อแนะนำยุทธศาสตร์การบริหารงบประมาณ',
-                                 '2 จุด', '2 แห่ง', 'ยุทธศาสตร์เร่งด่วน',
+                assert page.locator('.dss-summary-value').all_text_contents() == ['2 จุด', '2 แห่ง', '1 จุด', '2 แห่ง']
+                assert page.locator('#dssContent .dss-block').is_hidden()
+                dss = page.locator('#dssContent').text_content()
+                for fragment in ('ข้อแนะนำยุทธศาสตร์การบริหารงบประมาณ', 'ยุทธศาสตร์เร่งด่วน',
                                  'จัดลำดับความสำคัญ', 'สัปดาห์สิ่งแวดล้อม',
                                  'ตรวจสอบพื้นที่อุตสาหกรรม'):
                     assert fragment in dss, (fragment, dss)
@@ -177,7 +177,7 @@ def main():
                 page.evaluate('''() => {const r=document.querySelector('.leaflet-popup-close-button').getBoundingClientRect();
                   window.scrollTo(0, window.scrollY+r.top-150)}''')
                 page.locator('.leaflet-popup-close-button').last.click()
-                assert 'สารสนเทศวิเคราะห์ผลกระทบและข้อแนะนำ' in page.locator('#dssTitleText').inner_text()
+                assert 'สรุปข้อมูลปัญหาตามตัวกรอง' in page.locator('#dssTitleText').inner_text()
                 assert chart_data(page) == charts
                 if width == 1440:
                     save(page, '06-authority-after-popup-close-1440.png')

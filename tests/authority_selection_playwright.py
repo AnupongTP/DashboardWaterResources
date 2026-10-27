@@ -41,9 +41,9 @@ def overview(page, expected):
     assert page.locator('#tblBody tr.selected').count() == 0
     assert page.locator('#mapbox .dvicon.sel').count() == 0
     assert page.locator('#dssResetBtn').is_hidden()
-    assert page.locator('#dssTitleText').inner_text().startswith('🔮 สารสนเทศวิเคราะห์ผลกระทบและข้อแนะนำ')
+    assert page.locator('#dssTitleText').inner_text() == '📊 สรุปข้อมูลปัญหาตามตัวกรอง'
     if int(expected['count']):
-        assert 'ปัญหาผลกระทบที่ตรวจพบรวมในเขตคัดกรอง' in page.locator('#dssContent').inner_text()
+        assert page.locator('.dss-summary-card').count() == 4
     assert snapshot(page) == expected
 
 

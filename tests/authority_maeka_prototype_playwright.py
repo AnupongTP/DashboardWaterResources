@@ -110,7 +110,8 @@ def main():
                     assert page.locator('#imgModalImg').get_attribute('src') == popup_image.get_attribute('src')
                     page.locator('#imgModalClose').click()
                     page.locator('#dssResetBtn').click()
-                    assert 'สารสนเทศวิเคราะห์ผลกระทบและข้อแนะนำ' in page.locator('#dssTitleText').inner_text()
+                    assert 'สรุปข้อมูลปัญหาตามตัวกรอง' in page.locator('#dssTitleText').inner_text()
+                    assert page.locator('.dss-summary-card').count() == 4
                     page.locator('.expand-btn[data-chart="type"]').click()
                     assert page.locator('#chartModalBg').is_visible()
                     page.locator('#chartModalClose').click()

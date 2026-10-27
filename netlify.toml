@@ -43,6 +43,17 @@
   to = "/authority.html"
   status = 200
 
+[[redirects]]
+  from = "/district"
+  to = "/authority.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/district/*"
+  to = "/authority.html"
+  status = 200
+
 [[headers]]
   for = "/api/*"
   [headers.values]

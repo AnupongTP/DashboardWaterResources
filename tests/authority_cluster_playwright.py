@@ -122,7 +122,14 @@ def main():
 
                 page.locator('#tblBody tr[data-id="80001"]').click()
                 page.wait_for_function('''() => map._popup?._source?.authorityRecordId === 80001''')
-                assert page.evaluate('markerRefs[80001].getLatLng().equals(markerRefs[80000].getLatLng())')
+                # Spiderfy temporarily moves displayed markers; their source
+                # coordinates must remain identical and unchanged.
+                assert page.evaluate('''() => {
+                  const a=DATA.find(r=>r.id===80000),b=DATA.find(r=>r.id===80001);
+                  const original=m=>m._preSpiderfyLatlng||m.getLatLng();
+                  return a.lat===b.lat && a.lng===b.lng &&
+                    original(markerRefs[80001]).equals(original(markerRefs[80000]));
+                }''')
                 assert snapshot(page) == initial
                 page.locator('.leaflet-popup-close-button').last.click()
                 page.wait_for_function('() => state.focusId === null')
@@ -132,6 +139,15 @@ def main():
                 page.wait_for_function('''() => !map._popup?.isOpen() &&
                   document.querySelectorAll('#mapbox .leaflet-popup').length===0''')
                 assert snapshot(page) == initial
+                # Table reveal can now zoom to the maximum to reveal coincident
+                # points. Return to a view containing both A and B before tapping.
+                page.evaluate('''() => map.setView([DATA.find(r=>r.id===80000).lat,
+                  DATA.find(r=>r.id===80000).lng],16,{animate:false})''')
+                page.wait_for_function('''() => map.getZoom()===16 && markersLayer._inZoomAnimation===0''')
+                page.evaluate('''() => markersLayer.getVisibleParent(markerRefs[80000]).getElement()
+                  .dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true}))''')
+                page.wait_for_function('''() => markersLayer._spiderfied &&
+                  markerRefs[80000].getElement() && markerRefs[80002].getElement()''')
                 click_marker(page, 80000)
                 click_marker(page, 80002)
                 assert page.evaluate('state.focusId') == 80002
@@ -159,8 +175,11 @@ def main():
                     results.append('stale_table_callback_ignored')
                     page.locator('.leaflet-popup-close-button').last.click()
                     page.wait_for_function('() => state.focusId===null')
-                    page.evaluate('''() => map.setView(markerRefs[80000].getLatLng(),15,{animate:false})''')
-                    page.wait_for_function('''() => map.getZoom()===15 &&
+                    page.evaluate('map.setZoom(10,{animate:false})')
+                    page.wait_for_function('''() => map.getZoom()===10 &&
+                      markersLayer._inZoomAnimation===0 && !markersLayer._spiderfied''')
+                    page.evaluate('''() => map.setView(markerRefs[80000].getLatLng(),map.getMaxZoom(),{animate:false})''')
+                    page.wait_for_function('''() => map.getZoom()===map.getMaxZoom() &&
                       markersLayer._inZoomAnimation===0''')
                     spider_cluster = page.evaluate('''() => {
                       const parent=markersLayer.getVisibleParent(markerRefs[80000]);

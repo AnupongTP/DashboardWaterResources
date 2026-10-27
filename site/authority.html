@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script>
-if (/^\/authority(?:\/|$)/.test(location.pathname)) {
+if (/^\/(?:authority|district)(?:\/|$)/.test(location.pathname)) {
   const base = document.createElement('base');
   base.href = '/';
   document.head.appendChild(base);
@@ -18,6 +18,7 @@ if (/^\/authority(?:\/|$)/.test(location.pathname)) {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script src="./assets/cluster-icon.js"></script>
+<script src="./assets/map-popup.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root{
@@ -357,7 +358,7 @@ if (/^\/authority(?:\/|$)/.test(location.pathname)) {
   .pp-nav:hover{background:var(--line);}
 
   .img-modal-bg{
-    display:none;position:fixed;inset:0;background:rgba(6,20,30,.82);z-index:1100;
+    display:none;position:fixed;inset:0;background:rgba(6,20,30,.82);z-index:6000;
     align-items:center;justify-content:center;padding:24px;
   }
   .img-modal-bg.open{display:flex;}
@@ -404,6 +405,15 @@ if (/^\/authority(?:\/|$)/.test(location.pathname)) {
     line-height: 1.6;
   }
   .dss-list li { margin-bottom: 6px; }
+  .dss-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;}
+  .dss-summary-card{background:#f8fbfb;border:1px solid var(--line);border-radius:10px;padding:14px 16px;font:inherit;text-align:left;cursor:pointer;}
+  .dss-summary-card:hover{border-color:var(--channel);}
+  .dss-summary-card[aria-pressed="true"]{border-color:var(--channel);background:#e8f3fc;box-shadow:inset 0 0 0 1px var(--channel);}
+  .dss-summary-card:focus-visible{outline:2px solid var(--channel);outline-offset:3px;}
+  .dss-summary-label{font-size:14px;color:var(--sub);line-height:1.5;}
+  .dss-summary-value{display:block;margin-top:6px;font-family:'Kanit',sans-serif;font-size:30px;font-weight:600;color:var(--channel);line-height:1.2;}
+  .dss-summary-value span{font-family:'Sarabun',sans-serif;font-size:13px;font-weight:400;color:var(--sub);}
+  @media(max-width:768px){.dss-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}.dss-summary-card{padding:12px;}}
   .dss-empty {
     text-align: center;
     padding: 24px;
@@ -617,28 +627,43 @@ if (/^\/authority(?:\/|$)/.test(location.pathname)) {
 <script src="./assets/authority-routes.js"></script>
 <script src="./assets/maeka-data-adapter.js"></script>
 <script src="./assets/authority-data-adapter.js"></script>
+<script src="./assets/district-routes.js"></script>
+<script src="./assets/district-data-adapter.js"></script>
 <script>
 (async function bootAuthorityDashboard(){
-  const routes = window.AuthorityRoutes;
+  const isDistrict = /^\/district(?:\/|$)/.test(location.pathname);
+  const routes = isDistrict ? window.DistrictRoutes : window.AuthorityRoutes;
   const route = routes && routes.resolve(location.pathname, location.protocol);
-  if (!route || route.kind !== 'authority') {
+  if (!route || route.kind !== (isDistrict ? 'district' : 'authority')) {
     if (routes) routes.showFailure('invalid');
     else document.body.replaceChildren(document.createTextNode('ไม่พบหน่วยงาน'));
     return;
   }
   try {
     const raw = await window.WaterData.load();
-    const current = await routes.validateCurrentDataset(raw, window.__WATER_DATA_DIAGNOSTICS__,
+    const current = await window.AuthorityRoutes.validateCurrentDataset(raw, window.__WATER_DATA_DIAGNOSTICS__,
       window.WaterDashboardRuntime, window.WaterData, window.location);
     if (!current) { routes.showFailure('unavailable'); return; }
-    const prepared = window.AuthorityDataAdapter.fromWaterRecords(raw, route.authority);
+    const prepared = isDistrict
+      ? window.DistrictDataAdapter.fromWaterRecords(raw, route.district)
+      : window.AuthorityDataAdapter.fromWaterRecords(raw, route.authority);
     window.__AUTHORITY_DATA__ = prepared.records;
-    window.__AUTHORITY_CONTEXT__ = Object.freeze({
+    window.__AUTHORITY_CONTEXT__ = Object.freeze(isDistrict ? {
+      kind:'district', district:route.district, fullName:'อำเภอ' + route.district,
+      slug:route.slug, tambons:window.AreaResponsibility.tambonsForDistrict(route.district)
+    } : {
       authority: route.authority, fullName: routes.fullName(route.authority),
       slug: route.slug, tambons: window.AreaResponsibility.tambonsForAuthority(route.authority)
     });
-    window.__AUTHORITY_PAGE__ = Object.freeze({slug:route.slug,authority:route.authority,
-      count:prepared.records.length,unresolved:prepared.unresolved});
+    if (isDistrict) {
+      window.__DISTRICT_CONTEXT__ = window.__AUTHORITY_CONTEXT__;
+      window.__DISTRICT_PAGE__ = Object.freeze({slug:route.slug,district:route.district,count:prepared.records.length});
+      document.getElementById('authorityZero').textContent = 'ยังไม่มีรายการสำรวจในอำเภอนี้ในชุดข้อมูลปัจจุบัน';
+      document.querySelector('.kpi[data-kpi="count"]').title = 'คลิกเพื่อล้างตัวกรองและกลับสู่ภาพรวมอำเภอ';
+    } else {
+      window.__AUTHORITY_PAGE__ = Object.freeze({slug:route.slug,authority:route.authority,
+        count:prepared.records.length,unresolved:prepared.unresolved});
+    }
     document.getElementById('authorityHeading').textContent = window.__AUTHORITY_CONTEXT__.fullName + ' จังหวัดพะเยา';
     document.getElementById('authorityZero').hidden = prepared.records.length !== 0;
     document.title = window.__AUTHORITY_CONTEXT__.fullName + ' | ข้อมูลแหล่งน้ำ';

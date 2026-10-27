@@ -90,12 +90,22 @@ function mapVisibleRows(rows){
   });
 }
 
-function filtered(){
+const SUMMARY_PROBLEM_FILTERS = {
+  'summary:broken': {label:'ชำรุด',icon:'🛠️',unit:'จุด',matches:r=>(r.problem||'').includes('ชำรุด')},
+  'summary:depth': {label:'ความลึกลดลง',icon:'📉',unit:'แห่ง',matches:r=>r.depth>0 && r.depthNet<r.depth},
+  'summary:weeds': {label:'วัชพืชปกคลุม',icon:'🌿',unit:'จุด',matches:r=>(r.problem||'').includes('วัชพืชปกคลุม')},
+  'summary:water': {label:'น้ำเน่าเสีย/มีสี',icon:'💧',unit:'แห่ง',matches:r=>(r.problem||'').includes('น้ำเน่าเสีย') || (r.problem||'').includes('น้ำมีสี')}
+};
+
+function filtered(ignoreSummaryProblem=false){
   return DATA.filter(d => {
     const matchTambon = state.tambon==='all' || d.tambon===state.tambon;
     const matchMoo = state.moo==='all' || mooKey(d)===state.moo;
     const matchType = (!state.type || d.type===state.type);
-    const matchProb = (!state.problem || (d.problem||'').split(',').map(s=>s.trim()).includes(state.problem));
+    const summaryProblem = SUMMARY_PROBLEM_FILTERS[state.problem];
+    const matchProb = !state.problem || (summaryProblem
+      ? (ignoreSummaryProblem || summaryProblem.matches(d))
+      : (d.problem||'').split(',').map(s=>s.trim()).includes(state.problem));
     const matchStatus = (!state.status || getUsageStatus(d)===state.status);
 
     const text = (d.name + ' ' + d.village + ' ' + d.type + ' ' + d.tambon).toLowerCase();
@@ -137,6 +147,11 @@ function initFilters(){
   const elProblem=document.getElementById('fProblem');
   ALL_PROBLEMS.filter(problem=>problem!=='ไม่มีปัญหา').forEach(problem=>
     elProblem.add(new Option(problem,problem)));
+  const summaryOptions=document.createElement('optgroup');
+  summaryOptions.label='สรุปปัญหา';
+  Object.entries(SUMMARY_PROBLEM_FILTERS).forEach(([key,filter])=>
+    summaryOptions.appendChild(new Option(filter.label,key)));
+  elProblem.appendChild(summaryOptions);
   elProblem.addEventListener('change',e=>{state.problem=e.target.value==='all'?null:e.target.value;
     exitFocusSilent();renderAll();});
 
@@ -186,7 +201,7 @@ function syncToolbar(){
   const note = document.getElementById('probFilterNote');
   if(state.problem){
     note.style.display = 'flex';
-    document.getElementById('probFilterLabel').textContent = state.problem;
+    document.getElementById('probFilterLabel').textContent = SUMMARY_PROBLEM_FILTERS[state.problem]?.label || state.problem;
   } else {
     note.style.display = 'none';
   }
@@ -271,7 +286,8 @@ function initCharts(){
 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:18, attribution:'Tiles &copy; Esri'}).addTo(map);
 // เลเยอร์ชื่อสถานที่/เส้นถนนซ้อนทับ ให้ยังอ่านชื่อหมู่บ้าน/ถนนได้เหมือนเดิม
 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:18, attribution:''}).addTo(map);
-markersLayer = L.markerClusterGroup({maxClusterRadius:70,disableClusteringAtZoom:CLUSTER_BREAK_ZOOM,
+// At detailed zooms, keep coincident screen positions selectable by spiderfying.
+markersLayer = L.markerClusterGroup({maxClusterRadius:zoom=>zoom>=CLUSTER_BREAK_ZOOM?1:70,
   spiderfyOnMaxZoom:true,showCoverageOnHover:false,chunkedLoading:true,
   iconCreateFunction:window.WaterClusterIcon('#0a5fb4','#29b6f6')}).addTo(map);
   initMapFullscreenControl();
@@ -321,7 +337,7 @@ function toggleMapFullscreen(link){
     btn.innerHTML = isFs ? '⤡' : '⛶';
     btn.title = isFs ? 'ย่อแผนที่กลับปกติ' : 'ขยายแผนที่เต็มจอ';
   }
-  setTimeout(()=>{ if(map) map.invalidateSize(); }, 200);
+  setTimeout(()=>{ if(map) map.invalidateSize({debounceMoveend:true}); }, 200);
 }
 
 function fmtNum(n){
@@ -462,12 +478,12 @@ function updateDSSPanel() {
         analysisItems.push(`<li>🌿 <b>วัชพืชหนาแน่น${areaText}:</b> เร่งน้ำระเหยตัว/คายน้ำไวกว่าปกติ 1.5 - 2 เท่า และกีดขวางทางน้ำไหล</li>`);
         adviceItems.push(`<li>ประสานงานกลุ่มผู้ใช้น้ำชุมชนจัดกิจกรรมตักลอกวัชพืชเปิดหน้าผิวน้ำโล่ง และนำไปทำปุ๋ยอินทรีย์</li>`);
       }
-      if (prob === 'น้ำเน่าเสีย' || prob === 'น้ำมีสี') {
-        hasIssues = true;
-        analysisItems.push(`<li>💧 <b>วิกฤตคุณภาพน้ำ:</b> คุณภาพน้ำเสื่อมโทรม หมักหมม หรือเปลี่ยนสี ไม่ผ่านมาตรฐานอุปโภค</li>`);
-        adviceItems.push(`<li>ตรวจสอบการระบายน้ำเสียต้นน้ำ และนำกังหันน้ำ/น้ำหมัก EM ลงช่วยบำบัดฟื้นฟูเบื้องต้น</li>`);
-      }
     });
+    if (problems.includes('น้ำเน่าเสีย') || problems.includes('น้ำมีสี')) {
+      hasIssues = true;
+      analysisItems.push(`<li>💧 <b>วิกฤตคุณภาพน้ำ:</b> คุณภาพน้ำเสื่อมโทรม หมักหมม หรือเปลี่ยนสี ไม่ผ่านมาตรฐานอุปโภค</li>`);
+      adviceItems.push(`<li>ตรวจสอบการระบายน้ำเสียต้นน้ำ และนำกังหันน้ำ/น้ำหมัก EM ลงช่วยบำบัดฟื้นฟูเบื้องต้น</li>`);
+    }
 
     if (!hasIssues) {
       analysisItems.push(`<li>✅ โครงสร้าง ระบบตะกอน และทางกายภาพสมบูรณ์ดี</li>`);
@@ -494,8 +510,10 @@ function updateDSSPanel() {
     `;
 
   } else {
-    const currentRows = filtered();
-    dssTitleText.innerHTML = `🔮 สารสนเทศวิเคราะห์ผลกระทบและข้อแนะนำ (สรุปภาพรวมพื้นที่ตามตัวกรอง)`;
+    // Keep summary counts scoped to the other filters so another card can be
+    // selected directly, including after selecting a category with zero rows.
+    const currentRows = filtered(true);
+    dssTitleText.textContent = '📊 สรุปข้อมูลปัญหาตามตัวกรอง';
     dssResetBtn.style.display = 'none';
     dssBoard.style.borderLeftColor = 'var(--channel)';
 
@@ -543,17 +561,28 @@ function updateDSSPanel() {
     }
 
     dssContent.innerHTML = `
-      <div class="dss-grid">
-        <div class="dss-block">
-          <div class="dss-block-title">📊 ปัญหาผลกระทบที่ตรวจพบรวมในเขตคัดกรอง</div>
-          <ul class="dss-list">${overallAnalysis.join('')}</ul>
+      <div class="dss-grid" style="grid-template-columns:1fr;">
+        <div class="dss-summary">
+          ${Object.entries(SUMMARY_PROBLEM_FILTERS).map(([key,filter])=>`
+            <button type="button" class="dss-summary-card" data-summary-problem="${key}" aria-pressed="${state.problem===key}" title="กดเพื่อกรอง${filter.label} กดซ้ำเพื่อยกเลิก">
+              <span class="dss-summary-label">${filter.icon} ${filter.label}</span>
+              <span class="dss-summary-value">${currentRows.filter(filter.matches).length.toLocaleString('th-TH')} <span>${filter.unit}</span></span>
+            </button>`).join('')}
         </div>
-        <div class="dss-block">
+        <div class="dss-block" hidden>
           <div class="dss-block-title" style="color:var(--channel);">🛠️ ข้อแนะนำยุทธศาสตร์การบริหารงบประมาณ</div>
           <ul class="dss-list">${overallAdvice.join('')}</ul>
         </div>
       </div>
     `;
+    dssContent.querySelectorAll('[data-summary-problem]').forEach(button=>{
+      button.addEventListener('click',()=>{
+        const key=button.dataset.summaryProblem;
+        state.problem=state.problem===key ? null : key;
+        exitFocusSilent();
+        renderAll();
+      });
+    });
   }
 }
 
@@ -574,7 +603,7 @@ function renderAll(){
       marker.authorityRecordId=r.id;
       // Register selection before Leaflet's bindPopup click handler closes the old popup.
       marker.on('click', ()=>{ setFocus(r.id); });
-      marker.bindPopup(()=>popupContentFor(r), {maxWidth:275, minWidth:255, autoPan:true, keepInView:true});
+      WaterMapPopup.bind(marker, map, ()=>popupContentFor(r), {maxWidth:275, minWidth:255, autoPan:true, keepInView:true});
       markerRefs[r.id]=marker;
     }
     visibleMarkers.push(marker);
@@ -639,7 +668,7 @@ function renderPanels(rows){
   const pLabels = Object.keys(probCount);
   chartProb.data.labels = pLabels;
   chartProb.data.datasets[0].data = pLabels.map(p=>probCount[p]);
-  chartProb.data.datasets[0].backgroundColor = pLabels.map((p,i)=> state.problem && state.problem!==p ? '#dde6e6' : probColor(p,i));
+  chartProb.data.datasets[0].backgroundColor = pLabels.map((p,i)=> state.problem && !SUMMARY_PROBLEM_FILTERS[state.problem] && state.problem!==p ? '#dde6e6' : probColor(p,i));
   chartProb.update();
   const totalTags = pLabels.reduce((s,p)=>s+probCount[p],0) || 1;
   document.getElementById('legProb').innerHTML = pLabels.map((p,i)=>{
@@ -657,8 +686,16 @@ function renderPanels(rows){
   renderKpiInsight(rows);
 }
 
+let brokenInsightExpanded=false;
+let brokenInsightScope='';
 function renderKpiInsight(rows){
   const box = document.getElementById('kpiInsight');
+  const brokenScope=state.kpiFocus==='broken'
+    ? rows.filter(r=>getUsageStatus(r)==='ชำรุด').map(r=>r.id).join(',') : '';
+  if(brokenScope!==brokenInsightScope){
+    brokenInsightExpanded=false;
+    brokenInsightScope=brokenScope;
+  }
   if(!rows.length){
     box.innerHTML = `<div class="ki-title">💡 คำอธิบาย</div>${noDataMessage()} หรือคลิกการ์ด "แหล่งน้ำที่พบ" เพื่อล้างตัวกรองทั้งหมด`;
     return;
@@ -681,8 +718,11 @@ function renderKpiInsight(rows){
     const broken = rows.filter(r=>getUsageStatus(r)==='ชำรุด');
     title = '🚨 จุดชำรุดเสียหาย';
     if(broken.length){
-      body = `พบ <b>${broken.length} จุด</b> ที่มีแท็กปัญหา "ชำรุด" ได้แก่ ` + broken.map(r=>`<b>${escapeHtml(r.name)}</b> (หมู่ ${r.moo} บ้าน${escapeHtml(r.village)})`).join(', ') +
-        `. จุดเหล่านี้ควรได้รับการซ่อมแซมเร่งด่วนก่อนฤดูน้ำหลากเพื่อลดความเสี่ยงโครงสร้างพังเสียหาย (กดการ์ดนี้ซ้ำเพื่อยกเลิกตัวกรอง)`;
+      const visible=brokenInsightExpanded ? broken : broken.slice(0,5);
+      body = `พบ <b>${broken.length} จุด</b> ที่มีแท็กปัญหา "ชำรุด" ได้แก่ <div id="brokenInsightNames">` +
+        visible.map(r=>`<b>${escapeHtml(r.name)}</b> (หมู่ ${r.moo} บ้าน${escapeHtml(r.village)})`).join(', ') + '</div>' +
+        (broken.length>5 ? `<button type="button" id="brokenInsightMore" class="dss-badge-btn" style="float:none;margin:6px 0;" aria-controls="brokenInsightNames" aria-expanded="${brokenInsightExpanded}">${brokenInsightExpanded?'แสดงน้อยลง':`แสดงเพิ่มเติม (อีก ${broken.length-5} จุด)`}</button>` : '') +
+        `<div>จุดเหล่านี้ควรได้รับการซ่อมแซมเร่งด่วนก่อนฤดูน้ำหลากเพื่อลดความเสี่ยงโครงสร้างพังเสียหาย (กดการ์ดนี้ซ้ำเพื่อยกเลิกตัวกรอง)</div>`;
     } else {
       body = 'ไม่พบจุดที่มีแท็กปัญหา "ชำรุด" ในกลุ่มข้อมูลที่กรองอยู่ขณะนี้';
     }
@@ -704,6 +744,11 @@ function renderKpiInsight(rows){
       'ไม่มีรายการที่มีข้อมูลเพียงพอสำหรับคำนวณค่าเฉลี่ย';
   }
   box.innerHTML = `<div class="ki-title">${title}</div>${body}`;
+  document.getElementById('brokenInsightMore')?.addEventListener('click',()=>{
+    brokenInsightExpanded=!brokenInsightExpanded;
+    renderKpiInsight(rows);
+    document.getElementById('brokenInsightMore')?.focus({preventScroll:true});
+  });
 }
 
 function renderMapLegendStatic(){
@@ -810,10 +855,9 @@ function setFocus(id, deferMap=false){
     if(rsel) markerRefs[id].setIcon(makeIcon(rsel, true));
   }
   const rec = DATA.find(x=>x.id===id);
-  if(!deferMap && rec && rec.lat!=null && rec.lng!=null &&
-      markerRefs[id] && markersLayer.hasLayer(markerRefs[id])){
-    map.flyTo([rec.lat, rec.lng], Math.max(map.getZoom(), 15), {duration:.5});
-  } else {
+  // A tapped marker is already visible. Flying again collapses spiderfied clusters.
+  if(deferMap || !rec || rec.lat==null || rec.lng==null ||
+      !markerRefs[id] || !markersLayer.hasLayer(markerRefs[id])){
     // Table selection reveals a visible marker separately; hidden and coordinate-free
     // records keep their DSS details without opening a map popup.
     map.closePopup();
@@ -975,6 +1019,11 @@ document.body.classList.add('authority-ready');
 // Mae Ka keeps its historical counter; every other validated route has its own counter.
 initVisitorCounter();
 function visitorCounterIdentity(context){
+  if(context.kind==='district'){
+    const known = window.DistrictRoutes?.masterIsValid && window.DistrictRoutes.entries.some(entry=>
+      entry.slug===context.slug && entry.district===context.district);
+    return known ? {namespace:`pyo-water-district-${context.slug}`,visitKey:`pyoDistrictVisitDate:${context.slug}`} : null;
+  }
   const known = window.AuthorityRoutes?.entries.some(entry=>
     entry.slug===context.slug && entry.authority===context.authority);
   if(!known) return null;
@@ -1056,8 +1105,8 @@ function initVisitorCounter(){
       const today = new Date().toISOString().slice(0,10);
       const isLiveProduction = location.protocol === 'https:' &&
         location.hostname === 'dashboard-waterresources1.netlify.app' &&
-        (location.pathname === `/authority/${AUTHORITY.slug}` ||
-          location.pathname === `/authority/${AUTHORITY.slug}/`);
+        (location.pathname === `/${AUTHORITY.kind==='district'?'district':'authority'}/${AUTHORITY.slug}` ||
+          location.pathname === `/${AUTHORITY.kind==='district'?'district':'authority'}/${AUTHORITY.slug}/`);
       const isNewVisitToday = isLiveProduction && localStorage.getItem(VC_VISIT_KEY) !== today;
       if(isNewVisitToday){
         let countryCode = 'OTHER';

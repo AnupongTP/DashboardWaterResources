@@ -1,0 +1,127 @@
+{
+  "ok": true,
+  "mocked": true,
+  "realProductionVerification": false,
+  "tests": [
+    "scope_paths_reload_reset_mueang-phayao",
+    "scope_paths_reload_reset_mae-chai",
+    "scope_paths_reload_reset_dok-kham-tai",
+    "scope_paths_reload_reset_phu-kam-yao",
+    "invalid_/district",
+    "invalid_/district/",
+    "invalid_/district/no-such-district/",
+    "invalid_/district/MAE-CHAI/",
+    "invalid_/district/mae-chai/extra",
+    "invalid_/district/mae%2Dchai/",
+    "validated_cache_offline_rejection_retry",
+    "fail_closed_static_bootstrap",
+    "fail_closed_count_mismatch",
+    "fail_closed_duplicate_id",
+    "fail_closed_invalid_id",
+    "valid_empty_district",
+    "before_authority_capture_1440",
+    "authority_visual_unchanged_1440",
+    "visual_and_functional_parity_1440",
+    "responsive_mueang-phayao_1440",
+    "responsive_mae-chai_1440",
+    "responsive_dok-kham-tai_1440",
+    "responsive_phu-kam-yao_1440",
+    "before_authority_capture_768",
+    "authority_visual_unchanged_768",
+    "visual_and_functional_parity_768",
+    "responsive_mueang-phayao_768",
+    "responsive_mae-chai_768",
+    "responsive_dok-kham-tai_768",
+    "responsive_phu-kam-yao_768",
+    "before_authority_capture_412",
+    "authority_visual_unchanged_412",
+    "visual_and_functional_parity_412",
+    "responsive_mueang-phayao_412",
+    "responsive_mae-chai_412",
+    "responsive_dok-kham-tai_412",
+    "responsive_phu-kam-yao_412",
+    "before_authority_capture_390",
+    "authority_visual_unchanged_390",
+    "visual_and_functional_parity_390",
+    "responsive_mueang-phayao_390",
+    "responsive_mae-chai_390",
+    "responsive_dok-kham-tai_390",
+    "responsive_phu-kam-yao_390",
+    "before_authority_capture_360",
+    "authority_visual_unchanged_360",
+    "visual_and_functional_parity_360",
+    "responsive_mueang-phayao_360",
+    "responsive_mae-chai_360",
+    "responsive_dok-kham-tai_360",
+    "responsive_phu-kam-yao_360",
+    "user_triggered_image_fallback_thumbnail",
+    "user_triggered_image_fallback_fail",
+    "four_counter_identities_mocked_hits_daily_dedup",
+    "no_hits_https://deploy-preview-123--dashboard-waterresources1.netlify.app",
+    "no_hits_http://localhost:8888",
+    "counter_failure_graceful"
+  ],
+  "visualComparisons": [
+    {
+      "width": 1440,
+      "comparison": "authority-before-after",
+      "different": 0,
+      "total": 2537280
+    },
+    {
+      "width": 1440,
+      "comparison": "district-authority-heading-normalized",
+      "different": 0,
+      "total": 2537280
+    },
+    {
+      "width": 768,
+      "comparison": "authority-before-after",
+      "different": 0,
+      "total": 2072064
+    },
+    {
+      "width": 768,
+      "comparison": "district-authority-heading-normalized",
+      "different": 0,
+      "total": 2072064
+    },
+    {
+      "width": 412,
+      "comparison": "authority-before-after",
+      "different": 0,
+      "total": 1386380
+    },
+    {
+      "width": 412,
+      "comparison": "district-authority-heading-normalized",
+      "different": 0,
+      "total": 1386380
+    },
+    {
+      "width": 390,
+      "comparison": "authority-before-after",
+      "different": 0,
+      "total": 1318590
+    },
+    {
+      "width": 390,
+      "comparison": "district-authority-heading-normalized",
+      "different": 0,
+      "total": 1318590
+    },
+    {
+      "width": 360,
+      "comparison": "authority-before-after",
+      "different": 0,
+      "total": 1244160
+    },
+    {
+      "width": 360,
+      "comparison": "district-authority-heading-normalized",
+      "different": 0,
+      "total": 1244160
+    }
+  ],
+  "screenshots": "D:\\Codex Project\\DashboardWaterResources\\DashboardWaterResources-main\\docs\\district-dashboard-screenshots"
+}

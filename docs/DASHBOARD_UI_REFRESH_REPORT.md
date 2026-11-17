@@ -181,3 +181,24 @@ chart labels/datasets, filter state, context, DSS และ counter identity ต
 2. ปรับ selector ใน tests เดิม 4 ไฟล์ไปเป็น `.gf-*` แทนการคงคลาส `.exec-filter-bar` ไว้บน DOM
 3. คงโครง `.gf-grid` ≥1100px ด้วย flex-wrap (สัดส่วน 2.2:1:1:1 แถวบน, 3 เท่ากันแถวล่าง) แทน CSS grid เพราะแถวบน/ล่างมีจำนวนคอลัมน์ต่างกัน
 4. Final review: self-review (ไม่ได้ dispatch reviewer ใหม่ เพราะไม่มี commit ให้สร้าง review package)
+
+## เฟส 2 — 17 พ.ย. 2026 (template ร่วม 33 หน้า)
+
+**สถานะ:** ทำครบ Task 1–5 แล้ว ผู้ใช้อนุมัติ checkpoint ของ Task 4 แล้ว แต่ **ยังไม่ถือว่าเหมือนต้นแบบ** จนกว่าผู้ใช้ตรวจ localhost เอง ยังไม่ commit/deploy
+
+**สิ่งที่เปลี่ยน:** `netlify.toml` 3 rewrite (`/authority/*`, `/district`, `/district/*` → `/index.html`); `site/index.html` รับ route อำเภอ ล็อกเขตด้วย `recordMatchesAuthority/recordMatchesDistrict` เดิม ซ่อนช่องอำเภอ/อปท./หมู่ที่ ชื่อเว็บเป็นลิงก์ `/` การ์ด DSS + selection + ตัวนับ + รูปภาพแบบ authority; โมดูลใหม่ `dss-panel.js`, `visitor-counter.js`, `scoped-images.js` (คัดลอกจาก `authority-app.js` ไม่แก้กฎ); `authority.html`/`authority-app.js` ยังอยู่
+
+**ผลตรวจ (mock ทั้งหมด ไม่ใช่ live):**
+- ผ่าน: `scoped_template_playwright.mjs` (33 route เท่า baseline: record IDs, counter namespace/key/จำนวน hit, DSS), `authority_locked` (29 route + fail-closed + 0 รายการ), `authority_rollout_jurisdiction`, `authority_counter_rollout`, `authority_image_requests` (ลำดับคำขอภาพตรงของเดิม), `district_dashboard` (ฉบับตัดส่วนเทียบภาพกับ authority.html), `district_scope_test`, `province_filter_bar`, `playwright_dashboard_test`
+- ผ่านเพิ่มหลังปิดงานค้าง: `authority_selection` (5 viewport) และ `authority_cluster` (พอร์ตมาใช้หน้าใหม่ คงเจตนาเดิม), `mobile_map_popup` (authority/district ที่ 360/390/412/1440 + จังหวัด + แหล่งน้ำชำรุด), เทสต์ไฮไลต์ใน `scoped_template_playwright.mjs`
+- ยังไม่ได้พอร์ตโดยตั้งใจ: `authority_parity` (เทียบ UI หน้าเก่ากับต้นแบบ ซึ่งต่างโดยตั้งใจ; ส่วน data parity ครอบคลุมด้วย baseline 33 route)
+- สิ่งที่ครอบคลุมแทน: selection 5 กรณีของ Memory 12.3 อยู่ใน `scoped_template_playwright.mjs`
+
+**ความต่างที่ตั้งใจ:** KPI 8 ใบสูตรหน้าจังหวัด (D10); ไม่มีช่องหมู่ที่ (D11); ไม่มีแถบกลับ (D12)
+
+**แก้โค้ดจริงระหว่างปิดงาน:** marker ใช้ซ้ำข้าม render (ไม่สร้างใหม่ทุกครั้ง popup/รูปไม่ถูกโหลดซ้ำ); เลือกแถวที่ไม่มีพิกัดแล้วปิด popup เดิม; เปลี่ยนตัวกรองแล้วกลับ overview; ไฮไลต์หมุด/แถวที่เลือก; จำกัดซูมแผนที่สูงสุด 18 และ tile ใช้ข้อมูลจริงถึง 17 (กัน "Map data not yet available") ทั้งหน้าจังหวัด/หน้า scoped
+**สาเหตุ popup มือถือซูมเอง:** เทสต์แตะรูป→ปิดโมดัล→แตะปุ่มเต็มจอ ห่างกันราว 125 ms ซึ่ง Leaflet ตีเป็น double-tap zoom ไม่ใช่บั๊กการใช้งานจริง ปรับเทสต์ให้รอหน้าต่าง double-tap
+**Rollback:** คืน 3 rewrite ใน `netlify.toml` เป็น `/authority.html`
+
+### แก้ไข 17 พ.ย. 2026 — เอาการ์ด DSS ออก (spec D5 แก้ใหม่)
+ผู้ใช้สั่งเอาการ์ด DSS ออกทั้งหมดเพื่อให้เหมือนต้นแบบ: ลบการ์ด/สคริปต์ `dss-panel.js`/CSS ออกจาก `index.html`; คง selection (popup, ไฮไลต์หมุด/แถว, คลิกแถว→เปิดหมุด, เปลี่ยนตัวกรอง→ล้างการเลือก); เทสต์ที่อ้าง DSS ปรับเป็น popup/ไฮไลต์ (`scoped_template`, `authority_selection`, `authority_rollout_jurisdiction`); `authority.html`/`authority-app.js` ที่ยังมีโค้ด DSS เดิมไม่ได้แตะ

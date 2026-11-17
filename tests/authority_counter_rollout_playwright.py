@@ -78,7 +78,7 @@ def main():
             assert len(set(KEYS.values())) == 3
             assert len(hits(calls)) == 6
             identities = page.evaluate('''() => AuthorityRoutes.entries.map(entry =>
-              visitorCounterIdentity(entry))''')
+              VisitorCounter.identity(entry))''')
             assert len(identities) == 29
             assert len({value['namespace'] for value in identities}) == 29
             assert len({value['visitKey'] for value in identities}) == 29

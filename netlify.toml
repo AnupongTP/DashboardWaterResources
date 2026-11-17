@@ -40,18 +40,18 @@
 
 [[redirects]]
   from = "/authority/*"
-  to = "/authority.html"
+  to = "/index.html"
   status = 200
 
 [[redirects]]
   from = "/district"
-  to = "/authority.html"
+  to = "/index.html"
   status = 200
   force = true
 
 [[redirects]]
   from = "/district/*"
-  to = "/authority.html"
+  to = "/index.html"
   status = 200
 
 [[headers]]

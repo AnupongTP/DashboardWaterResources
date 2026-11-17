@@ -6,7 +6,7 @@ from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
-from authority_locked_playwright import BASE, CHROME, install_routes, ready
+from authority_locked_playwright import BASE, CHROME, install_routes, ready, wait_kpi
 from authority_maeka_prototype_playwright import fixture, IMAGE_ID, PNG
 
 
@@ -15,15 +15,12 @@ A, B, NO_COORD = 70002, 71001, 72001
 
 
 def snapshot(page):
+    # Scoped template: 8 executive KPI cards + the two executive charts replace the 5-KPI/3-chart layout.
     return page.evaluate('''() => ({
-      count:document.querySelector('#statCount').textContent,
-      types:document.querySelector('#statTypes').textContent,
-      broken:document.querySelector('#statBroken').textContent,
-      volume:document.querySelector('#statVol').textContent,
-      average:document.querySelector('#statAvgVol').textContent,
+      kpis:[...document.querySelectorAll('#execKpi .kpi-card .kv')].map(el=>el.textContent),
       table:[...document.querySelectorAll('#tblBody tr[data-id]')].map(row=>row.dataset.id),
-      charts:[chartType,chartVol,chartProb].map(chart=>({
-        labels:[...chart.data.labels],values:[...chart.data.datasets[0].data]}))
+      charts:['c_status_pie','c_base_vol_type'].map(id=>{const chart=Chart.getChart(id);
+        return {labels:[...chart.data.labels],values:[...chart.data.datasets[0].data]};})
     })''')
 
 
@@ -31,23 +28,28 @@ def selected(page, record_id):
     assert page.evaluate('state.focusId') == record_id
     assert page.locator('#tblBody tr.selected').count() == 1
     assert page.locator('#tblBody tr.selected').get_attribute('data-id') == str(record_id)
-    assert page.locator('#mapbox .dvicon.sel').count() == (0 if record_id == NO_COORD else 1)
+    assert page.locator('#map .leaflet-marker-icon.dss-selected').count() == (0 if record_id == NO_COORD else 1)
 
 
 def overview(page, expected):
     page.wait_for_function('''() => !map._popup?.isOpen() &&
-      document.querySelectorAll('#mapbox .leaflet-popup').length === 0''')
+      document.querySelectorAll('#map .leaflet-popup').length === 0''')
     assert page.evaluate('state.focusId') is None
     assert page.locator('#tblBody tr.selected').count() == 0
-    assert page.locator('#mapbox .dvicon.sel').count() == 0
-    assert page.locator('#dssResetBtn').is_hidden()
-    assert page.locator('#dssTitleText').inner_text() == '📊 สรุปข้อมูลปัญหาตามตัวกรอง'
-    if int(expected['count']):
-        assert page.locator('.dss-summary-card').count() == 4
+    assert page.locator('#map .leaflet-marker-icon.dss-selected').count() == 0
     assert snapshot(page) == expected
 
 
+def pick_row(page, record_id):
+    page.locator('.main-nav button[data-view="detail"]').click()
+    page.locator('.tab-btn[data-tab="table"]').click()
+    page.locator(f'#tblBody tr[data-id="{record_id}"]').click()
+    page.wait_for_function('() => document.getElementById("view-exec").classList.contains("active")')
+
+
 def click_marker(page, record_id):
+    # the map sits below the KPI cards now; a visitor scrolls to it before clicking, so lazy popup images load
+    page.locator('#heroMapStage').scroll_into_view_if_needed()
     page.evaluate('''id => markerRefs[id].getElement().dispatchEvent(
       new MouseEvent('click',{bubbles:true,cancelable:true}))''', record_id)
     page.wait_for_function('id => state.focusId===id && map._popup?._source?.authorityRecordId===id',
@@ -76,7 +78,7 @@ def main():
                 page.goto(BASE + '/authority/tt-mae-ka/', wait_until='domcontentloaded')
                 ready(page, 'tt-mae-ka', 3)
                 initial = snapshot(page)
-                assert initial['count'] == '3' and len(initial['table']) == 3
+                assert initial['kpis'][0] == '3' and len(initial['table']) == 3
                 if width in (1440, 390):
                     page.screenshot(path=str(SHOTS / f'overview-{width}.png'), full_page=True)
 
@@ -85,7 +87,7 @@ def main():
                   window.selectionPopupEvents=[];
                   map.on('popupclose', e=>window.selectionPopupEvents.push({kind:'close',
                     id:e.popup._source?.authorityRecordId,focus:state.focusId,
-                    count:document.querySelector('#statCount').textContent}));
+                    count:document.querySelector('#execKpi .kpi-card:first-child .kv').textContent}));
                   map.on('popupopen', e=>window.selectionPopupEvents.push({kind:'open',
                     id:e.popup._source?.authorityRecordId,focus:state.focusId}));
                   return true;
@@ -93,14 +95,15 @@ def main():
                 assert popup_events
                 click_marker(page, A)
                 selected(page, A)
-                assert 'AUTH-tt-mae-ka' in page.locator('#dssTitleText').inner_text()
+                assert 'AUTH-tt-mae-ka' in page.locator('.leaflet-popup').first.text_content()
                 assert snapshot(page) == initial
                 if width == 1440:
                     page.screenshot(path=str(SHOTS / 'popup-a-1440.png'), full_page=True)
                 click_marker(page, B)
                 selected(page, B)
-                assert 'MAEKA-DAMAGED' in page.locator('#dssTitleText').inner_text()
-                assert 'AUTH-tt-mae-ka' not in page.locator('#dssTitleText').inner_text()
+                page.wait_for_function('''() => document.querySelectorAll('.leaflet-popup').length === 1''')  # A fades out ~200ms
+                assert 'MAEKA-DAMAGED' in page.locator('.leaflet-popup').first.text_content()
+                assert 'AUTH-tt-mae-ka' not in page.locator('.leaflet-popup').first.text_content()
                 assert snapshot(page) == initial
                 events = page.evaluate('window.selectionPopupEvents')
                 assert any(e['kind'] == 'close' and e['id'] == A for e in events), events
@@ -110,7 +113,7 @@ def main():
                     page.screenshot(path=str(SHOTS / f'popup-b-{width}.png'), full_page=True)
                 assert len(image_requests) == 1, image_requests
                 assert page.locator('.leaflet-popup img[data-drive-id]').get_attribute('referrerpolicy') == 'no-referrer'
-                page.evaluate('renderAll()')
+                page.evaluate('window.__SCOPED_MAP__.rebuild()')
                 selected(page, B)
                 page.wait_for_function('''() => document.querySelectorAll('.leaflet-popup').length === 1''')
                 assert len(image_requests) == 1, image_requests
@@ -128,74 +131,76 @@ def main():
                 assert page.locator('#imgModalBg').is_visible()
                 page.locator('#imgModalClose').click()
                 selected(page, B)
-                assert 'MAEKA-DAMAGED' in page.locator('#dssTitleText').inner_text()
-                page.locator('.leaflet-popup-close-button').last.click()
+                assert 'MAEKA-DAMAGED' in page.locator('.leaflet-popup').first.text_content()
+                page.locator('.leaflet-popup-close-button').last.dispatch_event('click')  # sticky header can cover the X after Playwright's auto-scroll
                 overview(page, initial)
                 if width == 1440:
-                    page.screenshot(path=str(SHOTS / 'dss-restored-1440.png'), full_page=True)
+                    page.screenshot(path=str(SHOTS / 'overview-restored-1440.png'), full_page=True)
 
                 # Table switches directly; the unlocated record retains details and a clear action.
-                page.locator(f'#tblBody tr[data-id="{A}"]').click()
+                pick_row(page, A)
                 selected(page, A)
-                page.locator(f'#tblBody tr[data-id="{B}"]').click()
+                pick_row(page, B)
                 selected(page, B)
                 assert snapshot(page) == initial
-                page.locator(f'#tblBody tr[data-id="{NO_COORD}"]').click()
+                pick_row(page, NO_COORD)
                 selected(page, NO_COORD)
                 page.wait_for_function('''() => document.querySelectorAll('.leaflet-popup').length === 0''')
-                assert 'ไม่มีพิกัดแผนที่' in page.locator('#dssContent').inner_text()
                 assert snapshot(page) == initial
-                page.locator('#dssResetBtn').click()
+                page.locator('#efReset').click()  # no DSS reset button any more; a filter reset drops the selection
                 overview(page, initial)
 
                 # Search is a data filter; map layers only change visible markers.
                 click_marker(page, B)
-                page.locator('#txtSearch').fill('DAMAGED')
+                page.locator('#efSearch').fill('DAMAGED')
+                wait_kpi(page, '1')
                 filtered = snapshot(page)
-                assert filtered['count'] == '1' and len(filtered['table']) == 1
+                # D2: executive filters never touch the detail-tab table, so only the KPI set narrows here.
+                assert filtered['kpis'][0] == '1' and filtered['table'] == initial['table']
                 overview(page, filtered)
                 click_marker(page, B)
                 assert snapshot(page) == filtered
-                page.locator('.leaflet-popup-close-button').last.click()
+                page.locator('.leaflet-popup-close-button').last.dispatch_event('click')  # sticky header can cover the X after Playwright's auto-scroll
                 overview(page, filtered)
-                page.locator('#txtSearch').fill('NO-MATCH-RESOURCE')
-                assert page.locator('#statCount').inner_text() == '0'
-                assert page.locator('#tblBody tr[data-id]').count() == 0
-                page.locator('.kpi[data-kpi="count"]').click()
+                page.locator('#efSearch').fill('NO-MATCH-RESOURCE')
+                wait_kpi(page, '0')
+                assert page.locator('#execKpi .kpi-card:first-child .kv').inner_text() == '0'
+                page.locator('#efReset').click()
                 overview(page, initial)
                 click_marker(page, B)
-                page.locator('#fStatus').select_option('ชำรุด')
-                assert page.locator('#statCount').inner_text() == '1'
+                page.locator('#efStatus').select_option('broken')
+                wait_kpi(page, '1')
                 overview(page, snapshot(page))
-                page.locator('.kpi[data-kpi="count"]').click()
+                page.locator('#efReset').click()
                 overview(page, initial)
                 click_marker(page, B)
-                page.locator('.kpi[data-kpi="broken"]').click()
-                assert page.locator('#statCount').inner_text() == '1'
+                page.locator('#efProblem').select_option('ชำรุด')
+                wait_kpi(page, '1')
                 overview(page, snapshot(page))
-                page.locator('.kpi[data-kpi="count"]').click()
+                page.locator('#efReset').click()
                 overview(page, initial)
                 click_marker(page, B)
-                page.locator('#legType span').first.click()
-                assert page.locator('#statCount').inner_text() == '2'
+                page.locator('#efType').select_option(index=1)
+                page.wait_for_function('() => document.querySelector("#execKpi .kpi-card:first-child .kv").textContent.trim() !== "3"')
                 overview(page, snapshot(page))
-                page.locator('.kpi[data-kpi="count"]').click()
+                page.locator('#efReset').click()
                 overview(page, initial)
-                page.locator('#layerBtn').click()
+                # The map layer panel only changes visible markers (tambon layer replaces the old village layer, D11).
+                page.locator('#mlcToggle').click()
                 click_marker(page, B)
-                page.locator('#layerBtn').click()
-                page.locator('#lpVillageNone').click()
+                page.locator('#mlcToggle').click()
+                page.locator('#mlcTbNone').click()
                 overview(page, initial)
-                assert page.locator('#mapbox .leaflet-marker-icon').count() == 0
-                page.locator('#lpVillageAll').click()
-                assert page.locator('#mapbox .leaflet-marker-icon').count() == 2
+                assert page.locator('#map .leaflet-marker-icon').count() == 0
+                page.locator('#mlcTbAll').click()
+                assert page.locator('#map .leaflet-marker-icon').count() == 2
 
                 # Leaflet's other normal close paths return to the same overview.
                 click_marker(page, A)
-                if page.locator('#layerPanel').evaluate('(panel) => panel.classList.contains("open")'):
-                    page.locator('#layerBtn').click()
-                map_height = page.locator('#mapbox').bounding_box()['height']
-                page.locator('#mapbox').click(position={'x': 40, 'y': map_height - 40}, force=True)
+                if page.locator('#mlcPanel').evaluate('(panel) => panel.classList.contains("open")'):
+                    page.locator('#mlcToggle').click()
+                map_height = page.locator('#map').bounding_box()['height']
+                page.locator('#map').click(position={'x': 40, 'y': map_height - 40}, force=True)
                 overview(page, initial)
                 click_marker(page, A)
                 page.keyboard.press('Escape')

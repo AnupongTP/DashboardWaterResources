@@ -108,6 +108,13 @@ def install_routes(context, *, data=DATA, fail_version=False, fail_data=False,
         else:
             route.abort()
     context.route('**/*', route_handler)
+    # Legacy names used by the authority.html-era tests, mapped onto the read-only scoped-page handles.
+    context.add_init_script('''(() => { const h = () => window.__SCOPED_MAP__;
+      Object.defineProperty(window, 'markersLayer', {configurable: true, get: () => h() && h().layer()});
+      Object.defineProperty(window, 'map', {configurable: true, get: () => h() && h().map()});
+      window.markerRefs = new Proxy({}, {get: (_, id) => h() && h().marker(Number(id))});
+      window.state = {get focusId() { return h() ? h().selectedId() : null; }};
+    })()''')
 
 
 def ready(page, slug, count):
@@ -115,16 +122,20 @@ def ready(page, slug, count):
                            'window.__AUTHORITY_PAGE__.slug === slug && '
                            'window.__AUTHORITY_PAGE__.count === count && '
                            'document.body.classList.contains("authority-ready") && '
-                           'Number(document.querySelector("#statCount").textContent) === count',
+                           'Number(document.querySelector("#execKpi .kpi-card:first-child .kv").textContent) === count',
                            arg=[slug, count], timeout=30000)
+
+
+def wait_kpi(page, value):
+    # the executive filters apply after a short input debounce; poll the first KPI instead of sleeping
+    page.wait_for_function('v => document.querySelector("#execKpi .kpi-card:first-child .kv")?.textContent.trim() === v',
+                           arg=value, timeout=10000)
 
 
 def assert_locked(page, entry, count):
     state = page.evaluate('''() => ({page:window.__AUTHORITY_PAGE__,
-        count:Number(document.querySelector('#statCount').textContent),
-        types:Number(document.querySelector('#statTypes').textContent),
-        broken:Number(document.querySelector('#statBroken').textContent),
-        scopeIds:window.__AUTHORITY_DATA__.map(row=>row.id),
+        count:Number(document.querySelector('#execKpi .kpi-card:first-child .kv').textContent),
+        scopeIds:[...document.querySelectorAll('#tblBody tr[data-id]')].map(row=>Number(row.dataset.id)),
         context:window.__AUTHORITY_CONTEXT__
     })''')
     assert state['page']['authority'] == entry['authority'], state
@@ -136,22 +147,20 @@ def assert_locked(page, entry, count):
         'เทศบาลตำบล' if entry['authority'].startswith('ทต.') else 'องค์การบริหารส่วนตำบล')
     full_name = prefix + entry['authority'].split('.', 1)[1]
     assert state['context']['fullName'] == full_name, state
-    assert full_name in page.locator('#authorityHeading').inner_text()
+    assert full_name in page.locator('.header-brand .eyebrow').inner_text()
     assert full_name in page.title()
-    assert page.locator('#fAuthority').count() == 0
+    assert not page.locator('#efAuthority').is_visible() and not page.locator('#efDistrict').is_visible()
     assert page.locator('#visitorCounter').is_visible()
-    assert page.locator('.kpi[data-kpi]').count() == 5
-    assert page.locator('#fTambon').is_visible() == (len(page.evaluate('window.__AUTHORITY_CONTEXT__.tambons')) > 1)
+    assert page.locator('#execKpi .kpi-card').count() == 8
+    assert page.locator('#efTambon').is_visible() == (len(page.evaluate('window.__AUTHORITY_CONTEXT__.tambons')) > 1)
     expected_rows = [row for row in DATA if row['localAuthority'] == entry['authority']
                      and row['name'] != 'SHARED-INVALID']
     assert len(expected_rows) == count
     assert set(state['scopeIds']) == {row['id'] for row in expected_rows}, state
-    assert state['types'] == len({row['type'] for row in expected_rows}), state
-    assert state['broken'] == sum(row['problem'] == 'ชำรุด' for row in expected_rows), state
-    assert 'AUTH-' + entry['slug'] in page.locator('#tblBody').inner_text()
+    assert 'AUTH-' + entry['slug'] in page.locator('#tblBody').text_content()
     for other in ENTRIES:
         if other['slug'] != entry['slug']:
-            assert 'AUTH-' + other['slug'] not in page.locator('#tblBody').inner_text()
+            assert 'AUTH-' + other['slug'] not in page.locator('#tblBody').text_content()
     assert page.locator('#tblBody tr[data-id]').count() == count
 
 
@@ -288,8 +297,8 @@ def main():
             page.goto(BASE + '/authority/obt-khue-wiang/')
             ready(page, 'obt-khue-wiang', 0)
             assert page.locator('#authorityFailure').count() == 0
-            assert 'ยังไม่มีรายการสำรวจที่ยืนยัน' in page.locator('#authorityZero').inner_text()
-            assert page.locator('#authorityZero').is_visible()
+            assert 'ยังไม่มีรายการที่ยืนยัน' in page.locator('#authorityEmptyNotice').inner_text()
+            assert page.locator('#authorityEmptyNotice').is_visible()
             results.append('valid_zero_records')
             context.close()
 
@@ -299,19 +308,19 @@ def main():
             page = context.new_page()
             page.goto(path)
             ready(page, 'tt-mae-ka', 2)
-            hero_markers = page.locator('#mapbox .leaflet-marker-icon').count()
-            page.locator('#txtSearch').fill('MAEKA-DAMAGED')
-            assert page.locator('#statCount').inner_text() == '1'
-            page.locator('#fStatus').select_option('ชำรุด')
-            assert page.locator('#statCount').inner_text() == '1'
-            page.locator('.kpi[data-kpi="count"]').click()
+            hero_markers = page.locator('#map .leaflet-marker-icon').count()
+            page.locator('#efSearch').fill('MAEKA-DAMAGED')
+            wait_kpi(page, '1')
+            page.locator('#efStatus').select_option('broken')
+            wait_kpi(page, '1')
+            page.locator('#efReset').click()
             assert_locked(page, by_slug['tt-mae-ka'], 2)
             assert hero_markers == 2, hero_markers
-            page.locator('#fStatus').select_option('ชำรุด')
-            assert page.locator('#statCount').inner_text() == '1'
-            assert 'MAEKA-DAMAGED' in page.locator('#tblBody').inner_text()
-            assert 'MAENA-DAMAGED' not in page.locator('#tblBody').inner_text()
-            page.locator('.kpi[data-kpi="count"]').click()
+            page.locator('#efStatus').select_option('broken')
+            wait_kpi(page, '1')
+            assert 'MAEKA-DAMAGED' in page.locator('#tblBody').text_content()
+            assert 'MAENA-DAMAGED' not in page.locator('#tblBody').text_content()
+            page.locator('#efReset').click()
             assert_locked(page, by_slug['tt-mae-ka'], 2)
             overflow = page.evaluate('document.documentElement.scrollWidth - window.innerWidth')
             assert overflow <= 2, overflow

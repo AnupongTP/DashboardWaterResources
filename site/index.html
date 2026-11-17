@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <script>
-if (location.protocol !== 'file:' && /^\/authority(?:\/|$)/.test(location.pathname)) {
+if (location.protocol !== 'file:' && /^\/(?:authority|district)(?:\/|$)/.test(location.pathname)) {
   const base = document.createElement('base');
   base.href = '/';
   document.head.appendChild(base);
@@ -960,7 +960,7 @@ canvas{max-width:100%!important;}
 }
 .cf-chip:hover{background:#c8e6c9;}
 .cf-chip .cf-x{font-size:14px;line-height:1;color:#c62828;}
-.priority-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px;}
+.priority-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));gap:12px;}
 .p-card{border-radius:10px;padding:16px 18px;border-left:5px solid;position:relative;cursor:pointer;transition:.15s;}
 .p-card:hover{filter:brightness(.97);}
 .p-card.pc-critical{background:#fff5f5;border-color:#c62828;}
@@ -1596,25 +1596,20 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
     <div class="sec-head">
       <div class="sec-num" style="background:#c62828;">⚠️</div>
       <h2>การวิเคราะห์ความเสี่ยงและลำดับความสำคัญ</h2>
-      <span class="sec-sub">คำนวณอัตโนมัติจากข้อมูลจริง</span>
+      
     </div>
     <div class="charts-2col">
       <div class="chart-box chart-interactive">
-        <h3>ดัชนีความเสี่ยงรายตำบล (Risk Score 0–100)</h3>
-        <div class="chart-desc" id="riskLevelLegend"><span style="color:#c62828;font-weight:700;">แดง ≥ 70</span> วิกฤต · <span style="color:#e65100;font-weight:700;">ส้ม 45–69</span> สูง · <span style="color:#f9a825;font-weight:700;">เหลือง 25–44</span> ปานกลาง · <span style="color:#2e7d32;font-weight:700;">เขียว &lt; 25</span> ต่ำ</div>
+        <h3>สัดส่วนแหล่งน้ำที่พบปัญหาอย่างน้อย 1 ข้อ แยกตามตำบล</h3>
+        <div class="chart-desc" id="riskLevelLegend"></div>
         <div style="background:#f0f5fa;border:1px solid #dbe6f0;border-radius:6px;padding:7px 10px;margin:4px 0 6px;font-size:10.5px;color:#3a5060;line-height:1.55;">
-          📐 <b>วิธีคำนวณ:</b> คะแนนความเสี่ยงของแต่ละตำบล วัดจากสัดส่วนปัญหาของแหล่งน้ำในตำบลนั้นล้วน ๆ (ไม่มีคะแนนบวกเพิ่มพิเศษ) ถ่วงน้ำหนักตามความรุนแรง 4 ด้าน ได้แก่
-          <b style="color:#c62828;">% แหล่งน้ำชำรุด/ไม่มีน้ำ-แห้งแล้ง/ขาดแคลน × 40%</b> +
-          <b style="color:#7c5cd6;">% คุณภาพน้ำมีปัญหา (สี/กลิ่น/เน่าเสีย/เค็ม) × 25%</b> +
-          <b style="color:#e65100;">% วัชพืชปกคลุม × 20%</b> +
-          <b style="color:#1565c0;">% น้ำตื้นเขิน × 15%</b>
-          และ คะแนนยิ่งสูง ยิ่งต้องเร่งดำเนินการ · คลิกแถบเพื่อกรองข้อมูล
+          📐 <b>วิธีคิด:</b> จำนวนแหล่งน้ำในตำบลที่ระบุปัญหาอย่างน้อย 1 ข้อ ÷ จำนวนแหล่งน้ำทั้งหมดของตำบล × 100 (ไม่ถ่วงน้ำหนัก ไม่ใช้เกณฑ์ที่กำหนดเอง) · สีแดง = สูงกว่าค่าเฉลี่ยทั้ง<span class="scope-unit">จังหวัด</span> สีเขียว = ไม่เกินค่าเฉลี่ย · คลิกแถบเพื่อกรองข้อมูลทั้งหน้า
         </div>
         <div id="riskGauge" style="padding:6px 0;"></div>
       </div>
       <div class="chart-box">
-        <h3>ทำไมตำบลนี้ถึงเสี่ยง</h3>
-        <div class="chart-desc">คลิกแถบตำบลด้านซ้ายเพื่อดูสาเหตุความเสี่ยงแบบสรุป ช่วยตัดสินใจว่าควรแก้ปัญหาไหนก่อน · 💡 แต่ละแท่งด้านล่างนับ <b>อิสระจากกัน</b> (1 แหล่งน้ำติดได้หลายปัญหาพร้อมกัน หรือไม่ติดเลยก็ได้) จึงไม่จำเป็นต้องรวมกันได้ 100% — ตัวเลข % คือ "พบปัญหานี้กี่ % ของแหล่งน้ำในตำบล" ส่วนคะแนนความเสี่ยงรวมด้านบนมาจากการเอา % แต่ละอันไปคูณน้ำหนักของมันก่อนแล้วค่อยบวกกัน</div>
+        <h3>องค์ประกอบปัญหาของตำบลที่เลือก</h3>
+        <div class="chart-desc">คลิกแถบตำบลด้านซ้าย · แต่ละแท่งนับแยกกัน (1 แห่งมีได้หลายปัญหา) จึงรวมไม่ต้องเท่า 100% · คลิกปัญหาเพื่อดูรายชื่อ</div>
         <div id="tambonRiskDetail" style="max-height:380px;overflow:auto;"></div>
       </div>
     </div>
@@ -1864,10 +1859,23 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
   </div>
 </div>
 
+<div class="img-modal-bg" id="imgModalBg">
+  <div class="img-modal">
+    <button class="img-modal-close" id="imgModalClose" type="button">✕</button>
+    <img id="imgModalImg" src="" alt="">
+    <div class="authority-image-fallback" id="imgModalFailure" hidden>ไม่สามารถแสดงภาพขยายได้</div>
+    <div class="img-modal-caption" id="imgModalCaption"></div>
+  </div>
+</div>
+
 <script src="./assets/runtime-config.js"></script>
 <script src="./assets/water-data-loader.js"></script>
 <script src="./assets/area-responsibility.js"></script>
 <script src="./assets/authority-routes.js"></script>
+<script src="./assets/district-routes.js"></script>
+<script src="./assets/maeka-data-adapter.js"></script>
+<script src="./assets/scoped-images.js"></script>
+<script src="./assets/visitor-counter.js"></script>
 <script src="./assets/tambon-combobox.js"></script>
 <script src="./assets/stream-data.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
@@ -1877,20 +1885,26 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
 const AREA = window.AreaResponsibility;
 if(!AREA) throw new Error('AreaResponsibility module is unavailable');
 const ROUTES = window.AuthorityRoutes;
-const AUTHORITY_ROUTE = ROUTES && ROUTES.resolve(location.pathname, location.protocol);
+const DISTRICT_ROUTES = window.DistrictRoutes;
+const DISTRICT_PATH = location.protocol !== 'file:' && /^\/district(?:\/|$)/.test(location.pathname);
+// /district/* is resolved first: AuthorityRoutes.resolve() reports it as {kind:'root'}.
+const SCOPE_ROUTES = DISTRICT_PATH ? DISTRICT_ROUTES : ROUTES;
+const AUTHORITY_ROUTE = SCOPE_ROUTES && SCOPE_ROUTES.resolve(location.pathname, location.protocol);
 if (!AUTHORITY_ROUTE || AUTHORITY_ROUTE.kind === 'invalid') {
-  if (ROUTES) ROUTES.showFailure('invalid');
+  if (SCOPE_ROUTES) SCOPE_ROUTES.showFailure('invalid');
   else document.body.replaceChildren(document.createTextNode('ไม่พบหน่วยงาน'));
   return;
 }
 const TAMBON_UI = window.TambonCombobox;
 if(!TAMBON_UI) throw new Error('TambonCombobox module is unavailable');
-const AUTHORITY_MODE = AUTHORITY_ROUTE.kind === 'authority';
+const DISTRICT_MODE = AUTHORITY_ROUTE.kind === 'district';
+// AUTHORITY_MODE = any scoped page (one authority or one district); the province page is the only unscoped one.
+const AUTHORITY_MODE = AUTHORITY_ROUTE.kind === 'authority' || DISTRICT_MODE;
 let LOADED_RECORDS;
 try { LOADED_RECORDS = await window.WaterData.load(); }
 catch (error) {
   if (!AUTHORITY_MODE) throw error;
-  ROUTES.showFailure('unavailable');
+  SCOPE_ROUTES.showFailure('unavailable');
   return;
 }
 let authorityDataIsCurrent = !AUTHORITY_MODE;
@@ -1901,42 +1915,82 @@ if (AUTHORITY_MODE) {
   catch (_) { authorityDataIsCurrent = false; }
 }
 if (!authorityDataIsCurrent) {
-  ROUTES.showFailure('unavailable');
+  SCOPE_ROUTES.showFailure('unavailable');
   return;
 }
 let DECORATED_RECORDS;
 try { DECORATED_RECORDS = AREA.decorateRecords(LOADED_RECORDS); }
 catch (error) {
   if (!AUTHORITY_MODE) throw error;
-  ROUTES.showFailure('unavailable');
+  SCOPE_ROUTES.showFailure('unavailable');
   return;
 }
-const RAW = AUTHORITY_MODE
-  ? DECORATED_RECORDS.filter((record) => AREA.recordMatchesAuthority(record, AUTHORITY_ROUTE.authority))
-  : DECORATED_RECORDS;
-const LOCKED_AUTHORITY = AUTHORITY_MODE ? AUTHORITY_ROUTE.authority : '';
-const LOCKED_DISTRICT = AUTHORITY_MODE && AUTHORITY_ROUTE.districts.length === 1 ? AUTHORITY_ROUTE.districts[0] : '';
+// Scope = same predicates the old adapters used: authority -> recordMatchesAuthority (resolved owner),
+// district -> recordMatchesDistrict (canonical Tambon only; unresolved LocalAuthority rows are NOT dropped).
+const RAW = DISTRICT_MODE
+  ? DECORATED_RECORDS.filter((record) => AREA.recordMatchesDistrict(record, AUTHORITY_ROUTE.district))
+  : AUTHORITY_MODE
+    ? DECORATED_RECORDS.filter((record) => AREA.recordMatchesAuthority(record, AUTHORITY_ROUTE.authority))
+    : DECORATED_RECORDS;
+const LOCKED_AUTHORITY = AUTHORITY_MODE && !DISTRICT_MODE ? AUTHORITY_ROUTE.authority : '';
+const LOCKED_DISTRICT = DISTRICT_MODE ? AUTHORITY_ROUTE.district
+  : (AUTHORITY_MODE && AUTHORITY_ROUTE.districts.length === 1 ? AUTHORITY_ROUTE.districts[0] : '');
+const SCOPE_FULLNAME = !AUTHORITY_MODE ? '' : DISTRICT_MODE ? 'อำเภอ' + AUTHORITY_ROUTE.district : ROUTES.fullName(LOCKED_AUTHORITY);
+const SCOPE_UNIT = !AUTHORITY_MODE ? 'จังหวัด' : DISTRICT_MODE ? 'อำเภอ' : (/^เทศบาล/.test(SCOPE_FULLNAME) ? 'เทศบาล' : 'อบต.');
+document.querySelectorAll('.scope-unit').forEach((el) => { el.textContent = SCOPE_UNIT; });
+const SCOPE_CONTEXT = !AUTHORITY_MODE ? null : Object.freeze(DISTRICT_MODE
+  ? {kind: 'district', district: AUTHORITY_ROUTE.district, fullName: SCOPE_FULLNAME, slug: AUTHORITY_ROUTE.slug,
+     tambons: AREA.tambonsForDistrict(AUTHORITY_ROUTE.district)}
+  : {authority: LOCKED_AUTHORITY, fullName: SCOPE_FULLNAME, slug: AUTHORITY_ROUTE.slug,
+     tambons: AREA.tambonsForAuthority(LOCKED_AUTHORITY)});
 if (AUTHORITY_MODE) {
+  window.__AUTHORITY_CONTEXT__ = SCOPE_CONTEXT;
+  document.body.classList.add('dashboard-scoped-index');
+  // Header (prototype index_maeka.html): scope name in the Thai title, site title links back to the province page (D12).
+  const areaLine = DISTRICT_MODE ? '' : ' ' + AUTHORITY_ROUTE.districts.map((name) => 'อำเภอ' + name).join(' ');
+  const brandTitle = document.querySelector('.header-brand .eyebrow');
+  const brandLink = document.createElement('a');
+  brandLink.href = '/';
+  brandLink.id = 'brandHomeLink';
+  brandLink.textContent = 'กว๊านกักเก็บ แดชบอร์ดศูนย์ข้อมูลแหล่งน้ำ ' + SCOPE_FULLNAME + areaLine + ' จังหวัดพะเยา';
+  brandLink.style.cssText = 'color:inherit;text-decoration:none;';
+  brandTitle.replaceChildren(brandLink);
+  // The lock badge duplicates the new title: keep it hidden. District/authority/moo controls are locked by the route.
+  const hideField = (id) => {
+    const control = document.getElementById(id);
+    const group = control && control.closest('.gf-field, .f-group, .df-group');
+    if (group) { group.hidden = true; group.style.display = 'none'; }
+  };
+  ['efDistrict', 'efAuthority', 'fDistrict', 'fAuthority', 'fMoo', 'dfDistrict', 'dfAuthority'].forEach(hideField);
+  if (SCOPE_CONTEXT.tambons.length <= 1) ['efTambon', 'fTambon', 'dfTambon'].forEach(hideField);
+  document.querySelector('#gfBar .gf-grid').style.setProperty('--gf-n',
+    String([...document.querySelectorAll('#gfBar .gf-grid > .gf-field:not(.gf-search)')].filter((el) => !el.hidden).length));
   const badge = document.getElementById('authorityLockBadge');
-  document.getElementById('authorityLockName').textContent = 'ข้อมูลในความรับผิดชอบ: ' + ROUTES.fullName(LOCKED_AUTHORITY);
-  badge.hidden = false;
-  badge.style.display = 'block';
+  document.getElementById('authorityLockName').textContent = 'ข้อมูลในความรับผิดชอบ: ' + SCOPE_FULLNAME;
   if (RAW.length === 0) {
     const emptyNotice = document.createElement('div');
     emptyNotice.id = 'authorityEmptyNotice';
     emptyNotice.style.cssText = 'margin-top:5px;font-size:12px;color:#fff3cf;';
-    emptyNotice.textContent = 'ยังไม่มีรายการที่ยืนยันว่าอยู่ในความรับผิดชอบของหน่วยงานนี้ในชุดข้อมูลล่าสุด';
+    emptyNotice.textContent = DISTRICT_MODE
+      ? 'ยังไม่มีรายการสำรวจในอำเภอนี้ในชุดข้อมูลปัจจุบัน'
+      : 'ยังไม่มีรายการที่ยืนยันว่าอยู่ในความรับผิดชอบของหน่วยงานนี้ในชุดข้อมูลล่าสุด';
     badge.after(emptyNotice);
   }
   const maekaLink = document.querySelector('a[href="maeka.html"]');
   if (maekaLink) maekaLink.hidden = true;
-  const visitorCounter = document.getElementById('visitorCounter');
-  if (visitorCounter) visitorCounter.style.display = 'none';
-  document.title = ROUTES.fullName(LOCKED_AUTHORITY) + ' | ข้อมูลแหล่งน้ำ';
-  window.__AUTHORITY_PAGE__ = Object.freeze({slug: AUTHORITY_ROUTE.slug,
-    authority: LOCKED_AUTHORITY, count: RAW.length,
-    unresolved: DECORATED_RECORDS.length - DECORATED_RECORDS.filter((r) => !!r.resolvedLocalAuthority).length});
+  document.title = SCOPE_FULLNAME + ' | ข้อมูลแหล่งน้ำ';
+  if (DISTRICT_MODE) {
+    window.__DISTRICT_CONTEXT__ = SCOPE_CONTEXT;
+    window.__DISTRICT_PAGE__ = Object.freeze({slug: AUTHORITY_ROUTE.slug, district: AUTHORITY_ROUTE.district, count: RAW.length});
+  } else {
+    window.__AUTHORITY_PAGE__ = Object.freeze({slug: AUTHORITY_ROUTE.slug,
+      authority: LOCKED_AUTHORITY, count: RAW.length,
+      unresolved: DECORATED_RECORDS.length - DECORATED_RECORDS.filter((r) => !!r.resolvedLocalAuthority).length});
+  }
 }
+// ===== Selection state (scoped pages only). The DSS card was removed (spec D5 revised 17 Nov 2026). =====
+const DSS_ON = AUTHORITY_MODE;
+let dssSel = null, dssVersion = 0;
 // ให้ตัวอักษรในกราฟ Chart.js ทั้งหมด (แกน, legend, tooltip) ใช้ฟอนต์ Sarabun เหมือนส่วนอื่นของแดชบอร์ด
 if (typeof Chart !== 'undefined') {
   Chart.defaults.font.family = "'Sarabun', sans-serif";
@@ -2039,7 +2093,7 @@ function imgTag(link,style='',thumbSize=0){
   const fallback=`<span class="water-image-fallback${compact?' compact':''}" style="${sizeStyle}display:${failed?'flex':'none'};">${compact?'ภาพไม่พร้อม':'ไม่สามารถแสดงภาพจาก Google Drive'}${retry}${openLink}</span>`;
   if(!id)return fallback;
   const src=failed?'':(workingDriveUrls.get(id)||`https://lh3.googleusercontent.com/d/${id}=w500`);
-  return `<img ${src?`src="${src}"`:''} data-drive-id="${id}" style="${style}${failed?';display:none;':''}" onload="window.dashboardImageLoaded(this,'${id}')" onerror="window.dashboardImageError(this,'${id}')" loading="lazy">${fallback}`;
+  return `<img ${src?`src="${src}"`:''}${AUTHORITY_MODE?' referrerpolicy="no-referrer"':''} data-drive-id="${id}" style="${style}${failed?';display:none;':''}" onload="window.dashboardImageLoaded(this,'${id}')" onerror="window.dashboardImageError(this,'${id}')" loading="lazy">${fallback}`;
 }
 function isDamaged(r){return r.problem&&DAMAGE_KEYWORDS.some(k=>r.problem.includes(k));}
 function isUsable(r){return r.problem&&r.problem.includes('ใช้งานได้');}
@@ -2132,7 +2186,7 @@ function execExtraPass(r) {
   return true;
 }
 
-function getExecData() {
+function getExecData(ignoreSummary) {
   return RAW.filter(function(r) {
     if (execFilter.district && !matchesDistrict(r, execFilter.district)) return false;
     if (execFilter.authority && !matchesAuthority(r, execFilter.authority)) return false;
@@ -2184,7 +2238,7 @@ function toggleRiskFactor(key) {
 window.toggleRiskFactor = toggleRiskFactor; // exposed: called from inline onclick="" attributes, which run in global scope
 
 // เลือกหมวดที่จะแสดงใน "ข้อเสนอแนะเชิงนโยบายสำหรับผู้บริหาร" — 'CRITICAL' (ค่าเริ่มต้น), หมวดอื่น, หรือ 'ALL' (ทั้งหมด)
-window.__policyLevelFilter = 'CRITICAL';
+window.__policyLevelFilter = 'ALL';
 function setPolicyLevelFilter(lvl){
   window.__policyLevelFilter = lvl;
   runBuildExec();
@@ -2322,7 +2376,7 @@ function setupExecFilters() {
     else { var ctl={district:efD,authority:efA,type:efTy,status:efSt,problem:efPr}[k]; if(!ctl) return;
       ctl.value=(k==='district'?LOCKED_DISTRICT:(k==='authority'?LOCKED_AUTHORITY:'')); ctl.dispatchEvent(new Event('change')); }
   });
-  document.getElementById('efReset').addEventListener('click',function(){ execFilter={district:LOCKED_DISTRICT,authority:LOCKED_AUTHORITY,tambon:'',type:'',q:'',status:'',problem:''};clearTimeout(efQTimer);efQ.value='';efQClear.style.display='none';efSt.value='';efPr.value='';resetKpiTambonExpansion();crossFilter={type:null,tambon:null,problem:null};efD.value=LOCKED_DISTRICT;efTy.value='';refreshExecAuthorities();refreshExecTambons();lockAreaControls();updateCrossFilterBar();runBuildExec(); });
+  document.getElementById('efReset').addEventListener('click',function(){ dssSel=null;dssVersion++; execFilter={district:LOCKED_DISTRICT,authority:LOCKED_AUTHORITY,tambon:'',type:'',q:'',status:'',problem:''};clearTimeout(efQTimer);efQ.value='';efQClear.style.display='none';efSt.value='';efPr.value='';resetKpiTambonExpansion();crossFilter={type:null,tambon:null,problem:null};efD.value=LOCKED_DISTRICT;efTy.value='';refreshExecAuthorities();refreshExecTambons();lockAreaControls();updateCrossFilterBar();runBuildExec(); });
 }
 setupExecFilters();
 
@@ -2434,12 +2488,13 @@ function buildStreamLayer(){
 
 const clusterIcon = window.WaterClusterIcon;
 function initMap(){
-  map=L.map('map').setView(DEFAULT_CENTER,DEFAULT_ZOOM);
+  map=L.map('map',{maxZoom:18}).setView(DEFAULT_CENTER,DEFAULT_ZOOM);
   // พื้นหลังภาพถ่ายดาวเทียมจริง (Esri World Imagery — ฟรี ไม่ต้องขอ API key)
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles © Esri',maxZoom:19}).addTo(map);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles © Esri',maxZoom:18,maxNativeZoom:17}).addTo(map);
   // เลเยอร์ชื่อสถานที่/เส้นถนนซ้อนทับ ให้ยังอ่านชื่อตำบล/ถนนได้เหมือนเดิม
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{attribution:'',maxZoom:19}).addTo(map);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{attribution:'',maxZoom:18,maxNativeZoom:17}).addTo(map);
   markerLayer=L.markerClusterGroup({maxClusterRadius:zoom=>zoom>=16?1:70,spiderfyOnMaxZoom:true,showCoverageOnHover:false,chunkedLoading:true,iconCreateFunction:clusterIcon('#0a5fb4','#29b6f6')}).addTo(map);mapInited=true;
+if(DSS_ON) bindDssMapEvents();
   map.on('zoomend',()=>rescaleMarkers(map,markerLayer));
   addMapExpandControl(map,'heroMapStage','hero');
 }
@@ -2519,23 +2574,53 @@ function buildExecPopup(d){
   const gmapUrl=`https://www.google.com/maps?q=${d.lat},${d.lng}&z=17`;
   const appleUrl=`https://maps.apple.com/?ll=${d.lat},${d.lng}&q=${encodeURIComponent(d.name||'แหล่งน้ำ')}`;
   const damageBadge=damaged?`<div class="popup-damage-badge">⚠️ ${(d.problem||'').split(',').filter(p=>DAMAGE_KEYWORDS.some(k=>p.includes(k))).join(', ')}</div>`:'';
-  const photoBox=d.imglink?`<div style="margin:8px 0;border-radius:8px;overflow:hidden;background:#eef;min-height:120px;display:flex;align-items:center;justify-content:center;position:relative;">${imgTag(d.imglink,'width:100%;max-height:180px;object-fit:cover;display:block;border-radius:8px;')}<a href="${d.imglink}" target="_blank" rel="noopener" style="position:absolute;bottom:5px;right:5px;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:3px 7px;border-radius:5px;text-decoration:none;">🔍 ขนาดเต็ม</a></div>`:`<div style="margin:8px 0;height:80px;background:#eef0f4;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:12px;">ไม่มีภาพถ่าย</div>`;
+  const photoBox=(AUTHORITY_MODE&&window.ScopedImages)?(window.ScopedImages.fileId(d.imglink!==undefined?d.imglink:d.image)?`<div class="pp-imgwrap">${window.ScopedImages.tag(d.imglink!==undefined?d.imglink:d.image,'pp-img',d.name||'แหล่งน้ำ')}</div>`:''):d.imglink?`<div style="margin:8px 0;border-radius:8px;overflow:hidden;background:#eef;min-height:120px;display:flex;align-items:center;justify-content:center;position:relative;">${imgTag(d.imglink,'width:100%;max-height:180px;object-fit:cover;display:block;border-radius:8px;')}<a href="${d.imglink}" target="_blank" rel="noopener" style="position:absolute;bottom:5px;right:5px;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:3px 7px;border-radius:5px;text-decoration:none;">🔍 ขนาดเต็ม</a></div>`:`<div style="margin:8px 0;height:80px;background:#eef0f4;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:12px;">ไม่มีภาพถ่าย</div>`;
   return `<div style="font-family:'Sarabun',sans-serif;width:255px;font-size:13px;"><b style="color:#0d47a1;font-size:14px;">${d.name||'ไม่ระบุชื่อ'}</b><div style="color:#666;font-size:11.5px;margin-top:2px;">${typeIcon(d.type)} ${d.type||''} · ${d.tambon||''} ${d.village?'· '+d.village:''}</div><div style="color:#546e7a;font-size:11px;margin-top:2px;">🏛️ ${authorityDisplay(d)}</div>${damageBadge}${photoBox}<div style="font-size:12px;color:#333;line-height:1.8;margin-bottom:6px;"><div>📐 ${d.width||'-'}×${d.length||'-'}×${d.depth||'-'} ม.</div><div>💧 ${fmtN(d.volume)} ลบ.ม.</div><div>👤 ${d.owner||'-'}</div><div style="color:#999;font-size:11px;">📍 ${d.lat.toFixed(5)}, ${d.lng.toFixed(5)}</div></div><a href="${gmapUrl}" target="_blank" rel="noopener" class="popup-nav-btn">🗺️ นำทางด้วย Google Maps</a><a href="${appleUrl}" target="_blank" rel="noopener" style="display:block;margin-top:5px;text-align:center;font-size:11px;color:#888;text-decoration:none;">🍎 Apple Maps</a></div>`;
 }
 function renderMap(data){
   if(!mapInited)initMap();
   if(mapState.tambons) data=data.filter(d=>mapState.tambons.has(d.tambon));
   data=data.filter(passesLayerFilters);
-  markerLayer.clearLayers();let n=0;
+  let n=0;
   const latlngs=[];const zs=zoomScale(map);
+  if(AUTHORITY_MODE){
+    // Scoped pages keep marker objects (and their open popup / image nodes) across re-renders: only markers that
+    // left the visible set are removed, new ones added, and a marker whose style changed gets a new icon.
+    const keep=new Set(),toAdd=[];
+    data.forEach(d=>{
+      if(d.lat==null||d.lng==null)return;n++;
+      latlngs.push([d.lat,d.lng]);
+      const st=markerStyle(d),key=JSON.stringify(st);
+      // markerStore keeps one marker per record for the page's lifetime (identity, popup and image node survive
+      // layer filters); markerById is the subset currently in the cluster group.
+      let m=markerStore.get(d.id);
+      if(m){ if(m._styleKey!==key){ m.setIcon(makeExecIcon(d,st)); m._styleKey=key; } }
+      else{
+        m=L.marker([d.lat,d.lng],{icon:makeExecIcon(d,st)});
+        m._recId=d.id;m.authorityRecordId=d.id;m._styleKey=key;markerStore.set(d.id,m);
+        WaterMapPopup.bind(m,map,()=>buildExecPopup(d),{maxWidth:275,minWidth:255});
+      }
+      if(!markerById.has(d.id)){ toAdd.push(m); markerById.set(d.id,m); }
+      keep.add(d.id);
+    });
+    const toRemove=[];
+    markerById.forEach((m,id)=>{ if(!keep.has(id)){ toRemove.push(m); markerById.delete(id); } });
+    // offline test fixtures replace the cluster plugin with a plain feature group that has no bulk methods
+    if(toRemove.length){ if(typeof markerLayer.removeLayers==='function') markerLayer.removeLayers(toRemove); else toRemove.forEach(m=>markerLayer.removeLayer(m)); }
+    if(toAdd.length){ if(typeof markerLayer.addLayers==='function') markerLayer.addLayers(toAdd); else toAdd.forEach(m=>markerLayer.addLayer(m)); }
+    dssMarkSelection();
+  } else {
+  markerLayer.clearLayers();markerById.clear();
   data.forEach(d=>{
     if(d.lat==null||d.lng==null)return;n++;
     latlngs.push([d.lat,d.lng]);
     const st=markerStyle(d);
 const m=L.marker([d.lat,d.lng],{icon:makeExecIcon(d,st)});
+m._recId=d.id;m.authorityRecordId=d.id;markerById.set(d.id,m);
 WaterMapPopup.bind(m,map,()=>buildExecPopup(d),{maxWidth:275,minWidth:255});
 markerLayer.addLayer(m);
   });
+  }
   $('#n-map').textContent=`(${fmtN(n)} จุดที่มีพิกัด)`;
   buildMapLegend(data);
   // ซูมอัตโนมัติเมื่อมีการเปลี่ยนตัวกรองของแดชบอร์ดผู้บริหาร หรือชั้นข้อมูล/ตัวกรองย่อยบนแผนที่เอง
@@ -2656,6 +2741,61 @@ markerLayer.addLayer(m);
 })();
 
 
+// ===== Selection (scoped pages): map marker + table row highlight, row -> map reveal =====
+// Selection never narrows KPIs/charts/table; closing a popup returns to the plain view of the current filters.
+// Leaflet closes popup A before opening B, so a close is reconciled in a microtask against dssVersion (no timer).
+const markerById=new Map(),markerStore=new Map();
+function updateDss(){ if(DSS_ON) dssMarkSelection(); }
+// Highlight of the selected record: its table row and (when it is on screen) its map marker.
+function dssMarkSelection(){
+  const id=dssSel?dssSel.id:null;
+  document.querySelectorAll('#tblBody tr[data-id]').forEach(function(tr){ tr.classList.toggle('selected',id!=null&&Number(tr.dataset.id)===id); });
+  markerById.forEach(function(marker,markerId){
+    const el=marker.getElement&&marker.getElement();
+    if(el) el.classList.toggle('dss-selected',id!=null&&markerId===id);
+  });
+}
+function dssSelect(id,source){ dssVersion++; dssSel={id:id,source:source}; updateDss(); }
+function bindDssMapEvents(){
+  map.on('popupopen',function(e){ const src=e.popup&&e.popup._source; if(src&&src._recId!=null) dssSelect(src._recId,'map'); });
+  map.on('popupclose',function(e){
+    const src=e.popup&&e.popup._source; if(!src||src._recId==null) return;
+    const version=dssVersion;
+    queueMicrotask(function(){ if(dssVersion===version&&dssSel&&dssSel.id===src._recId){ dssSel=null; dssVersion++; updateDss(); } });
+  });
+}
+function dssPickRow(id){
+  dssSelect(id,'table');
+  const nav=document.querySelector('.main-nav button[data-view="exec"]'); if(nav) nav.click();
+  if(map) map.invalidateSize();
+  document.getElementById('heroMapStage').scrollIntoView({block:'nearest'});
+  const marker=markerById.get(id), version=dssVersion;
+  // A record that cannot be shown on the map (no coordinates / filtered off) must not leave another record's popup open.
+  if(map&&(!marker||!markerLayer.hasLayer(marker))) map.closePopup();
+  // No coordinates / filtered off the map: the row stays highlighted without inventing a marker.
+  // The cluster group adds markers in chunks right after a render, so wait (bounded, per frame, version-guarded)
+  // until the marker is in the group instead of using a fixed timer.
+  let frames=120;
+  (function reveal(){
+    if(dssVersion!==version||!dssSel||dssSel.id!==id||!marker) return;
+    if(markerLayer.hasLayer(marker)){
+      const open=function(){ if(dssVersion===version&&dssSel&&dssSel.id===id&&markerLayer.hasLayer(marker)) marker.openPopup(); };
+      if(typeof markerLayer.zoomToShowLayer==='function') markerLayer.zoomToShowLayer(marker,open);
+      else open(); // offline test fixtures replace the cluster plugin with a plain feature group
+    }
+    else if(frames-->0) requestAnimationFrame(reveal);
+  })();
+}
+// Read-only handles so browser tests can drive real Leaflet markers (the page code lives in a closure).
+if(AUTHORITY_MODE) window.__SCOPED_MAP__=Object.freeze({map:()=>map,layer:()=>markerLayer,marker:id=>markerById.get(id),rebuild:()=>renderMap(getExecData()),selectedId:()=>dssSel?dssSel.id:null});
+if(AUTHORITY_MODE){
+  document.getElementById('imgModalClose').addEventListener('click',function(){ window.closeImageModal(); });
+  document.getElementById('imgModalBg').addEventListener('click',function(e){ if(e.target.id==='imgModalBg') window.closeImageModal(); });
+}
+if(DSS_ON){
+  document.getElementById('tblBody').addEventListener('click',function(e){
+    const tr=e.target.closest('tr[data-id]'); if(!tr||e.target.closest('a')) return; dssPickRow(Number(tr.dataset.id)); });
+}
 function runBuildExec(){
   var EDATA   = getExecData();
   var N       = EDATA.length;
@@ -2899,30 +3039,36 @@ function runBuildExec(){
     .map(function(a){var isActive=crossFilter.problem===a[3];return'<span style="display:inline-flex;align-items:center;gap:3px;margin-right:8px;cursor:pointer;'+(isActive?'font-weight:800;text-decoration:underline;':'')+'" onclick="setCrossFilter(\'problem\',\''+a[3]+'\')"><span style="width:9px;height:9px;background:'+a[0]+';border-radius:2px;flex:none;"></span>'+a[1]+' '+fmtN(a[2])+'</span>';}).join('');
 
   // ─── TAMBON STATS ──────────────────────────────────
-  // ใช้ข้อมูลที่กรองด้วย "ประเภท/ปัญหา" เท่านั้น (ไม่กรองด้วยตำบล) เพื่อให้ยังเปรียบเทียบครบทุกตำบลในขอบเขตปัจจุบันได้เสมอ
+  // helpers จากต้นแบบ (ส่วนความเสี่ยง/ลำดับความสำคัญ)
+  function hasProb(r){ return (r.problem||'').split(',').some(function(s){s=s.trim();return s&&s!=='ใช้งานได้';}); }
+  function photoLinks(l){ if(!l)return[]; var out=[]; (String(l).match(/https?:\/\/[^\s,]+/g)||[]).forEach(function(u){if(driveId(u)&&out.indexOf(u)<0)out.push(u);}); return out; }
+  function hasPhoto(d){ return photoLinks(d&&d.imglink).length>0; }
+  // ใช้ข้อมูลที่กรองด้วย "ประเภท/ปัญหา" เท่านั้น (ไม่กรองด้วยตำบล) เพื่อให้ยังเปรียบเทียบครบทั้ง 10 ตำบลได้เสมอ
   // แม้ผู้ใช้จะคลิกเลือกตำบลใดตำบลหนึ่งอยู่ก็ตาม — ตำบลที่ถูกเลือกจะถูกไฮไลต์แทนการยุบแท่งอื่นให้เป็นศูนย์
   var RISK_BASE = RAW.filter(function(r) {
-    if (execFilter.district && !matchesDistrict(r,execFilter.district)) return false;
-    if (execFilter.authority && !matchesAuthority(r,execFilter.authority)) return false;
     if (execFilter.type   && r.type   !== execFilter.type)   return false;
     if (crossFilter.type    && r.type    !== crossFilter.type)    return false;
     if (crossFilter.problem && !(r.problem && r.problem.includes(crossFilter.problem))) return false;
+    if (execFilter.district && !matchesDistrict(r,execFilter.district)) return false;
+    if (execFilter.authority && !matchesAuthority(r,execFilter.authority)) return false;
     if (!execExtraPass(r)) return false;
     return true;
   });
   var RISK_TOTAL_VOL = RISK_BASE.reduce(function(s,r){return s+vol(r);},0);
   var selectedTambon = crossFilter.tambon || execFilter.tambon || '';
 
+  var PROV_N=RISK_BASE.length, PROV_NP=RISK_BASE.filter(hasProb).length, PROV_AVG=PROV_N?PROV_NP/PROV_N*100:0;
   var tbStats = MAIN_TB.map(function(tb){
     var sub=RISK_BASE.filter(function(r){return r.tambon===tb;});
     var n=sub.length,nd=sub.filter(riskFail).length,nu=sub.filter(ok).length,nw=sub.filter(weed).length,ns=sub.filter(shal).length,nq=sub.filter(riskQual).length,v=sub.reduce(function(s,r){return s+vol(r);},0);
-    // Risk Score = คำนวณจากสัดส่วนปัญหาจริงล้วนๆ ไม่มีคะแนนบวกเพิ่ม: ใช้งานไม่ได้จริง 40% + คุณภาพน้ำ 25% + วัชพืช 20% + ตื้นเขิน 15%
-    var rs=Math.min(100,Math.round((n?nd/n*100:0)*0.40+(n?nq/n*100:0)*0.25+(n?nw/n*100:0)*0.20+(n?ns/n*100:0)*0.15));
-    return{tb:tb,n:n,nd:nd,nu:nu,nw:nw,ns:ns,nq:nq,v:v,pct:n?nd/n*100:0,rs:rs};
+    // % แหล่งน้ำที่มีปัญหาอย่างน้อย 1 ข้อ (นับตรง ไม่ถ่วงน้ำหนัก)
+    var np=sub.filter(hasProb).length;
+    var rs=n?Math.round(np/n*1000)/10:0;
+    return{tb:tb,n:n,nd:nd,nu:nu,nw:nw,ns:ns,nq:nq,np:np,v:v,pct:n?nd/n*100:0,rs:rs};
   });
 
-  function rC(s){return s>=70?'#c62828':s>=45?'#e65100':s>=25?'#f9a825':'#2e7d32';}
-  function rL(s){return s>=70?'วิกฤต':s>=45?'สูง':s>=25?'ปานกลาง':'ต่ำ';}
+  function rC(s){return s>PROV_AVG?'#c62828':'#2e7d32';}
+  function rL(s){return s>PROV_AVG?'สูงกว่าเฉลี่ย':'ไม่เกินเฉลี่ย';}
 
   // ─── RISK GAUGE ────────────────────────────────────
   var riskHtml='';
@@ -2933,11 +3079,12 @@ function runBuildExec(){
       +'<div style="width:88px;flex:none;text-align:right;color:'+(isSel?'#c62828':'#3a5060')+';font-weight:'+(isSel?'800':'400')+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+t.tb+'">'+(isSel?'▶ ':'')+t.tb+'</div>'
       +'<div style="flex:1;height:13px;background:#eef2f7;border-radius:4px;overflow:hidden;cursor:pointer;'+(isSel?'box-shadow:0 0 0 2px #c62828 inset;':'')+'" onclick="setCrossFilter(\'tambon\',\''+t.tb+'\')" title="คลิกเพื่อกรองข้อมูลทั้งแดชบอร์ดเฉพาะตำบลนี้">'
       +'<div style="width:'+t.rs+'%;height:100%;background:'+rC(t.rs)+';border-radius:4px;transition:.3s;"></div></div>'
-      +'<div style="width:28px;font-weight:800;color:'+rC(t.rs)+';font-size:11px;">'+t.rs+'</div>'
-      +'<div style="width:48px;font-size:10px;color:'+rC(t.rs)+';font-weight:700;">'+rL(t.rs)+'</div>'
+      +'<div style="width:44px;font-weight:800;color:'+rC(t.rs)+';font-size:11px;">'+t.rs.toFixed(1)+'%</div>'
+      +'<div style="width:78px;font-size:10px;color:'+rC(t.rs)+';font-weight:700;">'+rL(t.rs)+'</div>'
       +'</div>';
   });
   document.getElementById('riskGauge').innerHTML=riskHtml;
+  document.getElementById('riskLevelLegend').innerHTML='ค่าเฉลี่ยทั้ง'+SCOPE_UNIT+' (ตามตัวกรองปัจจุบัน): <b style="color:#0a5fb4;">'+PROV_AVG.toFixed(1)+'%</b> ('+fmtN(PROV_NP)+' จาก '+fmtN(PROV_N)+' แห่งมีปัญหา) · <span style="color:#c62828;font-weight:700;">แดง</span> สูงกว่าค่าเฉลี่ย · <span style="color:#2e7d32;font-weight:700;">เขียว</span> ไม่เกินค่าเฉลี่ย';
 
   // ─── ทำไมตำบลนี้ถึงเสี่ยง (แสดงข้างกราฟดัชนีความเสี่ยง เมื่อคลิกเลือกแถบตำบล) ──
   // ไขคะแนนรวมออกเป็นสาเหตุย่อยตามน้ำหนักในสูตรจริง (ชำรุด/ไม่มีน้ำ/ขาดแคลน×40% + คุณภาพน้ำ×25% + วัชพืช×20% + ตื้นเขิน×15%) แบบสั้นกระชับ ให้ผู้บริหารตัดสินใจได้ทันทีว่าควรแก้อะไรก่อน
@@ -2949,20 +3096,20 @@ function runBuildExec(){
     var t=tbStats.filter(function(x){return x.tb===tb;})[0];
     if(!t||!t.n){ body.innerHTML='<div style="font-size:12px;color:#9aabb0;padding:24px 6px;text-align:center;">ไม่มีข้อมูลแหล่งน้ำในตำบลนี้ตามตัวกรองปัจจุบัน</div>'; return; }
     var damPct=t.pct, qualPct=t.n?t.nq/t.n*100:0, weedPct=t.n?t.nw/t.n*100:0, shalPct=t.n?t.ns/t.n*100:0;
-    var damC=damPct*0.40, qualC=qualPct*0.25, weedC=weedPct*0.20, shalC=shalPct*0.15;
+    var damC=damPct, qualC=qualPct, weedC=weedPct, shalC=shalPct;
     var tbSites=RISK_BASE.filter(function(r){return r.tambon===tb;});
     var factors=[
       {key:'dam',label:'แหล่งน้ำชำรุด/ไม่มีน้ำ/ขาดแคลน',pct:damPct,contrib:damC,n:t.nd,color:'#c62828',action:'ควรเร่งซ่อมแซมหรือจัดหาแหล่งน้ำทดแทน',test:riskFail},
       {key:'qual',label:'คุณภาพน้ำมีปัญหา (สี/กลิ่น/เน่าเสีย/เค็ม)',pct:qualPct,contrib:qualC,n:t.nq,color:'#7c5cd6',action:'ควรตรวจสอบคุณภาพน้ำและวางแผนปรับปรุง',test:riskQual},
       {key:'weed',label:'วัชพืชปกคลุม',pct:weedPct,contrib:weedC,n:t.nw,color:'#e65100',action:'ควรจัดกำจัดวัชพืชตามรอบ',test:weed},
-      {key:'shal',label:'น้ำตื้นเขิน',pct:shalPct,contrib:shalC,n:t.ns,color:'#1565c0',action:'ควรวางแผนขุดลอกก่อนฤดูแล้ง',test:shal}
+      {key:'shal',label:'น้ำตื้นเขิน',pct:shalPct,contrib:shalC,n:t.ns,color:'#1565c0',action:'ควรวางแผนขุดลอก',test:shal}
     ].sort(function(a,b){return b.contrib-a.contrib;});
     var topFactor=factors[0];
     var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'
-      +'<div style="font-size:12px;font-weight:800;color:'+rC(t.rs)+';">📍 ตำบล'+tb+' — ดัชนีความเสี่ยง <span style="font-size:14px;">'+t.rs+'/100</span> <span style="background:'+rC(t.rs)+'22;color:'+rC(t.rs)+';padding:1px 7px;border-radius:5px;font-size:10.5px;">'+rL(t.rs)+'</span></div>'
+      +'<div style="font-size:12px;font-weight:800;color:'+rC(t.rs)+';">📍 ตำบล'+tb+' — แหล่งน้ำมีปัญหา <span style="font-size:14px;">'+t.rs.toFixed(1)+'%</span> <span style="background:'+rC(t.rs)+'22;color:'+rC(t.rs)+';padding:1px 7px;border-radius:5px;font-size:10.5px;">'+rL(t.rs)+'</span></div>'
       +'<span style="font-size:10px;color:#1565c0;font-weight:700;cursor:pointer;text-decoration:underline;white-space:nowrap;" onclick="setCrossFilter(\'tambon\',\''+tb+'\')">✕ ปิด</span>'
       +'</div>'
-      +'<div style="font-size:10.5px;color:#5a7080;margin-bottom:8px;">จากแหล่งน้ำทั้งหมด '+fmtN(t.n)+' แห่งในตำบลนี้ สาเหตุความเสี่ยงเรียงตามน้ำหนักที่ส่งผลต่อคะแนนมากไปน้อย (แต่ละแท่งนับอิสระ 1 แห่งติดได้หลายปัญหาพร้อมกัน จึง% รวมกันไม่ต้องเท่า 100) — คลิกแต่ละสาเหตุเพื่อดูรายชื่อสถานที่:</div>';
+      +'<div style="font-size:10.5px;color:#5a7080;margin-bottom:8px;">จากแหล่งน้ำทั้งหมด '+fmtN(t.n)+' แห่งในตำบลนี้ (มีปัญหา '+fmtN(t.np)+' แห่ง) เรียงจากปัญหาที่พบมากไปน้อย — คลิกแต่ละปัญหาเพื่อดูรายชื่อสถานที่:</div>';
     factors.forEach(function(f){
       if(!f.n){ h+='<div style="font-size:10.5px;color:#c8d2d8;margin-bottom:8px;">'+f.label+' — ไม่พบปัญหานี้</div>'; return; }
       var factorKey=tb+'|'+f.key;
@@ -2979,8 +3126,8 @@ function runBuildExec(){
         h+='<div style="margin-top:7px;padding-top:6px;border-top:1px dashed #e3eaf1;" onclick="event.stopPropagation();">';
         flist.slice(0,5).forEach(function(r){
           var loc=[r.village?(r.village+(r.moo?' ม.'+r.moo:'')):(r.moo?'ม.'+r.moo:'')].filter(Boolean).join(' · ');
-          var thumb = r.imglink
-            ? imgTag(r.imglink,'width:36px;height:36px;object-fit:cover;border-radius:6px;flex:none;background:#eef;',36)
+          var thumb = hasPhoto(r)
+            ? '<img src="'+photoLinks(r.imglink)[0]+'" loading="lazy" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex:none;background:#eef;" onerror="this.style.display=\'none\'">'
             : '<div style="width:36px;height:36px;border-radius:6px;flex:none;background:#eef0f4;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:8px;">ไม่มีรูป</div>';
           h+='<div style="display:flex;gap:7px;align-items:center;padding:4px 2px;border-bottom:1px dashed #eef2f7;cursor:pointer;" onclick="showSiteCard('+r.id+','+idsStr+')">'
             +thumb
@@ -3001,7 +3148,7 @@ function runBuildExec(){
         +'💡 <b>สรุป:</b> สาเหตุหลักคือ<b>'+topFactor.label+'</b> ('+topFactor.pct.toFixed(0)+'% ของแหล่งน้ำในตำบล) — '+topFactor.action+'เป็นอันดับแรก'
         +'</div>';
     } else {
-      h+='<div style="font-size:11px;background:#f1f8e9;border-radius:6px;padding:7px 9px;color:#2e7d32;">✅ ไม่พบปัญหาหลักที่ทำให้คะแนนความเสี่ยงสูง</div>';
+      h+='<div style="font-size:11px;background:#f1f8e9;border-radius:6px;padding:7px 9px;color:#2e7d32;">✅ ไม่พบปัญหาในตำบลนี้ตามตัวกรองปัจจุบัน</div>';
     }
     body.innerHTML=h;
   })();
@@ -3009,18 +3156,12 @@ function runBuildExec(){
   // ─── ACTION PRIORITY (จัดลำดับด้วยกฎง่ายๆ ตรงไปตรงมา — ไม่มีการบวกคะแนนพิเศษ ไม่มีตัวคูณ ไม่มีโบนัสซ่อนอยู่) ─
   // ป้ายสี (วิกฤต/เร่งด่วน/ปานกลาง) มาจาก "% ของแหล่งน้ำที่มีปัญหาจริง" ล้วนๆ ใช้เกณฑ์เดียวกับกราฟดัชนีความเสี่ยงรายตำบลด้านบน (แดง≥70 · ส้ม45–69 · เหลือง25–44)
   // ภายในหมวดสีเดียวกัน เรียงลำดับการ์ดตาม "จำนวนแห่งจริง" มาก→น้อย ไม่ใช่คะแนนสังเคราะห์ที่คำนวณซับซ้อน
-  function tierFromScore(score){ return score>=70?'CRITICAL':score>=45?'HIGH':'MEDIUM'; }
-  var LVLRANK={'MEDIUM':1,'HIGH':2,'CRITICAL':3};
-  // ข้อความ "กำหนดเวลา" ผูกกับหมวดโดยตรง — ทุกประเด็นในหมวดเดียวกันได้ข้อความเดดไลน์เดียวกันเสมอ ไม่มีข้อยกเว้นรายตัว
-  var TIER_DEADLINE={
-    CRITICAL:'ดำเนินการทันที',
-    HIGH:'ดำเนินการภายใน 30 วัน',
-    MEDIUM:'วางแผนภายใน 90 วัน',
-    STRATEGIC:'วางแผนระยะยาว (6 เดือน)',
-    OPPORTUNITY:'ไม่มีกำหนดเวลา (ข้อมูลอ้างอิง)'
-  };
-  var TIER_LABEL_SHORT={CRITICAL:'เสี่ยงสูงมาก',HIGH:'ต้องเฝ้าระวัง',MEDIUM:'ควรติดตาม'};
-
+  var LVLRANK={'MEDIUM':1,'HIGH':2};
+  // จัดกลุ่มด้วยการเทียบ "ค่าเฉลี่ยทั้งจังหวัด" ที่คำนวณจากข้อมูล (ไม่ใช้เกณฑ์ตายตัว): สูงกว่าค่าเฉลี่ย = HIGH, ไม่เกินค่าเฉลี่ย = MEDIUM
+  function vsAvg(v,avg){ return v>avg?'HIGH':'MEDIUM'; }
+  var provDamPct=N?EDATA.filter(dam).length/N*100:0;
+  var provOkPct=N?EDATA.filter(ok).length/N*100:0;
+  var TIER_LABEL_SHORT={HIGH:'สูงกว่าค่าเฉลี่ย'+SCOPE_UNIT+'',MEDIUM:'ไม่เกินค่าเฉลี่ย'+SCOPE_UNIT+''};
   var policies=[];
   var allTypes2=[...new Set(EDATA.map(function(r){return r.type;}).filter(Boolean))];
   var typeStats2=allTypes2.map(function(ty){
@@ -3028,64 +3169,47 @@ function runBuildExec(){
     var n=sub.length,nd=sub.filter(dam).length,nu=sub.filter(ok).length;
     return{ty:ty,n:n,nd:nd,nu:nu,dmgPct:n?nd/n*100:0,okPct:n?nu/n*100:0};
   });
-
-  // 1) ประเภทแหล่งน้ำที่ชำรุดหนัก — ป้ายสีจาก % ชำรุดของประเภทนั้นตรงๆ (ไม่มีโบนัสจำนวนแห่งบวกเพิ่ม)
-  typeStats2.filter(function(t){return t.dmgPct>25&&t.n>=8;}).forEach(function(t){
-    var lvl=tierFromScore(t.dmgPct);
-    policies.push({lvl:lvl,icon:lvl==='CRITICAL'?'🔴':lvl==='HIGH'?'🟠':'🟡',tag:'ซ่อมแซม'+t.ty,
+  // 1) ประเภทที่มีแหล่งน้ำชำรุดมากที่สุด (6 ประเภทแรกตามจำนวนแห่ง)
+  typeStats2.filter(function(t){return t.nd>0;}).sort(function(a,b){return b.nd-a.nd;}).slice(0,6).forEach(function(t){
+    var lvl=vsAvg(t.dmgPct,provDamPct);
+    policies.push({lvl:lvl,icon:lvl==='HIGH'?'🔴':'🟡',tag:'ซ่อมแซม'+t.ty,
       body:fmtN(t.nd)+' แห่ง ชำรุด '+t.dmgPct.toFixed(0)+'% จาก '+fmtN(t.n)+' แห่ง',
-      meta:[TIER_DEADLINE[lvl],'โครงสร้างชำรุด'],score:t.dmgPct,count:t.nd,filter:function(){setCrossFilter('type',t.ty);},type:t.ty});
+      meta:['ค่าเฉลี่ย'+SCOPE_UNIT+' '+provDamPct.toFixed(0)+'%','โครงสร้างชำรุด'],score:t.dmgPct,count:t.nd,filter:function(){setCrossFilter('type',t.ty);},type:t.ty});
   });
-
-  // 2) ตำบล — ใช้ Risk Score (สูตรเดียวกับที่แสดงในการ์ด "ดัชนีความเสี่ยงรายตำบล" ด้านบน) เป็นคะแนนโดยตรง ไม่ต้องคิดสูตรใหม่
-  tbStats.filter(function(t){return t.rs>=25 && (!selectedTambon||t.tb===selectedTambon);})
-    .sort(function(a,b){return b.rs-a.rs;}).slice(0,6).forEach(function(t){
-      var lvl=tierFromScore(t.rs);
-      policies.push({lvl:lvl,icon:lvl==='CRITICAL'?'🔴':lvl==='HIGH'?'🟠':'🟡',tag:'ตำบล'+t.tb+' — '+TIER_LABEL_SHORT[lvl],
-        body:'ชำรุด '+fmtN(t.nd)+'/'+fmtN(t.n)+' แห่ง ('+t.pct.toFixed(1)+'%) · Risk Score: '+t.rs+'/100',
-        meta:[TIER_DEADLINE[lvl],'ระดับพื้นที่ทั้งตำบล'],score:t.rs,count:t.nd,filter:function(){setCrossFilter('tambon',t.tb);},tambon:t.tb});
+  // 2) ตำบลที่มีแหล่งน้ำมีปัญหามากที่สุด (6 ตำบลแรกตามจำนวนแห่ง)
+  tbStats.filter(function(t){return t.np>0 && (!selectedTambon||t.tb===selectedTambon);})
+    .sort(function(a,b){return b.np-a.np;}).slice(0,6).forEach(function(t){
+      var lvl=vsAvg(t.rs,PROV_AVG);
+      policies.push({lvl:lvl,icon:lvl==='HIGH'?'🔴':'🟡',tag:'ตำบล'+t.tb,
+        body:'มีปัญหา '+fmtN(t.np)+'/'+fmtN(t.n)+' แห่ง ('+t.rs.toFixed(1)+'%) · ชำรุด '+fmtN(t.nd)+' แห่ง',
+        meta:['ค่าเฉลี่ย'+SCOPE_UNIT+' '+PROV_AVG.toFixed(1)+'%','ระดับพื้นที่ทั้งตำบล'],score:t.rs,count:t.np,filter:function(){setCrossFilter('tambon',t.tb);},tambon:t.tb});
   });
-
-  // 3) วัชพืชปกคลุม / น้ำตื้นเขิน — บำรุงรักษาเชิงป้องกัน ป้ายสีจาก % ของทั้งหมดตรงๆ (ไม่มีโบนัสจำนวนแห่งบวกเพิ่ม) แสดงเฉพาะเมื่อเกิน 25% (ระดับ "ปานกลาง" ขึ้นไปตามเกณฑ์เดียวกับกราฟด้านบน)
+  // 3) ปัญหาที่พบทั่วจังหวัด: วัชพืช / ตื้นเขิน
   var weedTotal=EDATA.filter(weed).length,shalTotal=EDATA.filter(shal).length;
   var weedPct=N?weedTotal/N*100:0, shalPct=N?shalTotal/N*100:0;
-  if(weedPct>25){
-    var wLvl=tierFromScore(weedPct);
-    policies.push({lvl:wLvl,icon:wLvl==='CRITICAL'?'🔴':wLvl==='HIGH'?'🟠':'🟡',tag:'กำจัดวัชพืชปกคลุม '+fmtN(weedTotal)+' แห่ง',
-      body:weedPct.toFixed(1)+'% ของแหล่งน้ำทั้งหมด — ปล่อยไว้ลดความจุและนำไปสู่ความเสื่อมโทรม',
-      meta:[TIER_DEADLINE[wLvl],'บำรุงรักษาเชิงป้องกัน'],score:weedPct,count:weedTotal,problem:'วัชพืชปกคลุม',filter:function(){setCrossFilter('problem','วัชพืชปกคลุม');}});
-  }
-  if(shalPct>25){
-    var sLvl=tierFromScore(shalPct);
-    policies.push({lvl:sLvl,icon:sLvl==='CRITICAL'?'🔴':sLvl==='HIGH'?'🟠':'🟡',tag:'ขุดลอกแหล่งน้ำตื้นเขิน '+fmtN(shalTotal)+' แห่ง',
-      body:shalPct.toFixed(1)+'% ของแหล่งน้ำทั้งหมด — วางแผนขุดลอกก่อนฤดูแล้ง',
-      meta:[TIER_DEADLINE[sLvl],'บำรุงรักษาเชิงป้องกัน'],score:shalPct,count:shalTotal,problem:'น้ำตื้นเขิน',filter:function(){setCrossFilter('problem','น้ำตื้นเขิน');}});
-  }
-
-  // 4) เชิงกลยุทธ์ — น้ำกระจุกตัวในตำบลเดียว: เป็นประเด็นเชิงระบบ/ผังการกระจายน้ำ ไม่ใช่ "ความเร่งด่วน" แบบเดียวกับข้างบน
-  // จึงไม่ใช้มาตราส่วนคะแนน 0-100 เดียวกัน (คะแนนนี้ใช้จัดลำดับกันเองภายในหมวดเชิงกลยุทธ์เท่านั้น)
+  if(weedTotal>0) policies.push({lvl:'STRATEGIC',icon:'🌿',tag:'วัชพืชปกคลุม '+fmtN(weedTotal)+' แห่ง',
+      body:weedPct.toFixed(1)+'% ของแหล่งน้ำในข้อมูลที่เลือก — วัชพืชลดพื้นที่เก็บน้ำและบังแสง',
+      meta:['นับจากข้อมูลปัญหาที่ระบุ','บำรุงรักษา'],score:weedPct,count:weedTotal,problem:'วัชพืชปกคลุม',filter:function(){setCrossFilter('problem','วัชพืชปกคลุม');}});
+  if(shalTotal>0) policies.push({lvl:'STRATEGIC',icon:'🏞️',tag:'น้ำตื้นเขิน '+fmtN(shalTotal)+' แห่ง',
+      body:shalPct.toFixed(1)+'% ของแหล่งน้ำในข้อมูลที่เลือก — ตะกอนสะสมทำให้เก็บน้ำได้น้อยลง',
+      meta:['นับจากข้อมูลปัญหาที่ระบุ','บำรุงรักษา'],score:shalPct,count:shalTotal,problem:'น้ำตื้นเขิน',filter:function(){setCrossFilter('problem','น้ำตื้นเขิน');}});
+  // 4) ปริมาตรน้ำกระจุกตัว (แสดงสัดส่วนจริงของตำบลที่มีปริมาตรสูงสุด)
   var topVTb=tbStats.slice().sort(function(a,b){return b.v-a.v;})[0];
   var totalVolAll=EDATA.reduce(function(s,r){return s+vol(r);},0);
-  if(topVTb&&totalVolAll&&topVTb.v/totalVolAll>0.5 && (!selectedTambon||topVTb.tb===selectedTambon)) policies.push({lvl:'STRATEGIC',icon:'🔵',tag:'แก้ปัญหาน้ำกระจุกตัว — ตำบล'+topVTb.tb,
-    body:(topVTb.v/totalVolAll*100).toFixed(0)+'% ของปริมาตรน้ำอยู่ที่ตำบลเดียว — ควรศึกษาระบบกระจายน้ำ',
-    meta:[TIER_DEADLINE.STRATEGIC,'ความเหลื่อมล้ำเชิงพื้นที่'],score:Math.round(topVTb.v/totalVolAll*100),count:topVTb.n,tambon:topVTb.tb,detailMode:'topvol',filter:function(){setCrossFilter('tambon',topVTb.tb);}});
-
-  // 5) คุณภาพน้ำ — กระทบสุขภาพประชาชนโดยตรง จึงมีกฎตายตัว (ไม่ใช่การคำนวณ): กำหนดขั้นต่ำเป็น "เร่งด่วน" เสมอไม่ว่า % จะสูงหรือต่ำ ป้ายสีที่เหลือมาจาก % ตรงๆ เหมือนประเด็นอื่น
-  var wqTotal=['น้ำมีสี','น้ำเน่าเสีย','น้ำมีกลิ่น','น้ำเค็ม'].reduce(function(s,k){return s+EDATA.filter(function(r){return r.problem&&r.problem.includes(k);}).length;},0);
+  if(topVTb&&totalVolAll&&topVTb.n>0 && (!selectedTambon||topVTb.tb===selectedTambon)) policies.push({lvl:'STRATEGIC',icon:'🔵',tag:'ปริมาตรน้ำสูงสุดอยู่ที่ตำบล'+topVTb.tb,
+    body:(topVTb.v/totalVolAll*100).toFixed(0)+'% ของปริมาตรน้ำรวมอยู่ในตำบลนี้ ('+fmtN(topVTb.n)+' แห่ง)',
+    meta:['สัดส่วนปริมาตรจริงจากข้อมูล','การกระจายน้ำเชิงพื้นที่'],score:Math.round(topVTb.v/totalVolAll*100),count:topVTb.n,tambon:topVTb.tb,detailMode:'topvol',filter:function(){setCrossFilter('tambon',topVTb.tb);}});
+  // 5) คุณภาพน้ำ
+  var wqTotal=EDATA.filter(function(r){return r.problem&&['น้ำมีสี','น้ำเน่าเสีย','น้ำมีกลิ่น','น้ำเค็ม'].some(function(k){return r.problem.includes(k);});}).length;
   var wqPct=N?wqTotal/N*100:0;
-  if(N&&wqTotal>=3&&wqTotal/N>0.01){
-    var qLvl=tierFromScore(wqPct);
-    if(LVLRANK[qLvl]<LVLRANK.HIGH) qLvl='HIGH'; // กฎตายตัว: ปัญหาสุขภาพ ขั้นต่ำต้อง "เร่งด่วน" เสมอ
-    policies.push({lvl:qLvl,icon:qLvl==='CRITICAL'?'🔴':qLvl==='HIGH'?'🟠':'🟡',tag:'เฝ้าระวังคุณภาพน้ำ — เสี่ยงสุขภาพ',
-      body:'พบปัญหาคุณภาพน้ำ '+fmtN(wqTotal)+' แห่ง ('+wqPct.toFixed(1)+'%) — ต้องแจ้งเตือนและตรวจสอบแหล่งปนเปื้อน',
-      meta:[TIER_DEADLINE[qLvl],'กระทบสุขภาพโดยตรง — กำหนดขั้นต่ำ "เร่งด่วน" เสมอ'],score:wqPct,count:wqTotal,problem:'น้ำเน่าเสีย',detailMode:'quality',filter:function(){setCrossFilter('problem','น้ำเน่าเสีย');}});
-  }
-
-  // 6) โอกาสพัฒนา — ตำบลต้นแบบ: เป็นข้อมูลเชิงบวก ไม่ใช่ปัญหา จึงไม่เข้าสูตรความเร่งด่วน (คะแนนนี้ใช้จัดลำดับภายในหมวดเดียวกันเท่านั้น)
-  var bestTb2=tbStats.slice().sort(function(a,b){return a.pct-b.pct;})[0];
-  if(bestTb2 && bestTb2.pct<10 && (!selectedTambon||bestTb2.tb===selectedTambon)) policies.push({lvl:'OPPORTUNITY',icon:'🟢',tag:'ต้นแบบจากตำบล'+bestTb2.tb,
-    body:'ชำรุดเพียง '+bestTb2.pct.toFixed(1)+'% — ศึกษาและถ่ายทอดแนวทางการจัดการไปยังตำบลเสี่ยงสูง',
-    meta:[TIER_DEADLINE.OPPORTUNITY,'กรณีศึกษาเชิงบวก'],score:Math.round(100-bestTb2.pct),count:bestTb2.n,tambon:bestTb2.tb,detailMode:'good',filter:function(){setCrossFilter('tambon',bestTb2.tb);}});
+  if(wqTotal>0) policies.push({lvl:'STRATEGIC',icon:'🧪',tag:'คุณภาพน้ำมีปัญหา '+fmtN(wqTotal)+' แห่ง',
+    body:wqPct.toFixed(1)+'% ของแหล่งน้ำในข้อมูลที่เลือก — มีสี กลิ่น เน่าเสีย หรือเค็ม',
+    meta:['นับจากข้อมูลปัญหาที่ระบุ','คุณภาพน้ำ'],score:wqPct,count:wqTotal,problem:'น้ำเน่าเสีย',detailMode:'quality',filter:function(){setCrossFilter('problem','น้ำเน่าเสีย');}});
+  // 6) ตำบลที่มีสัดส่วนปัญหาต่ำที่สุด (ใช้เป็นกรณีศึกษา)
+  var bestTb2=tbStats.filter(function(t){return t.n>0;}).sort(function(a,b){return a.rs-b.rs||b.n-a.n;})[0];
+  if(bestTb2 && (!selectedTambon||bestTb2.tb===selectedTambon)) policies.push({lvl:'OPPORTUNITY',icon:'🟢',tag:'สัดส่วนปัญหาต่ำสุด: ตำบล'+bestTb2.tb,
+    body:'มีปัญหา '+bestTb2.rs.toFixed(1)+'% ('+fmtN(bestTb2.np)+'/'+fmtN(bestTb2.n)+' แห่ง) เทียบค่าเฉลี่ย'+SCOPE_UNIT+' '+PROV_AVG.toFixed(1)+'% — ศึกษาแนวทางการดูแลเพื่อนำไปใช้กับตำบลอื่น',
+    meta:['ใช้ดูเป็นตัวอย่าง','กรณีศึกษา'],score:Math.round(bestTb2.n?bestTb2.nu/bestTb2.n*100:0),count:bestTb2.n,tambon:bestTb2.tb,detailMode:'good',filter:function(){setCrossFilter('tambon',bestTb2.tb);}});
 
   // ลำดับ: หมวด (วิกฤต > เร่งด่วน > ปานกลาง > เชิงกลยุทธ์ > โอกาสพัฒนา) ก่อนเสมอ แล้วค่อยเรียง "จำนวนแห่งจริง" มาก→น้อยภายในหมวดเดียวกัน (ไม่ใช่คะแนนสังเคราะห์)
   var LVL={'CRITICAL':5,'HIGH':4,'MEDIUM':3,'STRATEGIC':2,'OPPORTUNITY':1,'INFO':0};
@@ -3101,7 +3225,7 @@ function runBuildExec(){
     else if(p.detailMode==='good'){ p.detail=EDATA.filter(function(r){return r.tambon===p.tambon&&ok(r);}); }
     else if(p.type){ p.detail=EDATA.filter(function(r){return r.type===p.type&&dam(r);}); }
     else if(p.tambon&&p.lvl==='CRITICAL'){ p.detail=EDATA.filter(function(r){return r.tambon===p.tambon&&dam(r);}); }
-    else if(p.tambon){ p.detail=EDATA.filter(function(r){return r.tambon===p.tambon&&(dam(r)||weed(r)||shal(r));}); }
+    else if(p.tambon){ p.detail=EDATA.filter(function(r){return r.tambon===p.tambon&&hasProb(r);}); }
     else if(p.problem){ p.detail=EDATA.filter(function(r){return r.problem&&r.problem.includes(p.problem);}); }
     else p.detail=[];
   });
@@ -3129,12 +3253,12 @@ function runBuildExec(){
     p.ownerTop=ownerList.slice(0,2);
     p.ownerMoreCount=Math.max(0,ownerList.length-2);
     // ความสมบูรณ์ของข้อมูล (มีรูปถ่ายกี่ % ของแห่งที่เกี่ยวข้อง)
-    var withPhoto=d.filter(function(r){return r.imglink&&r.imglink.indexOf('Error')<0;}).length;
+    var withPhoto=d.filter(hasPhoto).length;
     p.photoPct=d.length?Math.round(withPhoto/d.length*100):null;
     // จำนวนตำบลที่เกี่ยวข้อง (สำหรับประเด็นที่ไม่ได้ผูกกับตำบลเดียว เช่น วัชพืช/ตื้นเขิน/ประเภทชำรุด)
     p.tambonSet=[...new Set(d.map(function(r){return r.tambon;}).filter(Boolean))];
     // เดดไลน์เป็นวันที่จริง (คำนวณจากวันนี้ + จำนวนวันที่ระบุใน meta)
-    var days=extractDeadlineDays(p.meta);
+    var days=null; // ไม่กำหนดเดดไลน์เอง
     if(days!==null){
       if(days===0){ p.deadlineStr='ควรเริ่มดำเนินการวันนี้'; }
       else{ var dl=new Date(); dl.setDate(dl.getDate()+days); p.deadlineStr='กำหนดเสร็จภายใน '+fmtThaiDate(dl); }
@@ -3156,8 +3280,8 @@ function runBuildExec(){
   // ─── VOL EFFICIENCY ────────────────────────────────
   // ค่าเฉลี่ยต่อแหล่งน้ำ = ปริมาตรน้ำรวมของประเภทนั้น ÷ จำนวนแหล่งน้ำประเภทนั้น (n) — แสดงเฉพาะประเภทที่มีข้อมูลอย่างน้อย N แห่ง กันค่าเฉลี่ยเพี้ยนจากตัวอย่างน้อยเกินไป
   // เมื่อกรองเฉพาะตำบลเดียว (selectedTambon) N จะลดลงเหลือ 2 แทน 5 เพราะข้อมูลในตำบลเดียวมีน้อยกว่าระดับจังหวัดอยู่แล้ว ถ้ายังคงเกณฑ์ 5 ไว้ ส่วนใหญ่จะไม่เหลือแท่งให้ดูเลย
-  function fmtVolShort(x){ return x>=1e6?(x/1e6).toFixed(1)+'M':x>=1000?(x/1000).toFixed(0)+'K':Math.round(x).toString(); }
-  var effMinSites = selectedTambon ? 2 : 5;
+  function fmtVolShort(x){ return x>=1e6?(x/1e6).toFixed(1)+' ล้าน':Math.round(x).toLocaleString('th-TH'); }
+  var effMinSites = 1;
   var typeStats3=allTypes2.map(function(ty){
     var sub=EDATA.filter(function(r){return r.type===ty;});
     var n=sub.length,v=sub.reduce(function(s,r){return s+vol(r);},0);
@@ -3165,9 +3289,7 @@ function runBuildExec(){
   }).filter(function(t){return t.n>=effMinSites;}).sort(function(a,b){return b.avg-a.avg;}).slice(0,8);
   var effMax=Math.max.apply(null,typeStats3.map(function(t){return t.avg;}).concat([1]));
   var effHtml='';
-  if(selectedTambon){
-    effHtml+='<div style="font-size:10px;color:#5a7080;margin-bottom:8px;">🔍 กำลังแสดงเฉพาะตำบล'+selectedTambon+' — ใช้เกณฑ์ขั้นต่ำ 2 แห่งต่อประเภท (ลดจาก 5 แห่งของมุมมองทั้งจังหวัด เพราะข้อมูลในตำบลเดียวมีน้อยกว่า) ตัวเลขจึงมีความไม่แน่นอนสูงกว่ามุมมองทั้งจังหวัด</div>';
-  }
+  effHtml+='<div style="font-size:10px;color:#5a7080;margin-bottom:8px;">'+(selectedTambon?'🔍 เฉพาะตำบล'+selectedTambon+' · ':'')+'ตัวเลขในวงเล็บ = จำนวนแหล่งน้ำของประเภทนั้นที่ใช้คิดค่าเฉลี่ย (ประเภทที่มีน้อยแห่งให้ใช้ด้วยความระมัดระวัง)</div>';
   typeStats3.forEach(function(t){
     var pw=(t.avg/effMax*100).toFixed(1);
     var vStr=fmtVolShort(t.avg);
@@ -3175,7 +3297,7 @@ function runBuildExec(){
     var lblHtml=Array.isArray(wl)?wl.join('<br>'):wl;
     var tip='มี '+fmtN(t.n)+' แห่ง เก็บน้ำรวม '+fmtN(t.v)+' ลบ.ม. ÷ '+fmtN(t.n)+' แห่ง = เฉลี่ย '+fmtN(Math.round(t.avg))+' ลบ.ม./แห่ง';
     effHtml+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;font-size:11.5px;" title="'+tip+'">'
-      +'<div style="width:92px;flex:none;text-align:right;color:#3a5060;line-height:1.2;white-space:normal;font-size:10.5px;">'+lblHtml+'</div>'
+      +'<div style="width:92px;flex:none;text-align:right;color:#3a5060;line-height:1.2;white-space:normal;font-size:10.5px;">'+lblHtml+' <span style="color:#8a9aa0;">('+fmtN(t.n)+')</span></div>'
       +'<div style="flex:1;height:12px;background:#eef2f7;border-radius:3px;overflow:hidden;">'
       +'<div style="width:'+pw+'%;height:100%;background:#00838f;border-radius:3px;"></div></div>'
       +'<div style="width:60px;font-size:11px;font-weight:700;color:#00838f;text-align:right;">'+vStr+' ลบ.ม.</div>'
@@ -3185,8 +3307,8 @@ function runBuildExec(){
 
   // ─── TYPE HEALTH ───────────────────────────────────
   destroyExecChart('c_type_ok');
-  var hData=typeStats2.filter(function(t){return t.n>=5;}).sort(function(a,b){return b.okPct-a.okPct;});
-  var hColors=hData.map(function(t){return t.ty===crossFilter.type?'#0d47a1':crossFilter.type?'#2e7d3244':t.okPct>=80?'#2e7d32':t.okPct>=60?'#f9a825':'#c62828';});
+  var hData=typeStats2.slice().sort(function(a,b){return b.okPct-a.okPct;});
+  var hColors=hData.map(function(t){return t.ty===crossFilter.type?'#0d47a1':crossFilter.type?'#2e7d3244':t.okPct>=provOkPct?'#2e7d32':'#e65100';});
   new Chart('c_type_ok',{type:'bar',data:{labels:hData.map(function(t){return wrapLabel(t.ty,13);}),
     datasets:[{data:hData.map(function(t){return+t.okPct.toFixed(1);}),backgroundColor:hColors,borderRadius:4,maxBarThickness:14}]},
     options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
@@ -3194,12 +3316,13 @@ function runBuildExec(){
       plugins:{legend:{display:false},tooltip:{callbacks:{label:function(d){return d.raw+'% ('+hData[d.dataIndex].nu+'/'+hData[d.dataIndex].n+' แห่ง)';}}}}
       ,scales:{x:{max:100,ticks:{color:tC,font:{size:10},callback:function(v){return v+'%';}},grid:{color:gC}},y:{ticks:{color:tC,font:{size:10}},grid:{color:gC}}}}});
 
+  var _pl=document.getElementById('provOkLbl'); if(_pl) _pl.textContent=provOkPct.toFixed(1)+'%';
   // ─── REPAIR NEEDED ─────────────────────────────────
   var repData=typeStats2.filter(function(t){return t.nd>0;}).sort(function(a,b){return b.nd-a.nd;}).slice(0,8);
   var repMax=Math.max.apply(null,repData.map(function(t){return t.nd;}).concat([1]));
   var repHtml='';
   repData.forEach(function(t){
-    var rC2=t.dmgPct>40?'#c62828':t.dmgPct>20?'#e65100':'#f9a825';
+    var rC2=t.dmgPct>provDamPct?'#c62828':'#e65100';
     var wl2=wrapLabel(t.ty,11);
     var lblHtml2=Array.isArray(wl2)?wl2.join('<br>'):wl2;
     repHtml+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;font-size:11.5px;cursor:pointer;" onclick="setCrossFilter(\'type\',\''+t.ty+'\')">'
@@ -3212,9 +3335,9 @@ function runBuildExec(){
   });
   document.getElementById('repairNeeded').innerHTML=repHtml;
 
-  // ─── TAMBON COMPARISON: original table; mobile scrolls inside table wrapper ─────────────
+  // ─── TAMBON TABLE ──────────────────────────────────
   var allTbFull=tbStats.slice().sort(function(a,b){return b.rs-a.rs;});
-  var tblHtml='<div class="tambon-compare-desktop"><div class="tambon-compare-table-wrap"><table class="tambon-compare-table" style="width:100%;border-collapse:collapse;font-size:12px;">'
+  var tblHtml='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;">'
     +'<thead><tr style="background:linear-gradient(135deg,#0d47a1,#1976d2);color:#fff;">'
     +'<th style="padding:8px 10px;text-align:left;font-size:11px;">ตำบล</th>'
     +'<th style="padding:8px 10px;text-align:center;font-size:11px;">จำนวน</th>'
@@ -3224,29 +3347,28 @@ function runBuildExec(){
     +'<th style="padding:8px 10px;text-align:center;font-size:11px;">วัชพืช</th>'
     +'<th style="padding:8px 10px;text-align:center;font-size:11px;">ตื้นเขิน</th>'
     +'<th style="padding:8px 10px;text-align:right;font-size:11px;">ปริมาตร</th>'
-    +'<th style="padding:8px 10px;text-align:center;font-size:11px;">Risk Score</th>'
-    +'<th style="padding:8px 10px;text-align:center;font-size:11px;">ระดับ</th>'
+    +'<th style="padding:8px 10px;text-align:center;font-size:11px;">% มีปัญหา</th>'
+    +'<th style="padding:8px 10px;text-align:center;font-size:11px;">เทียบค่าเฉลี่ย'+SCOPE_UNIT+'</th>'
     +'</tr></thead><tbody>';
   allTbFull.forEach(function(t,i){
     var isSelected = crossFilter.tambon===t.tb || state.tambon===t.tb;
     var rowBg = isSelected?'#bbdefb':i%2?'#fff':'#f7fbff';
     var rClr=rC(t.rs);
-    var vStr=t.v>=1e6?(t.v/1e6).toFixed(1)+'M':t.v>=1000?(t.v/1000).toFixed(0)+'K':Math.round(t.v).toString();
-    var usablePct=t.n?(t.nu/t.n*100):0;
+    var vStr=t.v>=1e6?(t.v/1e6).toFixed(1)+' ล้าน':Math.round(t.v).toLocaleString('th-TH');
     tblHtml+='<tr class="row-clickable'+(isSelected?' row-selected':'')+'" style="background:'+rowBg+'" onclick="syncTambonEverywhere(\''+t.tb+'\')">'
       +'<td style="padding:8px 10px;font-weight:700;color:#0d47a1;">'+t.tb+'</td>'
       +'<td style="padding:8px 10px;text-align:center;">'+t.n+'</td>'
-      +'<td style="padding:8px 10px;text-align:center;color:#2e7d32;font-weight:700;">'+t.nu+' <span style="font-size:10px;font-weight:400;color:#8a9aa0;">('+usablePct.toFixed(0)+'%)</span></td>'
-      +'<td style="padding:8px 10px;text-align:center;"><span style="background:'+( t.pct>35?'#ffebee':t.pct>20?'#fff3e0':'#f1f8e9')+';color:'+( t.pct>35?'#c62828':t.pct>20?'#e65100':'#2e7d32')+';padding:1px 8px;border-radius:4px;font-weight:700;">'+t.nd+' ('+t.pct.toFixed(0)+'%)</span></td>'
+      +'<td style="padding:8px 10px;text-align:center;color:#2e7d32;font-weight:700;">'+t.nu+' <span style="font-size:10px;font-weight:400;color:#8a9aa0;">('+( t.n?(t.nu/t.n*100).toFixed(0):0)+'%)</span></td>'
+      +'<td style="padding:8px 10px;text-align:center;"><span style="background:'+( t.pct>provDamPct?'#ffebee':'#f1f8e9')+';color:'+( t.pct>provDamPct?'#c62828':'#2e7d32')+';padding:1px 8px;border-radius:4px;font-weight:700;">'+t.nd+' ('+t.pct.toFixed(0)+'%)</span></td>'
       +'<td style="padding:8px 10px;text-align:center;color:#7c5cd6;">'+t.nq+'</td>'
       +'<td style="padding:8px 10px;text-align:center;color:#e65100;">'+t.nw+'</td>'
       +'<td style="padding:8px 10px;text-align:center;color:#1565c0;">'+t.ns+'</td>'
       +'<td style="padding:8px 10px;text-align:right;color:#00838f;font-weight:700;">'+vStr+'</td>'
-      +'<td style="padding:8px 10px;text-align:center;"><div style="display:flex;align-items:center;gap:5px;"><div style="flex:1;height:8px;background:#eef2f7;border-radius:3px;overflow:hidden;"><div style="width:'+t.rs+'%;height:100%;background:'+rClr+';border-radius:3px;"></div></div><span style="font-weight:800;color:'+rClr+';font-size:11.5px;min-width:22px;">'+t.rs+'</span></div></td>'
+      +'<td style="padding:8px 10px;text-align:center;"><div style="display:flex;align-items:center;gap:5px;"><div style="flex:1;height:8px;background:#eef2f7;border-radius:3px;overflow:hidden;"><div style="width:'+t.rs+'%;height:100%;background:'+rClr+';border-radius:3px;"></div></div><span style="font-weight:800;color:'+rClr+';font-size:11.5px;min-width:40px;">'+t.rs.toFixed(1)+'%</span></div></td>'
       +'<td style="padding:8px 10px;text-align:center;"><span style="background:'+rClr+'22;color:'+rClr+';padding:2px 8px;border-radius:5px;font-size:10.5px;font-weight:700;">'+rL(t.rs)+'</span></td>'
       +'</tr>';
   });
-  tblHtml+='</tbody></table></div></div>';
+  tblHtml+='</tbody></table></div>';
   document.getElementById('tambonCompare').innerHTML=tblHtml;
 
   // ─── WATER QUALITY ─────────────────────────────────
@@ -3284,8 +3406,8 @@ function runBuildExec(){
     if(!list.length) h+='<div style="font-size:11px;color:#5a7080;">ไม่พบรายการ</div>';
     list.slice(0,10).forEach(function(r){
       var loc=[r.tambon?'ต.'+r.tambon:'',r.village?(r.village+(r.moo?' ม.'+r.moo:'')):''].filter(Boolean).join(' · ');
-      var thumb = r.imglink
-        ? imgTag(r.imglink,'width:44px;height:44px;object-fit:cover;border-radius:6px;flex:none;background:#eef;',44)
+      var thumb = hasPhoto(r)
+        ? '<img src="'+photoLinks(r.imglink)[0]+'" loading="lazy" style="width:44px;height:44px;object-fit:cover;border-radius:6px;flex:none;background:#eef;" onerror="this.style.display=\'none\'">'
         : '<div style="width:44px;height:44px;border-radius:6px;flex:none;background:#eef0f4;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:9px;">ไม่มีรูป</div>';
       h+='<div style="display:flex;gap:8px;align-items:center;padding:6px 4px;border-bottom:1px dashed #e3eaf1;cursor:pointer;" onclick="showSiteCard('+r.id+','+idsStr+')">'
         +thumb
@@ -3332,19 +3454,18 @@ function runBuildExec(){
   var PCLS2={'CRITICAL':'pc-critical','HIGH':'pc-high','MEDIUM':'pc-medium','STRATEGIC':'pc-opportunity','OPPORTUNITY':'pc-opportunity','INFO':'pc-info'};
   // เชิงกลยุทธ์ + โอกาสพัฒนา รวมแสดงเป็นหมวดเดียวกัน (คนละมิติกับความเร่งด่วน จึงไม่ปนกับ 3 หมวดบน) ใช้โทนสีเขียวเดียวกันทั้งหมด
   function groupOf(lvl){ return (lvl==='STRATEGIC'||lvl==='OPPORTUNITY') ? 'STRATOPP' : lvl; }
-  var GROUP_LABEL={'CRITICAL':'🔴 วิกฤต — ดำเนินการทันที','HIGH':'🟠 เร่งด่วน','MEDIUM':'🟡 ปานกลาง','STRATOPP':'🟢 เชิงกลยุทธ์และโอกาสพัฒนา'};
+  var GROUP_LABEL={'CRITICAL':'','HIGH':'🔴 สูงกว่าค่าเฉลี่ย'+SCOPE_UNIT+'','MEDIUM':'🟡 ไม่เกินค่าเฉลี่ย'+SCOPE_UNIT+'','STRATOPP':'🔵 ภาพรวมทั้ง'+SCOPE_UNIT+'และกรณีศึกษา'};
   var GROUP_COLOR={'CRITICAL':'#c62828','HIGH':'#e65100','MEDIUM':'#f9a825','STRATOPP':'#2e7d32'};
-  var GROUP_ORDER=['CRITICAL','HIGH','MEDIUM','STRATOPP'];
-  var curLevelFilter = window.__policyLevelFilter || 'CRITICAL';
+  var GROUP_ORDER=['HIGH','MEDIUM','STRATOPP'];
+  var curLevelFilter = window.__policyLevelFilter || 'ALL';
   var visibleGroups2 = curLevelFilter==='ALL' ? GROUP_ORDER : [curLevelFilter];
   var cardsHtml='';
   // ── ปุ่มเลือกหมวดที่จะแสดง ──
   cardsHtml+='<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">';
   [['ALL','ทั้งหมด ('+policies.length+')','#546e7a'],
-   ['CRITICAL','🔴 วิกฤต ('+policies.filter(function(p){return p.lvl==='CRITICAL';}).length+')',GROUP_COLOR.CRITICAL],
-   ['HIGH','🟠 เร่งด่วน ('+policies.filter(function(p){return p.lvl==='HIGH';}).length+')',GROUP_COLOR.HIGH],
-   ['MEDIUM','🟡 ปานกลาง ('+policies.filter(function(p){return p.lvl==='MEDIUM';}).length+')',GROUP_COLOR.MEDIUM],
-   ['STRATOPP','🟢 เชิงกลยุทธ์และโอกาสพัฒนา ('+policies.filter(function(p){return p.lvl==='STRATEGIC'||p.lvl==='OPPORTUNITY';}).length+')',GROUP_COLOR.STRATOPP]
+   ['HIGH','🔴 สูงกว่าค่าเฉลี่ย'+SCOPE_UNIT+' ('+policies.filter(function(p){return p.lvl==='HIGH';}).length+')',GROUP_COLOR.HIGH],
+   ['MEDIUM','🟡 ไม่เกินค่าเฉลี่ย'+SCOPE_UNIT+' ('+policies.filter(function(p){return p.lvl==='MEDIUM';}).length+')',GROUP_COLOR.MEDIUM],
+   ['STRATOPP','🔵 ภาพรวมทั้ง'+SCOPE_UNIT+'และกรณีศึกษา ('+policies.filter(function(p){return p.lvl==='STRATEGIC'||p.lvl==='OPPORTUNITY';}).length+')',GROUP_COLOR.STRATOPP]
   ].forEach(function(btn){
     var key=btn[0],label=btn[1],clr=btn[2];
     var count=key==='ALL'?policies.length:policies.filter(function(p){return groupOf(p.lvl)===key;}).length;
@@ -3367,10 +3488,10 @@ function runBuildExec(){
         // แถบตัวเลขแสดง "ตัวเลขจริง" ที่ตรงกับเนื้อหาการ์ดด้านบนเป๊ะๆ (ไม่มีการบวก/คูณ/โบนัสซ่อนอยู่) ป้ายชื่อแถบเปลี่ยนความหมายตามประเภทการ์ด
         var scoreLabel = (p.lvl==='STRATEGIC') ? 'สัดส่วนปริมาตรน้ำกระจุกตัว'
           : (p.lvl==='OPPORTUNITY') ? 'สัดส่วนใช้งานได้'
-          : (p.tambon && p.tag.indexOf('ตำบล')===0) ? 'ดัชนีความเสี่ยง (Risk Score)'
+          : (p.tambon && p.tag.indexOf('ตำบล')===0) ? 'สัดส่วนแหล่งน้ำที่มีปัญหา (%)'
           : 'สัดส่วนที่พบปัญหา (%)';
         var scoreBar='<div style="margin-top:8px;">'
-          +'<div style="display:flex;justify-content:space-between;font-size:9.5px;color:#5a7080;margin-bottom:2px;"><span>'+scoreLabel+'</span><span style="font-weight:800;color:'+PCLR[p.lvl]+';">'+scoreRounded+'/100</span></div>'
+          +'<div style="display:flex;justify-content:space-between;font-size:9.5px;color:#5a7080;margin-bottom:2px;"><span>'+scoreLabel+'</span><span style="font-weight:800;color:'+PCLR[p.lvl]+';">'+scoreRounded+'%</span></div>'
           +'<div style="height:6px;background:#eef2f7;border-radius:3px;overflow:hidden;"><div style="width:'+Math.min(100,scoreRounded)+'%;height:100%;background:'+PCLR[p.lvl]+';border-radius:3px;"></div></div>'
           +'</div>';
         // หน่วยงานรับผิดชอบ
@@ -3387,8 +3508,8 @@ function runBuildExec(){
         var deadlineLine=p.deadlineStr?'<div style="font-size:10.5px;color:#3a5060;margin-top:3px;">📅 '+p.deadlineStr+'</div>':'';
         // ความสมบูรณ์ของข้อมูล — เตือนถ้าหลักฐานภาพถ่ายไม่ครบ ควรลงพื้นที่ตรวจซ้ำก่อนอนุมัติงบ
         var photoLine='';
-        if(p.photoPct!==null && p.photoPct<70){
-          photoLine='<div style="font-size:10px;color:#b45309;background:#fff7e6;border:1px solid #fde3a7;border-radius:5px;padding:3px 7px;margin-top:7px;">⚠️ มีรูปถ่ายยืนยันเพียง '+p.photoPct+'% ของสถานที่ในประเด็นนี้ — ควรลงพื้นที่ตรวจสอบซ้ำก่อนอนุมัติงบ</div>';
+        if(p.photoPct!==null){
+          photoLine='<div style="font-size:10px;color:#5a7080;background:#f3f7fa;border:1px solid #dbe6f0;border-radius:5px;padding:3px 7px;margin-top:7px;">📷 มีรูปถ่ายประกอบ '+p.photoPct+'% ของสถานที่ในประเด็นนี้</div>';
         }
         // ปุ่มขยายดูรายชื่อสถานที่ + รายละเอียดของสถานที่ (ไม่ trigger การกรองทั้งแดชบอร์ด)
         var isOpenCard = window.__openPolicyCardKey===p.tag;
@@ -3426,11 +3547,17 @@ function runBuildExec(){
       +'</div>'
       +'</div>';
   }
-  document.getElementById('policySubtitle').textContent='คำนวณอัตโนมัติจากข้อมูลจริง (ป้ายสีจาก % ปัญหาจริงตรงๆ · เรียงตามจำนวนแห่งจริง) · พบ '+policies.length+' ประเด็น';
+  document.getElementById('policySubtitle').textContent='พบ '+policies.length+' ประเด็น';
   document.getElementById('policyCards').innerHTML = cardsHtml || '<div style="font-size:12px;color:#5a7080;padding:10px 0;">ไม่พบประเด็น</div>';
 
   // ─── MAP (แสดงตำแหน่งแหล่งน้ำตามข้อมูลที่กรองไว้) ──
   renderMap(EDATA);
+  if(DSS_ON){
+    // Memory 12.3: any change of the global (executive/detail) filters recalculates the set and returns to the
+    // overview of the new filters; the selection and its popup are dropped.
+    if(dssSel){ dssSel=null; dssVersion++; if(map) map.closePopup(); }
+    updateDss();
+  }
 
 } // end runBuildExec
 runBuildExec();
@@ -3738,7 +3865,7 @@ function renderTable(data){
   const cap=500,rows=data.slice(0,cap);
   $('#tblBody').innerHTML=rows.map(function(d){
     var imgCell=d.imglink?('<a class="thumb-link" href="'+d.imglink+'" target="_blank" rel="noopener">เปิดภาพ ↗</a>'):'-';
-    return'<tr><td>'+d.id+'</td><td>'+(d.name||'-')+'</td>'
+    return'<tr'+(AUTHORITY_MODE?' data-id="'+d.id+'"':'')+'><td>'+d.id+'</td><td>'+(d.name||'-')+'</td>'
       +'<td><span class="badge-type">'+(d.type||'-')+'</span></td>'
       +'<td>'+authorityDisplay(d)+'</td>'
       +'<td>'+(d.tambon||'-')+'</td><td>'+(d.village||'-')+'</td><td>'+(d.moo||'-')+'</td>'
@@ -3748,6 +3875,7 @@ function renderTable(data){
       +'<td>'+((d.problem||'-').split(',')[0])+'</td>'
       +'<td>'+imgCell+'</td></tr>';
   }).join('')||'<tr><td colspan="12" style="text-align:center;color:#9ab;padding:20px;">ไม่พบข้อมูล</td></tr>';
+  if(DSS_ON) dssMarkSelection();
   $('#n-table').textContent=data.length>cap?`(แสดง ${fmtN(cap)} จาก ${fmtN(data.length)} รายการ)`:`(${fmtN(data.length)} รายการ)`;
 }
 
@@ -3847,9 +3975,9 @@ let damagedMap=null,damagedMarkerLayer=null,damagedMapInited=false;
 let dfState={district:LOCKED_DISTRICT,authority:LOCKED_AUTHORITY,tambon:'',type:'',problem:null};
 function getDamagedData(){let b=RAW.filter(isDamaged);if(dfState.district)b=b.filter(r=>matchesDistrict(r,dfState.district));if(dfState.authority)b=b.filter(r=>matchesAuthority(r,dfState.authority));if(dfState.tambon)b=b.filter(r=>r.tambon===dfState.tambon);if(dfState.type)b=b.filter(r=>r.type===dfState.type);if(dfState.problem)b=b.filter(r=>r.problem&&r.problem.includes(dfState.problem));return b;}
 function initDamagedMap(){
-  damagedMap=L.map('damaged-map').setView(DEFAULT_CENTER,DEFAULT_ZOOM);
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles © Esri',maxZoom:19}).addTo(damagedMap);
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{attribution:'',maxZoom:19}).addTo(damagedMap);
+  damagedMap=L.map('damaged-map',{maxZoom:18}).setView(DEFAULT_CENTER,DEFAULT_ZOOM);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles © Esri',maxZoom:18,maxNativeZoom:17}).addTo(damagedMap);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{attribution:'',maxZoom:18,maxNativeZoom:17}).addTo(damagedMap);
   damagedMarkerLayer=L.markerClusterGroup({maxClusterRadius:zoom=>zoom>=16?1:60,spiderfyOnMaxZoom:true,showCoverageOnHover:false,chunkedLoading:true,iconCreateFunction:clusterIcon('#c62828','#ff7043')}).addTo(damagedMap);damagedMapInited=true;
   // SVG circle markers cannot rise above the dimmed cluster icon like L.Marker.
   // Let touches reach all four spread circles, including the one under that icon.
@@ -3929,6 +4057,10 @@ function render(){
 lockAreaControls();
 render();
 setTimeout(()=>{if(map)map.invalidateSize();},150);
+if(AUTHORITY_MODE){
+  document.body.classList.add('authority-ready');
+  if(window.VisitorCounter) window.VisitorCounter.init(SCOPE_CONTEXT);
+}
 
 // ===== ตัวนับผู้เข้าชมเว็บ + แยกตามประเทศ =====
 // ใช้บริการนับยอดฟรีแบบไม่ต้องสมัครสมาชิก (Abacus โดย Jason Cameron — ตรวจสอบแล้วว่ายังใช้งานได้ รองรับ CORS) + บริการหาประเทศจาก IP ฟรี (ipwho.is)

@@ -52,7 +52,7 @@ def run_case(browser, mode):
     page.goto(BASE + '/authority/tt-mae-ka/', wait_until='domcontentloaded')
     ready(page, 'tt-mae-ka', 1)
     scripts = page.evaluate('''() => [...document.scripts].map(s=>s.src).filter(Boolean)''')
-    assert any('/assets/authority-app.js' in url for url in scripts), scripts
+    assert any('/assets/scoped-images.js' in url for url in scripts), scripts
     assert not any('/assets/maeka-app.js' in url for url in scripts), scripts
     assert page.evaluate('''() => typeof authorityImageError==='function' &&
         typeof authorityImageRetry==='function' && typeof handleImgFallback==='undefined' ''')
@@ -68,14 +68,16 @@ def run_case(browser, mode):
     }''')
 
     def open_popup():
-        page.locator('#tblBody tr').first.click()
-        return page.locator('#mapbox .leaflet-popup:visible').last
+        page.locator('.main-nav button[data-view="detail"]').click()
+        page.locator('.tab-btn[data-tab="table"]').click()
+        page.locator('#tblBody tr[data-id]').first.click()
+        return page.locator('#map .leaflet-popup:visible').last
 
     popup = open_popup()
     image = popup.locator('img[data-drive-id]')
     assert image.get_attribute('referrerpolicy') == 'no-referrer'
     if mode == 'primary-success':
-        page.wait_for_function('''() => document.querySelector('#mapbox .leaflet-popup img[data-drive-id]')?.naturalWidth === 1''')
+        page.wait_for_function('''() => document.querySelector('#map .leaflet-popup img[data-drive-id]')?.naturalWidth === 1''')
         assert image.get_attribute('src') == PRIMARY
         assert [item['url'] for item in requests] == [PRIMARY], requests
         image.click()
@@ -87,7 +89,7 @@ def run_case(browser, mode):
         popup.locator('.leaflet-popup-close-button').click()
         open_popup().locator('img[data-drive-id]').wait_for()
         phase[0] = 'rerender'
-        page.evaluate('renderAll()')
+        page.evaluate('window.__SCOPED_MAP__.rebuild()')
         open_popup().locator('img[data-drive-id]').wait_for()
         page.wait_for_timeout(250)
         assert all(item['url'] == PRIMARY for item in requests), requests
@@ -102,14 +104,14 @@ def run_case(browser, mode):
         popup = open_popup()
         popup.locator('.authority-image-fallback').wait_for(state='visible')
         phase[0] = 'rerender-after-failure'
-        page.evaluate('renderAll()')
+        page.evaluate('window.__SCOPED_MAP__.rebuild()')
         popup = open_popup()
         popup.locator('.authority-image-fallback').wait_for(state='visible')
         assert [item['url'] for item in requests] == [PRIMARY], requests
         phase[0] = 'user-thumbnail-click'
         popup.locator('.authority-image-fallback button').click()
         if mode == 'thumbnail-success':
-            page.wait_for_function('''() => document.querySelector('#mapbox .leaflet-popup img[data-drive-id]')?.naturalWidth === 1''')
+            page.wait_for_function('''() => document.querySelector('#map .leaflet-popup img[data-drive-id]')?.naturalWidth === 1''')
             assert [item['url'] for item in requests] == [PRIMARY, THUMBNAIL], requests
             popup.locator('img[data-drive-id]').click()
             page.wait_for_function('''() => document.querySelector('#imgModalImg')?.naturalWidth === 1''')
@@ -128,7 +130,7 @@ def run_case(browser, mode):
             popup.locator('.leaflet-popup-close-button').click()
             popup = open_popup()
             popup.locator('.authority-image-fallback').wait_for(state='visible')
-            page.evaluate('renderAll()')
+            page.evaluate('window.__SCOPED_MAP__.rebuild()')
             open_popup().locator('.authority-image-fallback').wait_for(state='visible')
             assert [item['url'] for item in requests] == [PRIMARY, THUMBNAIL, ORIGINAL], requests
             assert page.locator('#imgModalBg').is_hidden()

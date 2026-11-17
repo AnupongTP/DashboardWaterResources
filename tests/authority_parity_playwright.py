@@ -87,7 +87,7 @@ def install_virtual_host(context, host, data):
                 'success': True, 'version': '"parity-host-v1"', 'count': len(data),
                 'data': data}, ensure_ascii=False))
         else:
-            asset = ROOT / 'site' / ('authority.html' if path.startswith('/authority/')
+            asset = ROOT / 'site' / (os.environ.get('SCOPED_TEMPLATE', 'index').replace('index', 'index.html').replace('authority', 'authority.html') if path.startswith('/authority/')
                                      else path.lstrip('/'))
             if asset.is_file() and asset.resolve().is_relative_to((ROOT / 'site').resolve()):
                 kind = 'text/html' if asset.suffix == '.html' else 'application/javascript'
@@ -114,7 +114,7 @@ def main():
                 page.on('pageerror', lambda error: errors.append(str(error)))
                 page.goto(BASE + '/authority/tt-mae-ka/', wait_until='domcontentloaded')
                 page.wait_for_function('''() => document.body.classList.contains('authority-ready') &&
-                  document.querySelector('#statCount')?.textContent==='6' ''')
+                  document.querySelector('#execKpi .kpi-card:first-child .kv')?.textContent==='6' ''')
                 page.wait_for_function("() => document.querySelector('#vcTotal')?.textContent==='246'")
                 assert not [url for url in counter_requests if '/hit/' in url], counter_requests
                 assert page.locator('#visitorCounter').is_visible()
@@ -164,7 +164,7 @@ def main():
                 for fragment in ('ความจุลดลง 30%', 'โครงสร้างเสียหาย', 'วิกฤตคุณภาพน้ำ',
                                  'โครงการขุดลอก', 'ส่งวิศวกรท้องถิ่น', 'ตรวจสอบการระบายน้ำเสีย'):
                     assert fragment in specific, (fragment, specific)
-                assert page.locator('#statCount').inner_text() == '6'
+                assert page.locator('#execKpi .kpi-card:first-child .kv').inner_text() == '6'
                 assert page.locator('#tblBody tr').count() == 6
                 assert chart_data(page) == charts
                 if width == 1440:
@@ -182,7 +182,7 @@ def main():
                 if width == 1440:
                     save(page, '06-authority-after-popup-close-1440.png')
                 page.locator('#fType').select_option('ฝาย')
-                assert page.locator('#statCount').inner_text() == '3'
+                assert page.locator('#execKpi .kpi-card:first-child .kv').inner_text() == '3'
                 assert page.locator('#tblBody tr').count() == 3
                 assert '1 แห่ง' in page.locator('#dssContent').inner_text()
                 page.locator('.kpi[data-kpi="count"]').click()
@@ -205,15 +205,15 @@ def main():
                     assert 'สมบูรณ์ดี' in page.locator('#dssContent').inner_text()
                     page.locator('#dssResetBtn').click()
                     page.locator('#legType span').first.click()
-                    assert page.locator('#statCount').inner_text() == '3'
+                    assert page.locator('#execKpi .kpi-card:first-child .kv').inner_text() == '3'
                     page.locator('.kpi[data-kpi="count"]').click()
                     page.locator('#fProblem').select_option('ชำรุด')
-                    assert page.locator('#statCount').inner_text() == '2'
+                    assert page.locator('#execKpi .kpi-card:first-child .kv').inner_text() == '2'
                     page.locator('.kpi[data-kpi="count"]').click()
                     page.locator('#txtSearch').fill('COLORED-WATER')
-                    assert page.locator('#statCount').inner_text() == '1'
+                    assert page.locator('#execKpi .kpi-card:first-child .kv').inner_text() == '1'
                     page.locator('#txtSearch').fill('NO-RESULT')
-                    assert page.locator('#statCount').inner_text() == '0'
+                    assert page.locator('#execKpi .kpi-card:first-child .kv').inner_text() == '0'
                     assert 'ไม่มีข้อมูลแหล่งน้ำให้ประมวลผล' in page.locator('#dssContent').inner_text()
                     page.locator('.kpi[data-kpi="count"]').click()
                     page.locator('.map-fullscreen-btn').click()
@@ -231,7 +231,7 @@ def main():
             install_counter_mock(context, original_requests)
             page = context.new_page()
             page.goto(BASE + '/maeka.html', wait_until='domcontentloaded')
-            page.wait_for_function("() => document.querySelector('#statCount')?.textContent==='6'")
+            page.wait_for_function("() => document.querySelector('#execKpi .kpi-card:first-child .kv')?.textContent==='6'")
             page.wait_for_function("() => document.querySelector('#vcTotal')?.textContent==='246'")
             assert page.locator('#visitorCounter').is_visible()
             assert any('/hit/pyo-water-maeka-dashboard/total-views' in url for url in original_requests)

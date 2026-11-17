@@ -87,6 +87,7 @@ TOTAL = len(TEST_DATA)
 
 def make_test_html(data):
     html = INDEX
+    html = html.replace('<link rel="stylesheet" href="./assets/dashboard-theme.css">', '<style>' + (SITE / 'assets/dashboard-theme.css').read_text(encoding='utf-8') + '</style>')
     stub = '<script>window.__TEST_DATA__=' + json.dumps(data, ensure_ascii=False) + ';window.WaterData={load:async()=>window.__TEST_DATA__};</script>'
     html = html.replace('<script src="./assets/runtime-config.js"></script>', '')
     html = html.replace('<script src="./assets/water-data-loader.js"></script>', stub)

@@ -78,7 +78,7 @@ def run_case(browser, path, *, mode, width):
         page.locator('#map .leaflet-marker-icon').first.click(force=True)
         assert page.locator('.leaflet-popup-content .water-image-fallback').is_visible()
         assert page.locator('.leaflet-popup-content .water-image-fallback a').get_attribute('href') == ORIGINAL
-        page.evaluate("window.setCrossFilter('problem','น้ำเน่าเสีย')")
+        page.evaluate("window.wqPick('น้ำเน่าเสีย')")
         assert page.locator('#wqSiteDetail .water-image-fallback.compact').count() == 1
         page.locator('.main-nav button[data-view="detail"]').click()
         page.locator('.tab-btn[data-tab="gallery"]').click()
@@ -114,7 +114,7 @@ def run_case(browser, path, *, mode, width):
         page.locator('#map .leaflet-marker-icon').first.click(force=True)
         page.locator('.leaflet-popup-content img').scroll_into_view_if_needed()
         page.wait_for_function('() => document.querySelector(".leaflet-popup-content img")?.naturalWidth === 1')
-        page.evaluate("window.setCrossFilter('problem','น้ำเน่าเสีย')")
+        page.evaluate("window.wqPick('น้ำเน่าเสีย')")
         assert page.locator('#wqSiteDetail img[data-drive-id]').count() == 1
         page.locator('.main-nav button[data-view="detail"]').click()
         page.locator('.tab-btn[data-tab="gallery"]').click()

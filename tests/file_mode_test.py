@@ -27,6 +27,7 @@ SAMPLE=BOOTSTRAP+[{
 
 def build_index_filemode_html():
   html=INDEX
+  html=html.replace('<link rel="stylesheet" href="./assets/dashboard-theme.css">', '<style>'+(SITE/'assets/dashboard-theme.css').read_text(encoding='utf-8')+'</style>')
   html=html.replace('<script src="./assets/runtime-config.js"></script>', '<script>window.WATER_DASHBOARD_CONFIG={forceMode:"file",productionOrigin:"'+PROD+'"};</script><script>'+RUNTIME+'</script>')
   html=html.replace('<script src="./assets/water-data-loader.js"></script>', '<script>'+LOADER+'</script>')
   html=html.replace('<script src="./assets/area-responsibility.js"></script>', '<script>'+AREA+'</script>')

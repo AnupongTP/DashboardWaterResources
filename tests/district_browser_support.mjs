@@ -7,6 +7,8 @@ const require = createRequire(import.meta.url);
 export const {chromium} = require(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright');
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const BASE = process.env.DISTRICT_TEST_BASE || 'http://localhost:8888';
+// Scoped routes are served by site/index.html (phase 2); SCOPED_TEMPLATE=authority replays the old authority.html baseline.
+export const SCOPED_PAGE = process.env.SCOPED_TEMPLATE === 'authority' ? 'authority.html' : 'index.html';
 export const ACTIVE = 'https://dashboard-waterresources1.netlify.app';
 export const PNG = Buffer.from('89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000b49444154789c636000020000050001a5f645400000000049454e44ae426082', 'hex');
 export const VIEWPORTS = [[1440,900],[768,1024],[412,915],[390,844],[360,800]];
@@ -90,11 +92,11 @@ export async function installMocks(context, {data=SCOPE_DATA, host=BASE, baselin
     if(url.hostname==='server.arcgisonline.com')return route.fulfill({contentType:'image/png',body:PNG});
     if(url.origin===host){
       if(!baseline && host===BASE)return route.continue();
-      const relative=/^\/(authority|district)\//.test(url.pathname)?'authority.html':url.pathname.replace(/^\//,'');
+      const relative=/^\/(authority|district)\//.test(url.pathname)?SCOPED_PAGE:url.pathname.replace(/^\//,'');
       const candidate=baseline&&process.env.DISTRICT_BASELINE_DIR?path.join(process.env.DISTRICT_BASELINE_DIR,'site',relative):'';
       const asset=candidate&&fs.existsSync(candidate)?candidate:path.join(ROOT,'site',relative);
       if(!asset.startsWith(path.join(ROOT,'site')) && !baseline)return route.abort();
-      if(fs.existsSync(asset)&&fs.statSync(asset).isFile())return route.fulfill({contentType:asset.endsWith('.html')?'text/html':'application/javascript',body:fs.readFileSync(asset)});
+      if(fs.existsSync(asset)&&fs.statSync(asset).isFile())return route.fulfill({contentType:asset.endsWith('.html')?'text/html':asset.endsWith('.css')?'text/css':asset.endsWith('.json')?'application/json':'application/javascript',body:fs.readFileSync(asset)});
       return route.fulfill({status:404,body:'Not found'});
     }
     // Unmocked fonts, data services, images and counters never reach the network.
@@ -105,7 +107,7 @@ export async function installMocks(context, {data=SCOPE_DATA, host=BASE, baselin
 export async function ready(page,slug,count,kind='district'){
   await page.waitForFunction(([slug,count,kind])=>{
     const meta=kind==='district'?window.__DISTRICT_PAGE__:window.__AUTHORITY_PAGE__;
-    return meta?.slug===slug&&meta.count===count&&document.body.classList.contains('authority-ready')&&Number(document.querySelector('#statCount')?.textContent)===count;
+    return meta?.slug===slug&&meta.count===count&&document.body.classList.contains('authority-ready')&&Number(document.querySelector('#execKpi .kpi-card:first-child .kv')?.textContent)===count;
   },[slug,count,kind]);
 }
 export async function ids(page){return page.locator('#tblBody tr[data-id]').evaluateAll(rows=>rows.map(row=>Number(row.dataset.id)));}

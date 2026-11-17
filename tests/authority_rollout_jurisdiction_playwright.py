@@ -31,6 +31,17 @@ def displayed_ids(page):
         'rows => rows.map(row => row.dataset.id)')}
 
 
+def marker_count(page):
+    return page.evaluate('window.__SCOPED_MAP__.layer().getLayers().length')
+
+
+def wait_ids(page, expected):
+    # detail-tab filters apply after an input debounce; poll the rendered table instead of sleeping
+    page.wait_for_function('exp => { const ids = [...document.querySelectorAll("#tblBody tr[data-id]")]'
+                           '.map(r => Number(r.dataset.id)).sort().join(","); return ids === exp; }',
+                           arg=','.join(str(i) for i in sorted(expected)), timeout=10000)
+
+
 def main():
     results = []
     with sync_playwright() as playwright:
@@ -50,34 +61,36 @@ def main():
                 assert page.evaluate('window.__AUTHORITY_PAGE__.unresolved') >= len(EXCLUDED)
                 assert page.locator('#visitorCounter').is_visible()
                 if not expected:
-                    assert page.locator('#authorityZero').is_visible()
-                    assert page.locator('#mapbox .leaflet-marker-icon').count() == 0
-                    assert page.locator('#fMoo option').count() == 1
+                    assert page.locator('#authorityEmptyNotice').is_visible()
+                    assert marker_count(page) == 0
                 else:
-                    assert page.locator('#authorityZero').is_hidden()
+                    assert page.locator('#authorityEmptyNotice').count() == 0
                 results.append({'slug': slug, 'ids': sorted(actual)})
 
             page.goto(BASE + '/authority/tm-dok-kham-tai/')
             ready(page, 'tm-dok-kham-tai', 7)
+            # Filters live in the detail tab (D2); the Moo dropdown was removed (D11) so Moo is covered by search.
+            page.locator('.main-nav button[data-view="detail"]').click()
             assert page.locator('#fTambon').is_visible()
-            values = page.locator('#fMoo option').evaluate_all('els => els.map(e => e.value)')
-            assert 'สว่างอารมณ์\x1f1' in values and 'บุญเกิด\x1f1' in values, values
-            page.locator('#fTambon').select_option('สว่างอารมณ์')
-            assert displayed_ids(page) == {30001}
-            assert page.locator('#fMoo option').count() == 2
-            page.locator('#fTambon').select_option('บุญเกิด')
-            assert displayed_ids(page) == {30002}
-            page.locator('#fTambon').select_option('all')
-            page.locator('#txtSearch').fill('ทม.ดอกคำใต้-สว่างอารมณ์')
-            assert displayed_ids(page) == {30001}
-            page.locator('#txtSearch').fill('')
-            assert displayed_ids(page) == EXPECTED['tm-dok-kham-tai']
+            assert not page.locator('#fMoo').is_visible()
+            page.locator('#fTambon').fill('สว่างอารมณ์')
+            page.locator('#fTambonListbox [role="option"]', has_text='สว่างอารมณ์').first.click()
+            wait_ids(page, {30001})
+            page.locator('#fTambon').fill('บุญเกิด')
+            page.locator('#fTambonListbox [role="option"]', has_text='บุญเกิด').first.click()
+            wait_ids(page, {30002})
+            page.locator('#fTambonClear').click()
+            page.locator('#searchBox').fill('ทม.ดอกคำใต้-สว่างอารมณ์')
+            wait_ids(page, {30001})
+            page.locator('#searchBox').fill('')
+            wait_ids(page, EXPECTED['tm-dok-kham-tai'])
             # A confirmed record without coordinates still appears in the table
-            # and DSS, but creates no map marker.
+            # (highlighted), but creates no map marker.
+            page.locator('.tab-btn[data-tab="table"]').click()
             page.locator('#tblBody tr[data-id="30027"]').click()
-            assert 'ไม่มีพิกัดแผนที่' in page.locator('#dssContent').inner_text()
+            assert page.locator('#tblBody tr.selected').get_attribute('data-id') == '30027'
             assert displayed_ids(page) == EXPECTED['tm-dok-kham-tai']
-            assert page.locator('#mapbox .leaflet-marker-icon').count() == 6
+            assert marker_count(page) == 6
             results.append({'filters': 'multi-Tambon composite Moo, search, no-coordinate focus'})
             assert not errors, errors
             context.close()

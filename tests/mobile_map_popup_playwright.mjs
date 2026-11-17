@@ -17,8 +17,8 @@ const results=[];
 const mapHook=';window.__popupMaps={};window.__popupGroups={};L.Map.addInitHook(function(){window.__popupMaps[this._container.id]=this;this.on("layeradd",e=>{if(L.MarkerClusterGroup&&e.layer instanceof L.MarkerClusterGroup)window.__popupGroups[this._container.id]=e.layer;});});';
 try {
   for(const [kind,route,mapName,layerName,selector] of [
-    ['authority','/authority/tt-mae-ka/','map','markersLayer','#mapbox'],
-    ['district','/district/mueang-phayao/','map','markersLayer','#mapbox'],
+    ['authority','/authority/tt-mae-ka/','window.__popupMaps.map','window.__popupGroups.map','#map'],
+    ['district','/district/mueang-phayao/','window.__popupMaps.map','window.__popupGroups.map','#map'],
     ['province','/index.html','window.__popupMaps.map','window.__popupGroups.map','#map'],
     ['damaged','/index.html','window.__popupMaps["damaged-map"]','window.__popupGroups["damaged-map"]','#damaged-map']
   ]) for(const width of [360,390,412,1440]) {
@@ -33,7 +33,8 @@ try {
       body:fs.readFileSync(path.join(process.env.DISTRICT_VENDOR_DIR,'leaflet.js'),'utf8')+
         mapHook}));
     // The provincial page embeds Leaflet inline, unlike authority.html.
-    await context.route(host+'/index.html',route=>{
+    // Phase 2: /authority/* and /district/* are served by the same page, so they get the same hook.
+    for(const pattern of ['/index.html','/authority/**','/district/**'])await context.route(host+pattern,route=>{
       const file=path.join(process.env.MOBILE_MAP_BASELINE||ROOT,'site/index.html');
       const html=fs.readFileSync(file,'utf8').replace('<script src="./assets/cluster-icon.js"></script>',
         '<script>'+mapHook+'</script><script src="./assets/cluster-icon.js"></script>');
@@ -43,7 +44,7 @@ try {
     if(process.env.MOBILE_MAP_BASELINE)await context.route(host+'/**',async(route,next)=>{
       const pathname=new URL(route.request().url()).pathname;
       if(pathname==='/index.html')return route.fallback();
-      const relative=/^\/(authority|district)\//.test(pathname)?'site/authority.html':'site'+pathname;
+      const relative=/^\/(authority|district)\//.test(pathname)?(process.env.SCOPED_TEMPLATE==='authority'?'site/authority.html':'site/index.html'):'site'+pathname;
       const file=path.join(process.env.MOBILE_MAP_BASELINE,relative);
       if(fs.existsSync(file)&&fs.statSync(file).isFile())return route.fulfill({contentType:file.endsWith('.html')?'text/html':'application/javascript',body:fs.readFileSync(file)});
       return route.fallback();
@@ -64,6 +65,13 @@ try {
         await page.waitForFunction('window.__popupGroups?.["damaged-map"]');
       }
     }
+    // Scoped pages fit the map to their records on load (flyToBounds); wait until the view stops changing
+    // (frame-based, no timer) so that animation cannot hijack the test's own setView.
+    if(kind==='authority'||kind==='district')await page.evaluate(()=>new Promise(resolve=>{
+      const m=window.__popupMaps.map;let last='',still=0;
+      (function frame(){const now=m.getCenter().toString()+m.getZoom();still=now===last?still+1:0;last=now;
+        if(still>=15&&!m._animatingZoom)resolve();else requestAnimationFrame(frame);})();
+    }));
     const act=async locator=>mobile?locator.tap():locator.click();
     await page.locator(selector).scrollIntoViewIfNeeded();
     // Zooming past the old cutoff must retain four coincident records as a
@@ -113,8 +121,7 @@ try {
     const provinceFullscreen=page.locator(selector+' .map-expand-ctrl a');
     // Use the existing button through its observed DOM, with the public function
     // only for the provincial control whose class is different across maps.
-    if(kind==='authority'||kind==='district')await act(fullscreen);
-    else await act(provinceFullscreen);
+    await act(provinceFullscreen);
     await page.waitForTimeout(500);
     assert.ok((await measure()).open,`${kind}/${width}: fullscreen closed popup`);
     assert.equal(calls.filter(c=>c.kind==='image').length,imagesBefore,'Resize recreated image requests');
@@ -126,6 +133,11 @@ try {
         return el.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));
       }),'Image modal is behind fullscreen map');
       await act(page.locator('#imgModalClose'));
+      // Root cause of the earlier 360-412px failure (systematic debugging): Leaflet turns two touchstarts inside the
+      // map container that are < 200 ms apart into a double-tap zoom, and the popup-image tap followed (about 125 ms
+      // later, via the modal close tap) by the fullscreen-control tap is exactly that. A person cannot tap that fast
+      // and no dblclick reaches the page otherwise, so the test now waits out Leaflet's double-tap window.
+      await page.waitForTimeout(400);
     }else{
       await page.evaluate(()=>showSiteCard(9801));
       assert.ok(await page.locator('#siteCardModal').evaluate(el=>{
@@ -134,8 +146,7 @@ try {
       }),'Province detail modal is behind fullscreen map');
       await act(page.locator('#siteCardClose'));
     }
-    if(kind==='authority'||kind==='district')await act(fullscreen);
-    else await act(provinceFullscreen);
+    await act(provinceFullscreen);
     await page.waitForTimeout(500);
     status=await measure();
     assert.ok(status.open && status.height<status.mapHeight && status.inBounds,

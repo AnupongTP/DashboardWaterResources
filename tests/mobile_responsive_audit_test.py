@@ -70,7 +70,7 @@ def audit(width,height,browser,results):
 
     # Executive view
     assert doc_overflow(page)<=2,(width,'exec',doc_overflow(page))
-    assert_in_view_width(page,'.app-header,.exec-wrap,.exec-filter-bar,.exec-hero,.exec-hero-map,.exec-hero-cards')
+    assert_in_view_width(page,'.app-header,.exec-wrap,.gf-inner,.exec-hero,.exec-hero-map,.exec-hero-cards')
     assert_no_unintended_overflow(page)
     results.append({'viewport':width,'test':'executive_no_page_overflow','ok':True})
 

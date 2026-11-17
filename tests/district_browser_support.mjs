@@ -94,7 +94,7 @@ export async function installMocks(context, {data=SCOPE_DATA, host=BASE, baselin
       const candidate=baseline&&process.env.DISTRICT_BASELINE_DIR?path.join(process.env.DISTRICT_BASELINE_DIR,'site',relative):'';
       const asset=candidate&&fs.existsSync(candidate)?candidate:path.join(ROOT,'site',relative);
       if(!asset.startsWith(path.join(ROOT,'site')) && !baseline)return route.abort();
-      if(fs.existsSync(asset)&&fs.statSync(asset).isFile())return route.fulfill({contentType:asset.endsWith('.html')?'text/html':'application/javascript',body:fs.readFileSync(asset)});
+      if(fs.existsSync(asset)&&fs.statSync(asset).isFile())return route.fulfill({contentType:asset.endsWith('.html')?'text/html':asset.endsWith('.css')?'text/css':asset.endsWith('.json')?'application/json':'application/javascript',body:fs.readFileSync(asset)});
       return route.fulfill({status:404,body:'Not found'});
     }
     // Unmocked fonts, data services, images and counters never reach the network.

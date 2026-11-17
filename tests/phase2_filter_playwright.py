@@ -222,7 +222,7 @@ def test_mobile(browser, width):
         assert box['left'] >= -1, (width, box)
         assert box['right'] <= width + 1, (width, box)
         assert box['width'] > 0, (width, box)
-    bar = page.locator('.exec-filter-bar').bounding_box()
+    bar = page.locator('.gf-inner').bounding_box()
     assert bar and bar['x'] >= -1 and bar['x'] + bar['width'] <= width + 1
     if page_errors:
         raise AssertionError(f'{width}px JavaScript page errors: ' + ' | '.join(page_errors))

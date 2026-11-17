@@ -202,3 +202,27 @@ chart labels/datasets, filter state, context, DSS และ counter identity ต
 
 ### แก้ไข 17 พ.ย. 2026 — เอาการ์ด DSS ออก (spec D5 แก้ใหม่)
 ผู้ใช้สั่งเอาการ์ด DSS ออกทั้งหมดเพื่อให้เหมือนต้นแบบ: ลบการ์ด/สคริปต์ `dss-panel.js`/CSS ออกจาก `index.html`; คง selection (popup, ไฮไลต์หมุด/แถว, คลิกแถว→เปิดหมุด, เปลี่ยนตัวกรอง→ล้างการเลือก); เทสต์ที่อ้าง DSS ปรับเป็น popup/ไฮไลต์ (`scoped_template`, `authority_selection`, `authority_rollout_jurisdiction`); `authority.html`/`authority-app.js` ที่ยังมีโค้ด DSS เดิมไม่ได้แตะ
+
+## เฟส 3 — 18 พ.ย. 2026 (ฟีเจอร์จากต้นแบบ, template เดียว `site/index.html`)
+
+**สถานะ:** ลงโค้ดครบ 5 ฟีเจอร์แล้ว ยังไม่ commit และ **ยังไม่ยืนยัน parity** — รอผู้ใช้ตรวจภาพบน localhost (เทสต์ผ่านไม่ใช่หลักฐานว่าเหมือนต้นแบบ)
+
+**ที่ทำ (ผลเทสต์ทั้งหมดเป็น mock, ผู้ใช้รันเอง):**
+1. ไม่นับปริมาตรซ้ำ (D14): `gfDupKey`/`markDupVolume` + `vol()` ข้าม `_dupSkip` — กระทบเฉพาะผลรวมปริมาตร จำนวนแหล่งน้ำไม่เปลี่ยน
+2. แท็บ 🔬 ข้อมูลเชิงลึก: port สคริปต์ `ix-script` (ไม่รวมข้อมูลฝัง, การล้างข้อมูลตอนโหลด D16, count-up/ตราไอคอน KPI); คลิกกรองเฉพาะแท็บรายละเอียด (D15); `state` เพิ่ม `status/missing/rule` และตัวกรองปัญหา `ก+ข`
+3. แท็บ 🧪 คุณภาพน้ำ: ย้ายส่วนเดิมจากหน้าสรุป (SECTION 5) มาเป็นแท็บตามต้นแบบ ใช้ข้อมูลแท็บรายละเอียด เลือกแถบด้วยตัวแปรของแท็บเอง (ไม่ใช้ `crossFilter` ฝั่งสรุป)
+4. คลังภาพใหม่ + lightbox: ตัวกรองประเภท/ตำบล/สถานะ, จัดกลุ่มตามตำบล, หลายภาพต่อแห่ง, ก่อนหน้า/ถัดไป/Esc; ภาพผ่าน `imgTag` เดิม (fallback/no-referrer/ลองใหม่โดยผู้ใช้)
+5. แผนที่แหล่งน้ำชำรุดใหม่: หมุดไอคอน, คลิกหมุด=เลือก, คลิกแถว=ซูม, legend, ข้อความตอนว่าง, สลับแผนที่ฐาน
+
+**Rulings:** (ดูรายการเต็มในข้อความรายงานของเซสชัน) ไม่แตะ `#gfBar`; ไม่ port ปุ่ม "ดูภาพ" ในตาราง; การ์ดภาพเป็น `div[role=button]` (fallback ของภาพมีปุ่มซ้อน); legend ชำรุดเป็นป้ายบอกตามต้นแบบ (คลิกไม่ได้); popup หมุดชำรุดคงเทมเพลตเดิมเพราะ `mobile_map_popup` ผูกกับ `WaterMapPopup`; ลบกฎ CSS global `button:active` ที่ติดมาจากต้นแบบ
+
+**ผลที่ผู้ใช้รัน (mock):** `prototype_features` 6 กลุ่ม, `province_filter_bar` (รวม assertion ว่า `#gfBar` ไม่เปลี่ยนหลังเปิดแท็บใหม่), `scoped_template` 6 กลุ่ม x2 รอบ, `mobile_map_popup` 16 กรณี, `authority_image_requests` x2, `authority_selection` 5 viewport, `playwright_dashboard_test`
+**ที่ fail/ไม่นิ่ง:** `google_drive_image_playwright.py` fail ที่ `#wqSiteDetail img[data-drive-id]` (เกิดอยู่แล้วที่ commit `b8b6723`); `scoped_template` เคยล้มหนึ่งครั้งที่ขั้นเลือกหมุด B แล้วผ่านทั้งสองรอบถัดมา (ถือเป็นเทสต์ไม่นิ่ง); `authority_image_requests` เคยล้มครั้งเดียว (ปุ่มปิด popup ถูก header บัง) แล้วผ่าน
+**ไฟล์ผลเทสต์ที่ถูกเขียนทับ:** `tests/*-results.json` 5 ไฟล์ (`file-mode`, `mobile-responsive-audit`, `netlify-function`, `playwright-cache`, `playwright`) และ `tests/screenshots/*` — ไม่ได้ลบ/คืนค่า
+**Rollback:** ยังไม่ commit เฟส 3 → คืนด้วยการย้อนไฟล์ `site/index.html`, `site/assets/dashboard-theme.css` และเทสต์ใหม่ (`prototype_features_playwright.mjs`, `phase3_compare_shots.mjs`) ไปที่ commit `b8b6723`
+**ภาพเทียบต้นแบบ:** รัน `node tests/phase3_compare_shots.mjs docs/phase3-compare-shots` (จังหวัด/แม่กา/แม่ใจ x 1440/390 x ทุกแท็บ) ข้อมูลของต้นแบบกับ fixture ต่างกัน ให้เทียบโครง/สไตล์ ไม่ใช่ตัวเลข
+
+### เฟส 3 — ผล review อิสระและการแก้ (18 พ.ย. 2026)
+review แยกบริบท (ไม่รัน browser) ไม่พบ Critical; แก้ Important 4 ข้อ: (1) lightbox ไม่เขียน cache รูปกลาง (`lbBigImg`) (2) คลิกแถวหมายเหตุใน Insight ใช้ rule `note:<คำ>` (3) แถบ `#ixActive` แสดงตัวกรองจาก Insight พร้อมปุ่มล้าง (4) รูปย่อคุณภาพน้ำผ่าน `imgTag` compact; และ guard `addLayers`/`zoomToShowLayer` ในแผนที่ชำรุด/เครือข่าย (fixture ของเทสต์ใช้ feature group ธรรมดา)
+ผู้ใช้รัน: `playwright_dashboard_test` 23/23, `prototype_features` 7 กลุ่ม, `mobile_map_popup` 16 กรณี
+Deferred minors: เครือข่าย Insight ไม่ล้างหมุด/legend เมื่อว่าง; คลิกแถว "ไม่ระบุ" ได้ 0; ข้อความว่างของแท็บชำรุดอิง `getFiltered()`; href ภาพต้นฉบับใน lightbox ไม่ escape; ระเบียนที่ลิงก์ภาพไม่มี `id=` ไม่เข้าคลังภาพ; กราฟปริมาตรตามประเภทแท็บภาพรวมยังรวมแถวซ้ำ; a11y ของ lightbox/แถว Insight; Insight วาดใหม่ทุก render แม้ซ่อน; `google_drive_image_playwright.py` ล้าสมัย (ผูกกับ modal คลังภาพเก่า) ต้องเขียนใหม่

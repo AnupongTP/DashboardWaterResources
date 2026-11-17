@@ -25,6 +25,7 @@
 - หลัก: `node tests/area_responsibility_test.mjs`, `python tests/static_integrity_test.py`, `node tests/netlify_function_test.mjs`, `python tests/playwright_dashboard_test.py`, `python tests/playwright_cache_logic_test.py`
 - เฉพาะเรื่อง: `tests/authority_*_playwright.py`, `tests/*_playwright.mjs` — รันเฉพาะไฟล์ที่เกี่ยวกับส่วนที่แก้
 - ไฟล์ `tests/*-results.json` และ `tests/screenshots/` ถูกเขียนทับเมื่อรันเทสต์
+- **ห้าม Claude รัน Playwright เอง** (ผู้ใช้สั่ง 17 พ.ย. 2026): เขียนคำสั่ง PowerShell ให้ผู้ใช้รัน — บรรทัดแรก `. .superpowers\sdd\2026-11-16-dashboard-ui-refresh\env.ps1` แล้วตามด้วยคำสั่งเทสต์ + ผลที่คาด แล้วรอผลจากผู้ใช้; รันเองได้เฉพาะ syntax check/grep/`git diff --check`
 
 ## กฎเฉพาะโปรเจกต์
 - ห้ามเปลี่ยน IDs, data attributes, event bindings, สูตร, ตัวกรอง, adapters, API/cache/fallback, counter guards

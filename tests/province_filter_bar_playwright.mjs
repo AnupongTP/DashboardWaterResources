@@ -179,6 +179,18 @@ try {
       }
     }
     if (width === 1440 || width === 390) await behaviour(page, tag, check);
+    if (width === 1440) {
+      // Phase 3 guard: the new detail tabs (insight / quality / gallery / damaged) must leave the top filter bar untouched.
+      const barHtml = () => page.locator('#gfBar').evaluate(e => e.outerHTML);
+      const before = await barHtml(), geoBefore = JSON.stringify((await geometry(page)).rects);
+      await page.click('.main-nav button[data-view="detail"]');
+      for (const t of ['insight', 'quality', 'gallery', 'damaged', 'table']) { await page.click(`.tab-btn[data-tab="${t}"]`); await page.waitForTimeout(250); }
+      await page.click('.main-nav button[data-view="exec"]');
+      await page.waitForTimeout(250);
+      check(await barHtml() === before, `${tag}: #gfBar markup unchanged after visiting the phase-3 tabs`);
+      check(JSON.stringify((await geometry(page)).rects) === geoBefore, `${tag}: #gfBar geometry unchanged after visiting the phase-3 tabs`);
+      check(await page.locator('#gfBar [id^="ix"], #gfBar #ixUpdated').count() === 0, `${tag}: no insight element inside #gfBar`);
+    }
     check(pageErrors.length === 0, `${tag}: no pageerror (${pageErrors.join('|')})`);
     check(calls.filter(c => c.kind === 'counter' && c.url.includes('/hit/')).length === 0, `${tag}: no counter /hit/`);
     await context.close();

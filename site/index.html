@@ -1664,28 +1664,6 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
     </div>
   </div>
 
-  <!-- SECTION 5: คุณภาพน้ำ + Data Quality -->
-  <div class="exec-section">
-    <div class="sec-head">
-      <div class="sec-num" style="background:#6a1b9a;">🧪</div>
-      <h2>คุณภาพน้ำ</h2>
-      <span class="sec-sub">ปัญหาที่กระทบต่อความปลอดภัยและความน่าเชื่อถือ</span>
-    </div>
-    <div class="charts-2col">
-      <div class="chart-box chart-interactive">
-        <h3>ปัญหาคุณภาพน้ำ — กระทบสุขภาพประชาชนโดยตรง</h3>
-        <div class="chart-desc">แหล่งน้ำที่มีปัญหาเหล่านี้ต้องแจ้งเตือนประชาชนและตรวจสอบแหล่งปนเปื้อนทันที คลิกเพื่อดูรายการ</div>
-        <div id="waterQuality"></div>
-      </div>
-      <div class="chart-box">
-        <h3>รายละเอียดสถานที่</h3>
-        <div class="chart-desc">คลิกแถบปัญหาคุณภาพน้ำด้านซ้ายเพื่อดูรายชื่อ ภาพ และรายละเอียดสถานที่ที่เกี่ยวข้อง</div>
-        <div id="wqSiteDetail" style="max-height:380px;overflow:auto;"></div>
-      </div>
-    </div>
-  </div>
-
-
 </div>
 </div>
 
@@ -1728,6 +1706,7 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
         <div class="f-group"><label>สภาพปัญหา</label><div class="chips" id="problemChips"></div></div>
         <button class="reset-btn" id="resetBtn">↺ ล้างตัวกรองทั้งหมด</button>
         <div class="count-note" id="countNote"></div>
+        <div class="ix-active" id="ixActive" hidden></div>
       </div>
     </aside>
 
@@ -1735,6 +1714,8 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
       <div class="tabs" role="tablist" aria-label="รายละเอียดข้อมูล">
         <button class="tab-btn active" data-tab="overview" role="tab" aria-selected="true">📊 ภาพรวม</button>
         <button class="tab-btn" data-tab="tambon" role="tab" aria-selected="false">📋 เปรียบเทียบตำบล</button>
+        <button class="tab-btn" data-tab="insight" role="tab" aria-selected="false">🔬 ข้อมูลเชิงลึก</button>
+        <button class="tab-btn" data-tab="quality" role="tab" aria-selected="false">🧪 คุณภาพน้ำ</button>
         <button class="tab-btn" data-tab="table" role="tab" aria-selected="false">📋 ตารางข้อมูล</button>
         <button class="tab-btn" data-tab="gallery" role="tab" aria-selected="false">🖼️ คลังภาพ</button>
         <button class="tab-btn tab-danger" data-tab="damaged" role="tab" aria-selected="false">⚠️ แหล่งน้ำชำรุด</button>
@@ -1761,6 +1742,42 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
         </div>
       </div>
 
+      <div class="tab-panel" id="panel-insight">
+  <!-- แท็บข้อมูลเชิงลึก (port จากต้นแบบ): สร้างแผงด้วยสคริปต์จากข้อมูลของแท็บรายละเอียด; คลิกกรองเฉพาะแท็บรายละเอียด (D15) -->
+  <div class="exec-section" id="ixSection">
+    <div class="sec-head">
+      <div class="sec-num" style="background:#00695c;">🔬</div>
+      <h2>ข้อมูลเชิงลึกเพื่อการตัดสินใจ</h2>
+      <span class="sec-sub" id="ixSubNote">คำนวณจากข้อมูลของแท็บรายละเอียด</span>
+    </div>
+    <div class="ix-hint">👆 คลิกที่แถว แท่ง หรือช่องสีในแผงใดก็ได้ เพื่อกรองรายการในแท็บรายละเอียดตามสิ่งที่คลิก (คลิกซ้ำเพื่อยกเลิก) · ตัวกรองและตัวเลขในแท็บสรุปไม่เปลี่ยน</div>
+    <div class="ix-meta"><span id="ixUpdated"></span></div>
+    <div id="ixBody"></div>
+  </div>
+      </div>
+
+      <div class="tab-panel" id="panel-quality">
+  <div class="exec-section">
+    <div class="sec-head">
+      <div class="sec-num" style="background:#6a1b9a;">🧪</div>
+      <h2>คุณภาพน้ำ</h2>
+      <span class="sec-sub">ปัญหาที่กระทบต่อความปลอดภัยและความน่าเชื่อถือ</span>
+    </div>
+    <div class="charts-2col">
+      <div class="chart-box chart-interactive">
+        <h3>ปัญหาคุณภาพน้ำ — กระทบสุขภาพประชาชนโดยตรง</h3>
+        <div class="chart-desc">ควรแจ้งเตือนประชาชนและตรวจหาแหล่งปนเปื้อนทันที · คลิกเพื่อดูรายการ</div>
+        <div id="waterQuality"></div>
+      </div>
+      <div class="chart-box">
+        <h3>รายละเอียดสถานที่</h3>
+        <div class="chart-desc">คลิกปัญหาด้านซ้ายเพื่อดูรายชื่อ ภาพ และรายละเอียด</div>
+        <div id="wqSiteDetail" style="max-height:380px;overflow:auto;"></div>
+      </div>
+    </div>
+  </div>
+      </div>
+
       <div class="tab-panel" id="panel-table">
         <div class="panel">
           <h3>ตารางข้อมูลแหล่งน้ำ <span class="n" id="n-table"></span></h3>
@@ -1772,9 +1789,17 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
       </div>
 
       <div class="tab-panel" id="panel-gallery">
-        <div class="panel">
+        <div class="panel gal-panel">
           <h3>คลังภาพแหล่งน้ำ <span class="n" id="n-gallery"></span></h3>
-          <div class="gallery" id="galleryGrid"></div>
+          <div class="gal-bar">
+            <div class="gal-row"><span class="gal-lbl">ประเภท</span><div class="gal-tabs" id="galTypeTabs" role="tablist"></div></div>
+            <div class="gal-row">
+              <span class="gal-lbl">ตำบล</span><select id="galTambon" class="gal-sel"></select>
+              <span class="gal-lbl">สถานะ</span><div class="gal-tabs gal-tabs-sm" id="galProbTabs"></div>
+              <div class="gal-view" id="galView"><button type="button" data-g="1" class="on">จัดกลุ่มตามตำบล</button><button type="button" data-g="0">ทุกภาพต่อเนื่อง</button></div>
+            </div>
+          </div>
+          <div id="galleryGrid"></div>
           <button class="loadmore" id="loadMoreBtn">โหลดเพิ่มเติม</button>
         </div>
       </div>
@@ -1799,10 +1824,12 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
             <div class="df-group"><label>ปัญหา</label><div class="df-chips" id="dfProblemChips"></div></div>
             <button class="df-reset" id="dfReset">↺ ล้าง</button>
           </div>
+          <div class="dmg-legend" id="dmgLegend"></div>
           <div class="map-stage" id="damagedMapStage">
             <div id="damaged-map"></div>
           </div>
-          <div class="damaged-list-head"><span>รายการแหล่งน้ำที่มีปัญหา</span><span class="n" id="n-damaged-list"></span></div>
+          <div class="dmg-hint">💡 คลิกหมุด = ดูเฉพาะแห่งนั้นในรายการ · คลิกแถวในรายการ = ซูมไปที่หมุด</div>
+          <div class="damaged-list-head"><span>รายการแหล่งน้ำที่มีปัญหา</span><span class="n" id="n-damaged-list"></span><span id="dmgPick"></span></div>
           <div class="table-scroll-hint" aria-hidden="true">← เลื่อนตารางซ้าย–ขวาเพื่อดูข้อมูลครบ →</div>
           <div class="tbl-wrap">
             <table class="data-tbl"><thead><tr><th>ID</th><th>ชื่อแหล่งน้ำ</th><th>ประเภท</th><th>อบต./เทศบาล</th><th>ตำบล</th><th>หมู่บ้าน</th><th>ม.</th><th>เจ้าของ</th><th>สภาพปัญหา</th><th>นำทาง</th></tr></thead><tbody id="damagedBody"></tbody></table>
@@ -1833,6 +1860,12 @@ footer.note{margin-top:20px;font-size:11.5px;color:#9aa8b0;text-align:center;pad
 </div>
 <footer class="note">ข้อมูลจากการสำรวจแหล่งน้ำ (สวก. มุ่งเป้า 68) · จัดทำเพื่อสนับสนุนการตัดสินใจเชิงนโยบาย</footer>
 
+<div class="lb" id="lb" aria-hidden="true">
+  <button class="lb-x" id="lbClose" aria-label="ปิด">✕</button>
+  <button class="lb-nav lb-prev" id="lbPrev" aria-label="ภาพก่อนหน้า">‹</button>
+  <button class="lb-nav lb-next" id="lbNext" aria-label="ภาพถัดไป">›</button>
+  <div class="lb-body" id="lbBody"></div>
+</div>
 <div class="modal-bg" id="modalBg"><button class="close-outer" id="modalClose">✕</button><div class="modal" id="modalContent"></div></div>
 
 <!-- SITE DETAIL CARD MODAL -->
@@ -1932,6 +1965,15 @@ const RAW = DISTRICT_MODE
   : AUTHORITY_MODE
     ? DECORATED_RECORDS.filter((record) => AREA.recordMatchesAuthority(record, AUTHORITY_ROUTE.authority))
     : DECORATED_RECORDS;
+// D14 (ported from the prototype): rows with the same name + tambon + coordinates are counted once in volume totals
+// (the larger volume wins). Only the volume sum is affected; the number of sites is not. Runs after RAW is scoped.
+function gfDupKey(r) {
+  var n = (r.name || '').toString().replace(/\s+/g, ' ').trim();
+  if (!n || r.lat == null || r.lng == null) return '';
+  return n + '|' + (r.tambon || '') + '|' + Number(r.lat).toFixed(5) + '|' + Number(r.lng).toFixed(5);
+}
+window.__gfDupKey = gfDupKey;
+(function markDupVolume(){const best={};RAW.forEach(r=>{const k=gfDupKey(r);if(!k)return;const o=best[k];if(!o){best[k]=r;return;}if((r.volume||0)>(o.volume||0)){o._dupSkip=true;best[k]=r;}else r._dupSkip=true;});})();
 const LOCKED_AUTHORITY = AUTHORITY_MODE && !DISTRICT_MODE ? AUTHORITY_ROUTE.authority : '';
 const LOCKED_DISTRICT = DISTRICT_MODE ? AUTHORITY_ROUTE.district
   : (AUTHORITY_MODE && AUTHORITY_ROUTE.districts.length === 1 ? AUTHORITY_ROUTE.districts[0] : '');
@@ -2044,6 +2086,13 @@ function makeExecIcon(d, st){
 const $=s=>document.querySelector(s);
 const fmtN=n=>n==null?'-':Number(n).toLocaleString('th-TH');
 function driveId(l){if(!l)return null;const m=l.match(/id=([a-zA-Z0-9_-]+)/);return m?m[1]:null;}
+function photoLinks(l){
+  if(!l)return[];const out=[];
+  (String(l).match(/https?:\/\/[^\s,]+/g)||[]).forEach(u=>{if(driveId(u)&&out.indexOf(u)<0)out.push(u);});
+  return out;
+}
+function photoCount(d){return photoLinks(d&&d.imglink).length;}
+function hasPhoto(d){return photoCount(d)>0;}
 const failedDriveImages=new Set();
 const workingDriveUrls=new Map();
 const driveRetryStage=new Map();
@@ -2126,7 +2175,7 @@ document.querySelectorAll('.main-nav button').forEach(btn=>{
 var execFilter  = { district: LOCKED_DISTRICT, authority: LOCKED_AUTHORITY, tambon: '', type: '', q: '', status: '', problem: '' };
 var crossFilter = { type: null, tambon: null, problem: null };
 // ตัวกรองฝั่งหน้า "ข้อมูลรายละเอียด" (แถบด้านข้าง) — อำเภอ → อบต./เทศบาล → ตำบล → หมู่ → หมู่บ้าน
-let state={district:LOCKED_DISTRICT,authority:LOCKED_AUTHORITY,tambon:'',moo:'',type:'',village:'',q:'',problem:null};
+let state={district:LOCKED_DISTRICT,authority:LOCKED_AUTHORITY,tambon:'',moo:'',type:'',village:'',q:'',problem:null,status:'',missing:'',rule:''};
 
 function matchesDistrict(r, district){ return AREA.recordMatchesDistrict(r, district); }
 function matchesAuthority(r, authority){ return AREA.recordMatchesAuthority(r, authority); }
@@ -2432,7 +2481,7 @@ function toggleMapFullscreen(stageId, whichMap, btnEl){
   document.body.classList.toggle('map-fullscreen-lock', isFull);
   if(btnEl){ btnEl.innerHTML = isFull?'✕':'⛶'; btnEl.title = isFull?'ย่อกลับ':'ขยายดูรายละเอียด'; }
   setTimeout(function(){
-    var m = whichMap==='hero' ? map : (whichMap==='damaged' ? damagedMap : null);
+    var m = whichMap==='hero' ? map : (whichMap==='damaged' ? damagedMap : (whichMap==='net' ? window.__netMap : null));
     if(m) m.invalidateSize({debounceMoveend:true});
   }, 260);
 }
@@ -2443,7 +2492,7 @@ document.addEventListener('keydown', function(e){
   var fullEl = document.querySelector('.map-stage.map-fullscreen');
   if(!fullEl) return;
   var btn = fullEl.querySelector('.map-expand-ctrl a');
-  var whichMap = fullEl.id==='heroMapStage' ? 'hero' : fullEl.id==='damagedMapStage' ? 'damaged' : null;
+  var whichMap = fullEl.id==='heroMapStage' ? 'hero' : fullEl.id==='damagedMapStage' ? 'damaged' : fullEl.id==='ixNetStage' ? 'net' : null;
   toggleMapFullscreen(fullEl.id, whichMap, btn);
 });
 // ปุ่มขยาย/ย่อเต็มจอ — ทำเป็น Leaflet control ต่อท้ายปุ่มซูม +/- (มุมบนซ้าย) แทนปุ่มลอยแยกต่างหาก
@@ -2810,7 +2859,7 @@ function runBuildExec(){
   var PROB_T    = ['ใช้งานได้','วัชพืชปกคลุม','น้ำตื้นเขิน','ชำรุด','ไม่มีน้ำ/แห้งแล้ง','น้ำมีสี','น้ำเน่าเสีย','น้ำมีกลิ่น'];
   var PROB_C    = ['#2e7d32','#e65100','#1565c0','#c62828','#bf360c','#6a1b9a','#b71c1c','#827717'];
 
-  function vol(r){ return (typeof r.volume==='number'&&r.volume>0)?r.volume:0; }
+  function vol(r){ return (!r._dupSkip&&typeof r.volume==='number'&&r.volume>0)?r.volume:0; }
   function dam(r){ return r.problem&&DAMAGE_KW.some(function(k){return r.problem.includes(k);}); }
   function ok(r) { return r.problem&&r.problem.includes('ใช้งานได้'); }
   function weed(r){ return r.problem&&r.problem.includes('วัชพืช'); }
@@ -3371,56 +3420,6 @@ function runBuildExec(){
   tblHtml+='</tbody></table></div>';
   document.getElementById('tambonCompare').innerHTML=tblHtml;
 
-  // ─── WATER QUALITY ─────────────────────────────────
-  var wqTags=['น้ำมีสี','น้ำเน่าเสีย','น้ำมีกลิ่น','น้ำเค็ม','น้ำขาดแคลน'];
-  var wqColors={'น้ำมีสี':'#4a148c','น้ำเน่าเสีย':'#b71c1c','น้ำมีกลิ่น':'#827717','น้ำเค็ม':'#1565c0','น้ำขาดแคลน':'#2e7d32'};
-  var wqData2=wqTags.map(function(k){return{k:k,v:EDATA.filter(function(r){return r.problem&&r.problem.includes(k);}).length};});
-  var wqMax2=Math.max.apply(null,wqData2.map(function(q){return q.v;}).concat([1]));
-  var wqHtml='';
-  wqData2.forEach(function(q){
-    var pw=(q.v/wqMax2*100).toFixed(1);
-    var clr=wqColors[q.k]||'#888';
-    var isActive=crossFilter.problem===q.k;
-    wqHtml+='<div style="margin-bottom:10px;cursor:pointer;'+(isActive?'background:#f3e5f5;border-radius:6px;padding:4px;':'')+'" onclick="setCrossFilter(\'problem\',\''+q.k+'\')">'
-      +'<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">'
-      +'<span style="color:#1a2d3d;font-weight:700;">'+q.k+'</span>'
-      +'<span style="color:'+clr+';font-weight:800;">'+fmtN(q.v)+' แห่ง ('+( N?( q.v/N*100).toFixed(1):0)+'%)</span>'
-      +'</div>'
-      +'<div style="height:10px;background:#eef2f7;border-radius:4px;overflow:hidden;">'
-      +'<div style="width:'+pw+'%;height:100%;background:'+clr+';border-radius:4px;transition:.3s;"></div></div></div>';
-  });
-  document.getElementById('waterQuality').innerHTML=wqHtml;
-
-  // ─── รายละเอียดสถานที่ (แสดงข้างกราฟปัญหาคุณภาพน้ำ เมื่อคลิกเลือกแถบ) ──
-  (function(){
-    var body=document.getElementById('wqSiteDetail');
-    if(!body) return;
-    var tag=crossFilter.problem;
-    if(!tag){ body.innerHTML='<div style="font-size:12px;color:#9aabb0;padding:24px 6px;text-align:center;">👈 คลิกแถบด้านซ้ายเพื่อดูรายละเอียดสถานที่</div>'; return; }
-    var list=EDATA.filter(function(r){return r.problem&&r.problem.includes(tag);});
-    var idsStr='['+list.map(function(r){return r.id;}).join(',')+']';
-    var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'
-      +'<div style="font-size:11.5px;font-weight:800;color:#1a2d3d;">📍 '+tag+' ('+fmtN(list.length)+' แห่ง)</div>'
-      +'<span style="font-size:10px;color:#1565c0;font-weight:700;cursor:pointer;text-decoration:underline;" onclick="setCrossFilter(\'problem\',\''+tag+'\')">✕ ปิด</span>'
-      +'</div>';
-    if(!list.length) h+='<div style="font-size:11px;color:#5a7080;">ไม่พบรายการ</div>';
-    list.slice(0,10).forEach(function(r){
-      var loc=[r.tambon?'ต.'+r.tambon:'',r.village?(r.village+(r.moo?' ม.'+r.moo:'')):''].filter(Boolean).join(' · ');
-      var thumb = hasPhoto(r)
-        ? '<img src="'+photoLinks(r.imglink)[0]+'" loading="lazy" style="width:44px;height:44px;object-fit:cover;border-radius:6px;flex:none;background:#eef;" onerror="this.style.display=\'none\'">'
-        : '<div style="width:44px;height:44px;border-radius:6px;flex:none;background:#eef0f4;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:9px;">ไม่มีรูป</div>';
-      h+='<div style="display:flex;gap:8px;align-items:center;padding:6px 4px;border-bottom:1px dashed #e3eaf1;cursor:pointer;" onclick="showSiteCard('+r.id+','+idsStr+')">'
-        +thumb
-        +'<div style="flex:1;min-width:0;">'
-        +'<div style="font-size:11.5px;font-weight:700;color:#1a2d3d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+(r.name||'(ไม่ระบุชื่อ)')+'</div>'
-        +'<div style="font-size:10.5px;color:#5a7080;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+loc+'</div>'
-        +(r.owner?'<div style="font-size:10px;color:#9aabb0;">ผู้ดูแล: '+r.owner+'</div>':'')
-        +'</div></div>';
-    });
-    if(list.length>10) h+='<div style="font-size:10px;color:#5a7080;margin-top:5px;">… และอีก '+fmtN(list.length-10)+' แห่ง</div>';
-    body.innerHTML=h;
-  })();
-
   // ─── POLICY CARDS ──────────────────────────────────
   function renderPolicyCardDetail(p){
     var d=p.detail||[];
@@ -3720,7 +3719,7 @@ $('#fType').addEventListener('change',e=>{state.type=e.target.value;render();});
 $('#fVillage').addEventListener('change',e=>{state.village=e.target.value;render();});
 $('#searchBox').addEventListener('input',e=>{state.q=e.target.value.trim().toLowerCase();render();});
 function resetDetailFilters(){
-  state={district:LOCKED_DISTRICT,authority:LOCKED_AUTHORITY,tambon:'',moo:'',type:'',village:'',q:'',problem:null};
+  state={district:LOCKED_DISTRICT,authority:LOCKED_AUTHORITY,tambon:'',moo:'',type:'',village:'',q:'',problem:null,status:'',missing:'',rule:''};
   $('#fDistrict').value=LOCKED_DISTRICT;$('#fType').value='';$('#searchBox').value='';
   document.querySelectorAll('#problemChips .chip').forEach(x=>x.classList.remove('active'));
   crossFilter.tambon=null;
@@ -3729,6 +3728,707 @@ function resetDetailFilters(){
   updateCrossFilterBar();render();runBuildExec();
 }
 $('#resetBtn').addEventListener('click',resetDetailFilters);
+
+// ===== Quality tab (phase 3): same logic the summary tab used, moved to its own tab and fed by the DETAIL tab data (D15) =====
+var wqTag='';
+window.wqPick=function(tag){ wqTag=(wqTag===tag)?'':tag; renderQuality(); };
+function renderQuality(){
+  var D=getFiltered();
+  function photoLinks(l){ if(!l)return[]; var out=[]; (String(l).match(/https?:\/\/[^\s,]+/g)||[]).forEach(function(u){if(driveId(u)&&out.indexOf(u)<0)out.push(u);}); return out; }
+  function hasPhoto(d){ return photoLinks(d&&d.imglink).length>0; }
+  var wqTags=['น้ำมีสี','น้ำเน่าเสีย','น้ำมีกลิ่น','น้ำเค็ม','น้ำขาดแคลน'];
+  var wqColors={'น้ำมีสี':'#4a148c','น้ำเน่าเสีย':'#b71c1c','น้ำมีกลิ่น':'#827717','น้ำเค็ม':'#1565c0','น้ำขาดแคลน':'#2e7d32'};
+  var wqData2=wqTags.map(function(k){return{k:k,v:D.filter(function(r){return r.problem&&r.problem.includes(k);}).length};});
+  var wqMax2=Math.max.apply(null,wqData2.map(function(q){return q.v;}).concat([1]));
+  var wqHtml='';
+  wqData2.forEach(function(q){
+    var pw=(q.v/wqMax2*100).toFixed(1);
+    var clr=wqColors[q.k]||'#888';
+    var isActive=wqTag===q.k;
+    wqHtml+='<div style="margin-bottom:10px;cursor:pointer;'+(isActive?'background:#f3e5f5;border-radius:6px;padding:4px;':'')+'" onclick="wqPick(\''+q.k+'\')">'
+      +'<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">'
+      +'<span style="color:#1a2d3d;font-weight:700;">'+q.k+'</span>'
+      +'<span style="color:'+clr+';font-weight:800;">'+fmtN(q.v)+' แห่ง ('+( D.length?( q.v/D.length*100).toFixed(1):0)+'%)</span>'
+      +'</div>'
+      +'<div style="height:10px;background:#eef2f7;border-radius:4px;overflow:hidden;">'
+      +'<div style="width:'+pw+'%;height:100%;background:'+clr+';border-radius:4px;transition:.3s;"></div></div></div>';
+  });
+  document.getElementById('waterQuality').innerHTML=wqHtml;
+
+  // ─── รายละเอียดสถานที่ (แสดงข้างกราฟปัญหาคุณภาพน้ำ เมื่อคลิกเลือกแถบ) ──
+  (function(){
+    var body=document.getElementById('wqSiteDetail');
+    if(!body) return;
+    var tag=wqTag;
+    if(!tag){ body.innerHTML='<div style="font-size:12px;color:#9aabb0;padding:24px 6px;text-align:center;">👈 คลิกแถบด้านซ้ายเพื่อดูรายละเอียดสถานที่</div>'; return; }
+    var list=D.filter(function(r){return r.problem&&r.problem.includes(tag);});
+    var idsStr='['+list.map(function(r){return r.id;}).join(',')+']';
+    var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'
+      +'<div style="font-size:11.5px;font-weight:800;color:#1a2d3d;">📍 '+tag+' ('+fmtN(list.length)+' แห่ง)</div>'
+      +'<span style="font-size:10px;color:#1565c0;font-weight:700;cursor:pointer;text-decoration:underline;" onclick="wqPick(\''+tag+'\')">✕ ปิด</span>'
+      +'</div>';
+    if(!list.length) h+='<div style="font-size:11px;color:#5a7080;">ไม่พบรายการ</div>';
+    list.slice(0,10).forEach(function(r){
+      var loc=[r.tambon?'ต.'+r.tambon:'',r.village?(r.village+(r.moo?' ม.'+r.moo:'')):''].filter(Boolean).join(' · ');
+      var thumb = hasPhoto(r)
+        ? imgTag(photoLinks(r.imglink)[0],'width:44px;height:44px;object-fit:cover;border-radius:6px;flex:none;background:#eef;',44)
+        : '<div style="width:44px;height:44px;border-radius:6px;flex:none;background:#eef0f4;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:9px;">ไม่มีรูป</div>';
+      h+='<div style="display:flex;gap:8px;align-items:center;padding:6px 4px;border-bottom:1px dashed #e3eaf1;cursor:pointer;" onclick="showSiteCard('+r.id+','+idsStr+')">'
+        +thumb
+        +'<div style="flex:1;min-width:0;">'
+        +'<div style="font-size:11.5px;font-weight:700;color:#1a2d3d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+(r.name||'(ไม่ระบุชื่อ)')+'</div>'
+        +'<div style="font-size:10.5px;color:#5a7080;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+loc+'</div>'
+        +(r.owner?'<div style="font-size:10px;color:#9aabb0;">ผู้ดูแล: '+r.owner+'</div>':'')
+        +'</div></div>';
+    });
+    if(list.length>10) h+='<div style="font-size:10px;color:#5a7080;margin-top:5px;">… และอีก '+fmtN(list.length-10)+' แห่ง</div>';
+    body.innerHTML=h;
+  })();
+
+}
+
+// ===== Insight tab support (phase 3): hooks the ported insight script expects, wired to the DETAIL tab state only (D15) =====
+function gfBlank(r, k) {
+  var v = r[k];
+  if (v == null || v === '' || v === 0) return true;
+  if (typeof v === 'string') {
+    var t = v.trim();
+    if (!t || /^(-|ไม่มี|ไม่ทราบ.*|ไม่ระบุ.*)$/.test(t)) return true;
+    if (k === 'imglink' && t.indexOf('Error') >= 0) return true;
+  }
+  return false;
+}
+window.__gfBlank = gfBlank;
+function gfRule(r, rule) {
+  var i = rule.indexOf(':'), k = i < 0 ? rule : rule.slice(0, i), v = i < 0 ? '' : rule.slice(i + 1);
+  if (k === 'dup') {   // แถวที่มีชื่อ ตำบล และพิกัดเดียวกันกับแถวอื่น (อาจบันทึกซ้ำ)
+    if (!window.__dupMap) { var m = {}; RAW.forEach(function(x){ var kk = gfDupKey(x); if (kk) m[kk] = (m[kk]||0) + 1; }); window.__dupMap = m; }
+    var key = gfDupKey(r); return !!key && window.__dupMap[key] > 1;
+  }
+  if (k === 'depthinv') return r.depth > 0 && r.depthnet > 0 && r.depthnet > r.depth;
+  if (k === 'remain') {
+    if (!(r.depth > 0 && r.depthnet > 0 && r.depthnet <= r.depth)) return false;
+    var a = v.split('-'), x = r.depthnet / r.depth * 100, lo = +a[0], hi = +a[1];
+    return x >= lo && (hi >= 100 ? x <= 100 : x < hi);
+  }
+  if (k === 'month') {
+    var m = /^(\d{4})-(\d{2})/.exec((r.dt || '').toString().trim()); if (!m) return false;
+    var y = +m[1]; if (y > 2400) y -= 543;
+    return (y + '-' + m[2]) === v;
+  }
+  if (k === 'note') return (r.note || '').toString().toLowerCase().indexOf(v.toLowerCase()) >= 0; // phase 3: insight "note keyword" rows
+  if (k === 'status') return (r.status || '').toString().trim() === v;
+  if (k === 'nprob') { var n = (r.problem || '').split(',').filter(function(s){ s = s.trim(); return s && s !== 'ใช้งานได้'; }).length; return v === '3+' ? n >= 3 : n === +v; }
+  return true;
+}
+window.__gfRule = gfRule;
+
+window.ixSetFilter=function(o){
+  const norm=(k,v)=>k==='q'?String(v||'').trim().toLowerCase():v;
+  const cur=k=>k==='problem'?(state.problem||''):(state[k]||'');
+  const same=Object.keys(o).every(k=>cur(k)===norm(k,o[k]));
+  const tambonBefore=state.tambon;
+  Object.keys(o).forEach(k=>{
+    const v=same?'':norm(k,o[k]);
+    if(k==='tambon'||k==='q'||k==='type'||k==='problem'||k==='status'||k==='missing'||k==='rule') state[k]=(k==='problem'&&!v)?null:v;
+  });
+  if('q' in o) $('#searchBox').value=state.q||'';
+  if('type' in o) $('#fType').value=state.type||'';
+  if('problem' in o) document.querySelectorAll('#problemChips .chip').forEach(x=>x.classList.toggle('active',x.dataset.tag===state.problem));
+  if('tambon' in o&&state.tambon!==tambonBefore){
+    state.moo='';state.village='';
+    detailTambonCombo.setValue(state.tambon,{silent:true});
+    refreshMooOptions();refreshVillageOptions();
+  }
+  render();
+  return window.__ixState();
+};
+window.__ixState=function(){return {tambon:state.tambon,type:state.type,problem:state.problem||'',q:state.q,status:state.status,missing:state.missing,rule:state.rule};};
+window.__ixData=function(){return getFiltered();};
+// filters set from the insight tab have no control in the sidebar: show them (with a clear button) under the count
+function updateIxActive(){
+  const box=document.getElementById('ixActive'); if(!box)return;
+  const parts=[];
+  if(state.rule&&window.__ixRuleLabel)parts.push(window.__ixRuleLabel(state.rule));
+  if(state.missing&&window.__ixFieldLabel)parts.push('ยังไม่มี: '+window.__ixFieldLabel(state.missing));
+  if(state.status)parts.push('สถานะ: '+({ok:'ใช้งานได้',bad:'มีปัญหา',broken:'ชำรุด'}[state.status]||state.status));
+  if(state.problem&&state.problem.indexOf('+')>=0)parts.push('ปัญหา: '+state.problem.split('+').join(' + '));
+  box.hidden=parts.length===0;
+  box.textContent='';
+  if(!parts.length)return;
+  const label=document.createElement('span');label.textContent='🔬 ตัวกรองจากข้อมูลเชิงลึก: '+parts.join(' · ');
+  const clr=document.createElement('button');clr.type='button';clr.id='ixActiveClear';clr.textContent='✕ ล้าง';
+  clr.addEventListener('click',()=>{state.rule='';state.missing='';state.status='';if(state.problem&&state.problem.indexOf('+')>=0)state.problem=null;render();});
+  box.appendChild(label);box.appendChild(clr);
+}
+// tiles / cluster / icon / popup / legend for the insight network map: reuse this page's own map helpers
+window.__addBaseMaps=function(mp){
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles © Esri',maxZoom:18,maxNativeZoom:17}).addTo(mp);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{attribution:'',maxZoom:18,maxNativeZoom:17}).addTo(mp);
+};
+window.__clusterGroup=function(){return L.markerClusterGroup({maxClusterRadius:zoom=>zoom>=16?1:70,spiderfyOnMaxZoom:true,showCoverageOnHover:false,chunkedLoading:true,iconCreateFunction:clusterIcon('#0a5fb4','#29b6f6')});};
+window.__execIcon=function(d){return makeExecIcon(d,{col:TYPE_COLORS[d.type]||'#0a5fb4',size:22,ring:null});};
+window.__execPopup=buildExecPopup;
+window.__mapEmpty=function(stageId,msg){
+  const st=document.getElementById(stageId); if(!st)return;
+  let el=st.querySelector(':scope>.map-empty');
+  if(!msg){if(el)el.remove();return;}
+  if(!el){el=document.createElement('div');el.className='map-empty';el.setAttribute('role','status');st.appendChild(el);}
+  el.textContent=msg;
+};
+window.__expandCtl=addMapExpandControl;
+function insightMapLegend(data,targetId,plain){
+  const n=data.length; const pct=a=>n?(a/n*100).toFixed(0):'0';
+  const it=(dot,label,extra)=>`<span class="lg-it"><i class="lg-dot" style="background:${dot};${extra||''}"></i>${label}</span>`;
+  const used=[...new Set(data.filter(r=>r.type).map(r=>r.type))].sort((a,c)=>data.filter(r=>r.type===c).length-data.filter(r=>r.type===a).length);
+  const nOk=data.filter(isUsable).length, nDmg=data.filter(isDamaged).length;
+  let html='<div class="lg-row"><b class="lg-t">ประเภท:</b>'+(used.map(t=>it(TYPE_COLORS[t]||'#999',typeIcon(t)+' '+t)).join('')||'<span class="lg-e">ไม่พบข้อมูล</span>')+'</div>';
+  html+='<div class="lg-row"><b class="lg-t">สถานะ:</b>'+it('#27ae60','ใช้งานได้')+it('#dc2626','ชำรุด')+(Math.max(0,n-nOk-nDmg)>0?it('#9e9e9e','ไม่ระบุ'):'')+'<b class="lg-t">สัญลักษณ์เตือน:</b><span class="lg-it">🔧 ชำรุด</span><span class="lg-it">⚠️ พบปัญหาอื่น</span></div>';
+  html+='<div class="lg-row lg-note">หมุดตัวเลข = หลายแหล่งน้ำรวมกลุ่มกัน คลิกเพื่อซูมเข้าไปดูทีละแห่ง</div>';
+  const el=document.getElementById(targetId||'mapLegend'); if(el) el.innerHTML=html;
+}
+window.__buildLegend=insightMapLegend;
+// ===== INSIGHT เชิงลึก (port จากต้นแบบ — ไม่ port: ข้อมูลฝัง, การล้างข้อมูลตอนโหลด D16, count-up/stamp ของการ์ด KPI) =====
+(function(){
+  var root = document.getElementById('ixSection'), body = document.getElementById('ixBody');
+  if (!root || !body) return;
+
+  var THAI_MON = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  var OK_TAG = 'ใช้งานได้';
+  var FAIL_KW = ['ชำรุด','ไม่มีน้ำ/แห้งแล้ง','น้ำขาดแคลน','ไม่สามารถใช้งานได้'];
+  var PCOLOR = {'ชำรุด':'#c62828','ไม่มีน้ำ/แห้งแล้ง':'#ad1457','น้ำขาดแคลน':'#8e24aa','ตื้นเขิน':'#8d6e63','วัชพืชปกคลุม':'#ef6c00','น้ำเน่าเสีย':'#546e7a','น้ำมีสี':'#00838f','น้ำมีกลิ่น':'#7c5cd6','น้ำเค็ม':'#1565c0'};
+  var FIELDS = [ // ช่องในชีตที่ใช้ตรวจความครบถ้วน
+    ['name','ชื่อแหล่งน้ำ'],['owner','ชื่อเจ้าของ/ผู้ดูแล'],['phone','เบอร์ติดต่อ'],['village','หมู่บ้าน'],['moo','หมู่ที่'],
+    ['width','ความกว้าง'],['length','ความยาว'],['depth','ความลึก (Depth)'],['depthnet','ความลึก (DepthNet)'],['volume','ปริมาตร'],
+    ['problem','สภาพ/ปัญหา'],['imglink','รูปถ่าย'],['note','หมายเหตุ'],['authority','หน่วยงานท้องถิ่น (LocalAuthority)']
+  ];
+  var OPTIONAL = {note:1,authority:1}; // ช่องที่ไม่จำเป็นต้องมีทุกแห่ง จึงไม่ถูกนำไปเป็นข้อสรุป "ข้อมูลที่ขาดมากที่สุด"
+  var FLABEL = {}; FIELDS.forEach(function(f){ FLABEL[f[0]] = f[1]; });
+  window.__ixFieldLabel = function(k){ return FLABEL[k] || k; };
+  window.__ixRuleLabel = function(rule){
+    var i = rule.indexOf(':'), k = i<0?rule:rule.slice(0,i), v = i<0?'':rule.slice(i+1);
+ if (k==='depthinv') return 'DepthNet มากกว่า Depth ';
+ if (k==='remain'){ var a=v.split('-'); return 'DepthNet ÷ Depth '+a[0]+'–'+a[1]+'%'; }
+    if (k==='month'){ var y=+v.slice(0,4), m=+v.slice(5,7); return 'บันทึกเดือน'+THAI_MON[m-1]+' '+(y+543); }
+    if (k==='status') return 'สถานะตรวจสอบ: '+v;
+    if (k==='dup') return 'แถวที่ชื่อ ตำบล และพิกัดซ้ำกัน';
+    if (k==='note') return 'หมายเหตุมีคำว่า "'+v+'"';
+    if (k==='nprob') return 'จำนวนปัญหาที่พบ: '+(v==='3+'?'3 ขึ้นไป':v);
+    return rule;
+  };
+
+  function $(id){ return document.getElementById(id); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  function fmt(n){ return Number(n).toLocaleString('th-TH'); }
+  function fmt1(n){ return Number(n).toLocaleString('th-TH',{maximumFractionDigits:1}); }
+  function pct(a,b){ return b>0 ? Math.round(a*1000/b)/10 : 0; }
+  function tags(r){ return (r.problem||'').split(',').map(function(s){return s.trim();}).filter(Boolean); }
+  function probs(r){ return tags(r).filter(function(t){return t!==OK_TAG;}); }
+  function hasProb(r){ return probs(r).length>0; }
+  function has(r,k){ return (r.problem||'').indexOf(k)>=0; }
+  function isFail(r){ return FAIL_KW.some(function(k){return has(r,k);}); }
+  function median(a){ if(!a.length) return null; a=a.slice().sort(function(x,y){return x-y;}); var m=a.length>>1; return a.length%2?a[m]:(a[m-1]+a[m])/2; }
+  function st(){ return (window.__ixState?window.__ixState():{}); }
+  function fa(o){ return ' data-f="'+esc(JSON.stringify(o))+'"'; }
+  function isOn(o){ var s=st(); return Object.keys(o).every(function(k){ var v=(k==='q')?String(o[k]).trim().toLowerCase():o[k]; return s[k]===v; }); }
+  function on(o){ return isOn(o)?' ix-on':''; }
+  function how(html){ return '<details class="ix-how"><summary>วิธีคิด</summary><div>'+html+'</div></details>'; }
+  function bar(w,color){ return '<div class="ix-bar"><i style="width:'+Math.max(0,Math.min(100,w))+'%;background:'+color+';"></i></div>'; }
+  function row(lbl,sub,w,color,val,valSub,f){
+    return '<div class="ix-row'+(f?on(f):'')+'"'+(f?fa(f):'')+'><div class="ix-lbl" title="'+esc(lbl)+'">'+esc(lbl)+(sub?'<small>'+esc(sub)+'</small>':'')+'</div>'
+      + bar(w,color) + '<div class="ix-val">'+val+(valSub?' <small>'+valSub+'</small>':'')+'</div></div>';
+  }
+  function empty(m){ return '<div class="ix-empty">'+(m||'ไม่มีข้อมูลตามตัวกรองปัจจุบัน')+'</div>'; }
+  function currentData(){ return (typeof window.__ixData==='function') ? window.__ixData() : RAW; }
+  function allProbs(D){ var c={}; D.forEach(function(r){ probs(r).forEach(function(t){ c[t]=(c[t]||0)+1; }); }); return Object.keys(c).sort(function(a,b){return c[b]-c[a];}).map(function(k){return {k:k,n:c[k]};}); }
+  function pc(k){ return PCOLOR[k]||'#607d8b'; }
+  function parseDate(dt){
+    var m=/^(\d{4})-(\d{2})-(\d{2})/.exec((dt||'').toString().trim()); if(!m) return null;
+    var y=+m[1]; if(y>2400) y-=543; var mo=+m[2], d=+m[3];
+    if(mo<1||mo>12||y<2000||y>2100) return null;
+    return {y:y,m:mo,d:d,key:y*10000+mo*100+d,ym:y+'-'+(mo<10?'0':'')+mo};
+  }
+  function thaiDate(p){ return p.d+' '+THAI_MON[p.m-1]+' '+(p.y+543); }
+  function groupBy(D,fn){ var g={}; D.forEach(function(r){ var k=fn(r); if(k==null||k==='') return; (g[k]=g[k]||[]).push(r); }); return g; }
+  function keysByN(g){ return Object.keys(g).sort(function(a,b){return g[b].length-g[a].length||a.localeCompare(b,'th');}); }
+  function remain(r){ return (r.depth>0&&r.depthnet>0&&r.depthnet<=r.depth) ? r.depthnet/r.depth : null; }
+  function lostVol(r){ return (r.width>0&&r.length>0&&remain(r)!=null) ? r.width*r.length*(r.depth-r.depthnet) : null; }
+  // รวมแถวที่ชื่อ ตำบล และพิกัดเดียวกันเป็นแห่งเดียว (เก็บแถวที่ปริมาตรมากสุด) ใช้กับยอดรวมปริมาตร เพื่อไม่ให้นับแหล่งน้ำเดียวกันซ้ำ
+  function dupKey(r){ return window.__gfDupKey ? window.__gfDupKey(r) : ''; }
+  function dedupe(rows){
+    var best={}, out=[], removed=0;
+    rows.forEach(function(r){
+      var k=dupKey(r); if(!k){ out.push(r); return; }
+      var o=best[k];
+      if(!o){ best[k]={r:r,n:1,i:out.length}; out.push(r); return; }
+      o.n++; removed++;
+      if((r.volume||0)>(o.r.volume||0)){ o.r=r; out[o.i]=r; }
+    });
+    return {rows:out,removed:removed};
+  }
+  function mm(n){ return n>=1e6 ? fmt1(n/1e6)+' ล้าน ลบ.ม.' : fmt(Math.round(n))+' ลบ.ม.'; }
+
+  // ---------- โครงหน้า ----------
+  var GROUPS = [
+    {t:'สิ่งที่ข้อมูลบอก',ic:'💡',sub:'สรุปอัตโนมัติจากข้อมูลที่แสดงอยู่ — คลิกการ์ดเพื่อดูรายการ',p:[{id:'finds',raw:1}]},
+    {t:'ปัญหาและสภาพการใช้งาน',ic:'🛠️',sub:'ปัญหาอะไร อยู่ที่ไหน ที่ประเภทไหน ซ้อนกันหรือไม่',p:[
+      {id:'ptype',t:'ปัญหาที่พบในแหล่งน้ำแต่ละประเภท',full:1,use:'จัดงบซ่อม/ขุดลอกให้ประเภทที่เสียมากก่อน และรู้สาเหตุที่พบบ่อย'},
+      {id:'ptamb',t:'ปัญหาที่พบในแต่ละตำบล',full:1,use:'จัดงานให้แต่ละตำบลตามปัญหาที่พบจริง (ซ่อม ขุดลอก กำจัดวัชพืช ตรวจน้ำ)'},
+      {id:'multi',full:1,t:'ปัญหาซ้อนในแหล่งน้ำเดียวกัน',use:'แหล่งที่มีหลายปัญหา ควรแก้ครั้งเดียวทั้งชุด จะได้ไม่ต้องไปซ้ำ'}
+    ]},
+    {t:'พื้นที่และความทันสมัยของข้อมูล',ic:'📍',sub:'หมู่บ้านใดต้องไปก่อน และตำบลใดควรสำรวจซ้ำ',p:[
+      {id:'hot',t:'หมู่บ้านที่มีแหล่งน้ำใช้งานไม่ได้มากที่สุด',use:'เลือกหมู่บ้านที่ควรลงซ่อมหรือส่งน้ำช่วยเหลือก่อน'},
+      {id:'fresh',t:'ข้อมูลแต่ละตำบลบันทึกล่าสุดเมื่อใด',use:'ตำบลที่ข้อมูลเก่าที่สุด ควรสำรวจซ้ำก่อน'}
+    ]},
+    {t:'ขนาดและความจุของแหล่งน้ำ',ic:'🌊',sub:'ความลึก ปริมาตร ขนาดมาตรฐาน และน้ำที่หายไปจากการตื้นเขิน',p:[
+ {id:'depth',t:'DepthNet เทียบกับ Depth',use:'จัดลำดับขุดลอก: เริ่มจากแหล่งที่ DepthNet ต่ำที่สุด'},
+      {id:'lost',t:'ปริมาตรน้ำที่หายไปจากการตื้นเขิน (ประมาณการ)',use:'ประมาณความจุที่ได้คืนจากการขุดลอก เทียบกับงบประมาณ'},
+      {id:'cap',t:'ปริมาตรเก็บกักรวม อยู่ในแหล่งน้ำสภาพใด',use:'ดูว่าความจุรวมพึ่งแหล่งใหญ่กี่แห่ง และแหล่งเหล่านั้นใช้งานได้หรือไม่'},
+      {id:'size',t:'ขนาดทั่วไปของแหล่งน้ำแต่ละประเภท (ค่ากลาง)',use:'ใช้เป็นขนาดตั้งต้นเมื่อออกแบบหรือประมาณราคางานใหม่'}
+    ]},
+    {t:'ผู้รับผิดชอบ',ic:'🏛️',sub:'ใครดูแลแหล่งน้ำที่ชำรุด',p:[
+      {id:'owner',t:'ผู้ดูแลแหล่งน้ำและจำนวนที่ใช้งานไม่ได้',full:1,use:'ส่งเรื่องให้ถูกหน่วยงาน และดูว่าหน่วยงานใดดูแลแหล่งที่เสียมาก'}
+    ]},
+    {t:'ความคืบหน้าและคุณภาพข้อมูล',ic:'✅',sub:'เก็บข้อมูลไปถึงไหน ตรวจแล้วเท่าไร ช่องใดยังว่าง',p:[
+      {id:'monthly',t:'ความคืบหน้าการเก็บข้อมูลรายเดือน',use:'ดูจังหวะการสำรวจ เพื่อวางแผนทีมเดือนถัดไป'},
+      {id:'verify',t:'ความคืบหน้าการตรวจสอบข้อมูล',use:'ก่อนใช้ตัวเลขของบประมาณ ให้ดูตำบลที่ยังรอตรวจมาก'},
+      {id:'complete',t:'ความครบถ้วนของข้อมูลแต่ละช่อง',use:'คลิกช่องที่ว่าง เพื่อดูรายการที่ต้องกลับไปเก็บข้อมูลเพิ่ม',full:1},
+      {id:'dup',t:'แถวที่อาจบันทึกซ้ำ',use:'กันการนับแหล่งน้ำหรือปริมาตรซ้ำ ไม่ให้ตัวเลขของบประมาณสูงเกินจริง'},
+      {id:'notes',t:'ข้อเสนอและข้อสังเกตจากหมายเหตุของผู้สำรวจ',use:'นำข้อเสนอจากผู้สำรวจ (ขุดลอก ซ่อม โครงการ) ไปประกอบการเสนอโครงการ'}
+    ]},
+    {t:'โครงข่ายส่งน้ำ',ic:'🗺️',sub:'ห้วย คลอง รางส่งน้ำที่สำรวจเป็นแนวเส้น',p:[
+      {id:'net',t:'แนวโครงข่ายส่งน้ำและสภาพของแต่ละช่วง',full:1,use:'วางแผนซ่อม/ขุดลอกเป็นช่วงต่อเนื่อง ดูแนวที่ยาวและมีปัญหา'}
+    ]}
+  ];
+  (function build(){
+    var h='';
+    GROUPS.forEach(function(g){
+      h+='<div class="ix-grp"><i>'+g.ic+'</i>'+g.t+' <small>'+g.sub+'</small></div>';
+      if(g.p.length===1 && g.p[0].raw){ h+='<div class="ix-finds" id="ix-finds"></div>'; return; }
+      h+='<div class="ix-grid">';
+      g.p.forEach(function(p){
+        h+='<div class="ix-p'+(p.full?' ix-full':'')+'"><h3>'+p.t+'</h3><div class="ix-use">💡 ใช้ตัดสินใจ: '+p.use+'</div>'
+          +(p.id==='net'?'<div class="ix-net"><div id="ix-net-sum"></div><div class="map-stage" id="ixNetStage"><div id="ixNetMap"></div></div><div class="dmg-legend ix-net-legend" id="ixNetLegend"></div><div class="dmg-hint">💡 คลิกหมุดหรือเส้นเพื่อดูรายละเอียด ภาพถ่าย และนำทาง · หมุดตัวเลข = หลายแหล่งน้ำรวมกลุ่มกัน คลิกเพื่อซูมเข้า</div></div>':'<div id="ix-'+p.id+'"></div>')+'</div>';
+      });
+      h+='</div>';
+    });
+    body.innerHTML=h;
+  })();
+
+  // ---------- ตารางความร้อนทั่วไป ----------
+  var MODE={ptype:'pct',ptamb:'pct'};
+  function heatBg(v,mx){ if(!v) return '#fff'; var a=Math.min(1,v/Math.max(mx,1e-9)); return 'rgba(198,40,40,'+(0.10+0.62*a).toFixed(2)+')'; }
+  function heatTable(el,D,rowKey,rowFilterKey,mode,modeId,corner){
+    var cols=allProbs(D);
+    var g=groupBy(D,function(r){return rowKey(r)||'ไม่ระบุ';});
+    var rows=keysByN(g);
+    if(!rows.length||!cols.length){ el.innerHTML=empty(cols.length?null:'ไม่พบแหล่งน้ำที่ระบุปัญหาตามตัวกรองปัจจุบัน'); return; }
+    var cell={}, mx={};
+    cols.forEach(function(c){ mx[c.k]=0; });
+    rows.forEach(function(rk){
+      cell[rk]={};
+      cols.forEach(function(c){
+        var n=g[rk].filter(function(r){return has(r,c.k);}).length;
+        var v=mode==='pct'?pct(n,g[rk].length):n; cell[rk][c.k]={n:n,v:v};
+        if(v>mx[c.k]) mx[c.k]=v;
+      });
+    });
+    var h='<div class="ix-seg" data-seg="'+modeId+'"><button data-m="pct" class="'+(mode==='pct'?'on':'')+'">% ของแหล่งน้ำในแถว</button><button data-m="n" class="'+(mode==='n'?'on':'')+'">จำนวนแห่ง</button></div>';
+    h+='<div class="ix-heat-wrap"><table class="ix-heat"><thead><tr><th class="ix-corner">'+corner+'</th>';
+    cols.forEach(function(c){ var f={problem:c.k}; h+='<th'+fa(f)+' class="'+on(f).trim()+'" title="กรองเฉพาะปัญหา: '+esc(c.k)+'">'+esc(c.k)+'<br><small style="font-weight:400;color:#7a8c99;">'+fmt(c.n)+' แห่ง</small></th>'; });
+    h+='</tr></thead><tbody>';
+    rows.forEach(function(rk){
+      var fr={}; fr[rowFilterKey]=rk;
+      h+='<tr><td class="ix-tb'+on(fr)+'"'+fa(fr)+'>'+esc(rk)+'<small>('+fmt(g[rk].length)+')</small></td>';
+      cols.forEach(function(c){
+        var o=cell[rk][c.k], f={}; f[rowFilterKey]=rk; f.problem=c.k;
+        h+='<td'+fa(f)+' class="'+on(f).trim()+'" style="background:'+heatBg(o.v,mx[c.k])+';" title="'+esc(rk)+' · '+esc(c.k)+': '+fmt(o.n)+' จาก '+fmt(g[rk].length)+' แห่ง ('+pct(o.n,g[rk].length)+'%)">'+(o.v?(mode==='pct'?o.v+'%':fmt(o.v)):'–')+'</td>';
+      });
+      h+='</tr>';
+    });
+    h+='</tbody></table></div>';
+    h+='<div class="ix-note">แหล่งน้ำ 1 แห่งมีได้หลายปัญหา จึงรวมแต่ละแถวแล้วอาจเกิน 100% · ความเข้มของสีเทียบภายในคอลัมน์เดียวกัน (คอลัมน์ที่เข้มสุดคือพื้นที่ที่ปัญหานั้นหนักสุด) · ตัวเลขในวงเล็บหลังชื่อ = จำนวนแหล่งน้ำทั้งหมดในแถวนั้น ควรอ่านร้อยละควบคู่กับจำนวนเสมอ</div>';
+    h+=how('ค่าในช่อง = จำนวนแหล่งน้ำในแถวนั้นที่ระบุปัญหานั้น ÷ จำนวนแหล่งน้ำทั้งหมดของแถว × 100 (หรือจำนวนแห่ง ถ้าเลือกมุมมองจำนวน) คอลัมน์แสดงเฉพาะปัญหาที่พบในข้อมูลที่แสดงอยู่ คลิกช่อง = กรองตามแถวและปัญหานั้นพร้อมกัน คลิกหัวคอลัมน์ = กรองตามปัญหา คลิกชื่อแถว = กรองตามแถว');
+    el.innerHTML=h;
+  }
+  function renderPType(D){ heatTable($('ix-ptype'),D,function(r){return r.type;},'type',MODE.ptype,'ptype','ประเภทแหล่งน้ำ'); }
+  function renderPTamb(D){ heatTable($('ix-ptamb'),D,function(r){return r.tambon;},'tambon',MODE.ptamb,'ptamb','ตำบล'); }
+
+  // ---------- ปัญหาซ้อน ----------
+  function renderMulti(D){
+    var el=$('ix-multi'); if(!D.length){ el.innerHTML=empty(); return; }
+    var dist=[0,0,0,0], pairs={};
+    D.forEach(function(r){
+      var t=probs(r); dist[Math.min(t.length,3)]++;
+      for(var i=0;i<t.length;i++) for(var j=i+1;j<t.length;j++){ var a=[t[i],t[j]].sort(); var k=a.join('+'); pairs[k]=(pairs[k]||0)+1; }
+    });
+    var m=dist[2]+dist[3];
+    var h='<div class="ix-sum">'+fmt(m)+' แห่ง ('+pct(m,D.length)+'%) มีตั้งแต่ 2 ปัญหาขึ้นไปพร้อมกัน</div>';
+    [['ไม่ระบุปัญหา (ใช้งานได้ปกติหรือไม่ได้กรอก)','0','#2e7d32',0],['1 ปัญหา','1','#9e9d24',1],['2 ปัญหา','2','#e65100',2],['3 ปัญหาขึ้นไป','3+','#c62828',3]].forEach(function(x){
+      h+=row(x[0],'',pct(dist[x[3]],D.length),x[2],fmt(dist[x[3]]),pct(dist[x[3]],D.length)+'%',{rule:'nprob:'+x[1]});
+    });
+    var pl=Object.keys(pairs).map(function(k){return {k:k,n:pairs[k]};}).sort(function(a,b){return b.n-a.n;}).slice(0,6);
+    if(pl.length){
+      h+='<div class="ix-sub">คู่ปัญหาที่พบพร้อมกันบ่อยที่สุด (คลิกเพื่อดูแหล่งน้ำที่มีทั้งสองปัญหา)</div><div class="ix-chips">';
+      pl.forEach(function(p){ var f={problem:p.k}; h+='<span class="ix-chip'+on(f)+'"'+fa(f)+'>'+esc(p.k.replace('+',' + '))+' <b>'+fmt(p.n)+'</b></span>'; });
+      h+='</div>';
+    }
+    h+=how('แยกช่องปัญหาด้วยจุลภาค ไม่นับคำว่า "ใช้งานได้" แล้วนับจำนวนปัญหาของแหล่งน้ำแต่ละแห่ง คู่ปัญหา = ปัญหาสองอย่างที่อยู่ในแหล่งน้ำแห่งเดียวกัน');
+    el.innerHTML=h;
+  }
+
+  // ---------- จุดร้อนรายหมู่บ้าน ----------
+  function renderHot(D){
+    var el=$('ix-hot');
+    var g={};
+    D.forEach(function(r){
+      var v=(r.village||'').toString().trim(); if(!v) return;
+      var key=(r.tambon||'')+'|'+v; var o=g[key]||(g[key]={tb:r.tambon||'',v:v,total:0,fail:0});
+      o.total++; if(isFail(r)) o.fail++;
+    });
+    var list=Object.keys(g).map(function(k){return g[k];}).filter(function(o){return o.fail>0;}).sort(function(a,b){return b.fail-a.fail||b.total-a.total;}).slice(0,10);
+    if(!list.length){ el.innerHTML=empty('ไม่พบแหล่งน้ำที่ชำรุด แห้งแล้ง หรือขาดแคลน'); return; }
+    var top=list[0];
+    var h='<div class="ix-sum">อันดับ 1: '+esc(top.v)+' (ต.'+esc(top.tb)+') — '+fmt(top.fail)+' จาก '+fmt(top.total)+' แห่ง ('+pct(top.fail,top.total)+'%)</div>';
+    list.forEach(function(o){ h+=row(o.v,'ต.'+o.tb,pct(o.fail,top.fail),'#c62828',fmt(o.fail)+'/'+fmt(o.total),pct(o.fail,o.total)+'%',{tambon:o.tb,q:o.v}); });
+    h+='<div class="ix-note">แสดง 10 อันดับแรกตามจำนวนแห่ง · อ่านจำนวนควบคู่ร้อยละ เพราะหมู่บ้านที่สำรวจละเอียดจะมีจำนวนมากตามไปด้วย</div>';
+    h+=how('จัดกลุ่มตามชื่อหมู่บ้านและตำบลที่กรอกในชีต นับแหล่งน้ำที่ระบุ "ชำรุด" "ไม่มีน้ำ/แห้งแล้ง" หรือ "น้ำขาดแคลน" ตัวเลขขวา = จำนวนที่ใช้งานไม่ได้ / จำนวนแหล่งน้ำทั้งหมดของหมู่บ้านนั้น');
+    el.innerHTML=h;
+  }
+
+  // ---------- ข้อมูลล่าสุดรายตำบล ----------
+  function renderFresh(D){
+    var el=$('ix-fresh');
+    var g=groupBy(D,function(r){return r.tambon;});
+    var rows=[]; var maxKey=0;
+    Object.keys(g).forEach(function(t){
+      var best=null; g[t].forEach(function(r){ var p=parseDate(r.dt); if(p&&(!best||p.key>best.key)) best=p; });
+      if(best){ rows.push({t:t,p:best,n:g[t].length}); if(best.key>maxKey) maxKey=best.key; }
+    });
+    if(!rows.length){ el.innerHTML=empty('ไม่มีวันที่บันทึกที่อ่านได้'); return; }
+    function days(p){ return Math.round((Date.UTC(Math.floor(maxKey/10000),Math.floor(maxKey/100)%100-1,maxKey%100)-Date.UTC(p.y,p.m-1,p.d))/86400000); }
+    rows.sort(function(a,b){return a.p.key-b.p.key;});
+    var mxD=Math.max.apply(null,rows.map(function(r){return days(r.p);}).concat([1]));
+    var h='<div class="ix-sum">ตำบลที่ข้อมูลเก่าที่สุด: '+esc(rows[0].t)+' (บันทึกล่าสุด '+thaiDate(rows[0].p)+')</div>';
+    rows.slice(0,12).forEach(function(r){ var d=days(r.p); h+=row(r.t,'บันทึกล่าสุด '+thaiDate(r.p),mxD?pct(d,mxD):0,'#8d6e63','เก่ากว่า '+fmt(d)+' วัน','('+fmt(r.n)+' แห่ง)',{tambon:r.t}); });
+    h+='<div class="ix-note">แสดง 12 ตำบลที่ข้อมูลเก่าที่สุด จากทั้งหมด '+fmt(rows.length)+' ตำบล · เทียบกับวันที่บันทึกล่าสุดของข้อมูลที่แสดงอยู่ ไม่ใช่วันนี้</div>';
+    h+=how('วันที่บันทึกล่าสุดของแต่ละตำบล = วันที่ใหม่ที่สุดในช่องวันที่ของแหล่งน้ำในตำบลนั้น (ปี พ.ศ. ในชีตแปลงเป็น ค.ศ. ก่อนเทียบ) แท่งยาว = ห่างจากตำบลที่บันทึกล่าสุดมาก');
+    el.innerHTML=h;
+  }
+
+ // ---------- DepthNet ÷ Depth ----------
+ function renderDepth(D){
+    var el=$('ix-depth');
+    var ok=D.filter(function(r){return remain(r)!=null;});
+    var inv=D.filter(function(r){return r.depth>0&&r.depthnet>0&&r.depthnet>r.depth;});
+ if(!ok.length){ el.innerHTML=empty('ไม่มีรายการที่มีทั้ง Depth และ DepthNet '); return; }
+    var bins=[[0,20],[20,40],[40,60],[60,80],[80,100]], cnt=bins.map(function(){return 0;});
+    ok.forEach(function(r){ var x=remain(r)*100; for(var i=0;i<bins.length;i++){ if(x>=bins[i][0]&&(bins[i][1]>=100?x<=100:x<bins[i][1])){cnt[i]++;break;} } });
+    var avg=ok.reduce(function(s,r){return s+remain(r);},0)/ok.length*100;
+ var h='<div class="ix-sum">ค่าเฉลี่ย DepthNet ÷ Depth '+fmt1(avg)+'% ของ Depth (จาก '+fmt(ok.length)+' แห่งที่มีข้อมูลครบ)</div>';
+    bins.forEach(function(b,i){ h+=row('เหลือ '+b[0]+'–'+b[1]+'%','',pct(cnt[i],ok.length),'#0a5fb4',fmt(cnt[i]),pct(cnt[i],ok.length)+'%',{rule:'remain:'+b[0]+'-'+b[1]}); });
+    var g=groupBy(ok,function(r){return r.type;});
+    var list=keysByN(g).map(function(k){ return {k:k,n:g[k].length,a:g[k].reduce(function(s,r){return s+remain(r);},0)/g[k].length*100}; }).sort(function(a,b){return a.a-b.a;});
+ h+='<div class="ix-sub">DepthNet ÷ Depth เฉลี่ย แยกตามประเภท (เรียงจากตื้นสุด · เทียบเส้นเฉลี่ยรวม '+fmt1(avg)+'%)</div>';
+    list.forEach(function(t){ h+=row(t.k,'('+fmt(t.n)+' แห่ง)',t.a,t.a<avg?'#e65100':'#1565c0',fmt1(t.a)+'%','',{type:t.k}); });
+ h+='<div class="ix-note">คิดจาก '+fmt(ok.length)+' แห่งที่มีความลึกครบ จากทั้งหมด '+fmt(D.length)+' แห่ง'+(inv.length?' · ไม่นับ '+fmt(inv.length)+' แห่งที่ DepthNet มากกว่า Depth (ข้อมูลน่าจะคลาดเคลื่อน)':'')+' · สีส้ม = ต่ำกว่าค่าเฉลี่ยรวม</div>';
+    if(inv.length){ var f={rule:'depthinv'}; h+='<div class="ix-chips" style="margin-top:6px;"><span class="ix-chip'+on(f)+'"'+fa(f)+'>⚠️ ดูรายการที่ความลึกไม่สอดคล้อง <b>'+fmt(inv.length)+'</b></span></div>'; }
+ h+=how('DepthNet ÷ Depth × 100 (%) · ใช้เฉพาะรายการที่มีทั้งสองค่า');
+    el.innerHTML=h;
+  }
+
+  // ---------- ปริมาตรที่หายไปจากการตื้นเขิน ----------
+  function renderLost(D){
+    var el=$('ix-lost');
+    var dd=dedupe(D);
+    var rows=dd.rows.map(function(r){ var l=lostVol(r); return l==null?null:{r:r,l:l,o:r.width*r.length*r.depth}; }).filter(Boolean);
+ if(!rows.length){ el.innerHTML=empty('ไม่มีรายการที่มีทั้งกว้าง ยาว Depth และ DepthNet '); return; }
+    var tot=rows.reduce(function(s,x){return s+x.l;},0), orig=rows.reduce(function(s,x){return s+x.o;},0);
+    var h='<div class="ix-sum">ประมาณ '+mm(tot)+' ('+pct(tot,orig)+'% ของปริมาตรตอนขุดเดิม) ในแหล่งน้ำ '+fmt(rows.length)+' แห่ง</div>';
+    var g=groupBy(rows,function(x){return x.r.type;});
+    var list=Object.keys(g).map(function(k){return {k:k,n:g[k].length,l:g[k].reduce(function(s,x){return s+x.l;},0)};}).sort(function(a,b){return b.l-a.l;}).slice(0,8);
+    h+='<div class="ix-sub">แยกตามประเภท (8 ประเภทที่สูญเสียมากสุด)</div>';
+    list.forEach(function(t){ h+=row(t.k,'('+fmt(t.n)+' แห่ง)',pct(t.l,list[0].l),'#8d6e63',mm(t.l),'',{type:t.k}); });
+    var top=rows.slice().sort(function(a,b){return b.l-a.l;}).slice(0,8);
+    h+='<div class="ix-sub">8 แหล่งน้ำที่ปริมาตรหายไปมากที่สุด (ตรวจตัวเลขความลึกก่อนนำไปใช้)</div>';
+    top.forEach(function(x){ h+=row(x.r.name||'ไม่มีชื่อ','ต.'+(x.r.tambon||'-')+' · ลึก '+x.r.depth+'→'+x.r.depthnet+' ม.',pct(x.l,top[0].l),'#a1887f',mm(x.l),'',{tambon:x.r.tambon,q:x.r.name||''}); });
+    h+='<div class="ix-note">ประมาณการนี้ใช้สมมติฐานว่าแหล่งน้ำมีรูปทรงเป็นกล่องสี่เหลี่ยม จึงเป็นค่าโดยประมาณสำหรับเปรียบเทียบ ไม่ใช่ปริมาณดินตะกอนที่วัดจริง ควรสำรวจหน้างานก่อนกำหนดปริมาณงาน</div>';
+ h+=how('ปริมาตรที่หายไป = กว้าง × ยาว × (Depth − DepthNet)');
+    el.innerHTML=h;
+  }
+
+  // ---------- ปริมาตรเก็บกัก ----------
+  function renderCap(D){
+    var el=$('ix-cap');
+    var dd=dedupe(D), V=dd.rows.filter(function(r){return r.volume>0;});
+    var rawTot=D.reduce(function(s,r){return s+(r.volume>0?r.volume:0);},0);
+    if(!V.length){ el.innerHTML=empty('ไม่มีรายการที่มีปริมาตร'); return; }
+    var tot=V.reduce(function(s,r){return s+r.volume;},0);
+    var okV=V.filter(function(r){return has(r,OK_TAG);}).reduce(function(s,r){return s+r.volume;},0);
+    var badV=V.filter(function(r){return FAIL_KW.some(function(k){return has(r,k);})||['น้ำเน่าเสีย','น้ำมีสี','น้ำมีกลิ่น','น้ำเค็ม'].some(function(k){return has(r,k);});}).reduce(function(s,r){return s+r.volume;},0);
+    var h='<div class="ix-sum">ปริมาตรรวม '+mm(tot)+' จาก '+fmt(V.length)+' แห่งที่มีค่าปริมาตร'+''+'</div>';
+    h+=row('ระบุว่า "ใช้งานได้"','',pct(okV,tot),'#2e7d32',mm(okV),pct(okV,tot)+'%',{status:'ok'});
+    h+=row('ชำรุด/ไม่มีน้ำ/คุณภาพน้ำมีปัญหา','',pct(badV,tot),'#c62828',mm(badV),pct(badV,tot)+'%',{status:'bad'});
+    var top=V.slice().sort(function(a,b){return b.volume-a.volume;}).slice(0,10);
+    var topSum=top.reduce(function(s,r){return s+r.volume;},0);
+    h+='<div class="ix-sub">10 แหล่งน้ำที่เก็บน้ำได้มากที่สุด รวมกัน '+pct(topSum,tot)+'% ของปริมาตรทั้งหมด</div>';
+    top.forEach(function(r){ var bad=isFail(r); h+=row(r.name||'ไม่มีชื่อ','ต.'+(r.tambon||'-')+' · '+(r.type||'')+(bad?' · ⚠️ '+tags(r).filter(function(t){return FAIL_KW.indexOf(t)>=0;}).join(','):''),pct(r.volume,top[0].volume),bad?'#c62828':'#1565c0',mm(r.volume),pct(r.volume,tot)+'%',{tambon:r.tambon,q:r.name||''}); });
+    h+='<div class="ix-note">แถว "ใช้งานได้" และ "ชำรุด…" นับแยกตามที่ระบุในชีต แหล่งน้ำที่ระบุทั้งสองอย่างจะถูกนับทั้งสองแถว</div>';
+    h+=how('รวมช่องปริมาตรของแหล่งน้ำที่มีค่ามากกว่า 0 แบ่งตามสภาพที่ระบุ แถวแหล่งน้ำใหญ่ แสดง ⚠️ เมื่อระบุว่าชำรุด/ไม่มีน้ำ/ขาดแคลน');
+    el.innerHTML=h;
+  }
+
+  // ---------- ขนาดทั่วไปรายประเภท ----------
+  function renderSize(D){
+    var el=$('ix-size');
+    var g=groupBy(D,function(r){return r.type;}), rows=keysByN(g);
+    if(!rows.length){ el.innerHTML=empty(); return; }
+    function med(arr,k){ var m=median(arr.filter(function(r){return r[k]>0;}).map(function(r){return r[k];})); return m==null?'–':fmt1(m); }
+    var h='<div class="ix-heat-wrap"><table class="ix-heat"><thead><tr><th class="ix-corner">ประเภท</th><th>จำนวน</th><th>กว้าง (ม.)</th><th>ยาว (ม.)</th><th>ลึก (ม.)</th><th>ปริมาตร (ลบ.ม.)</th></tr></thead><tbody>';
+    rows.forEach(function(k){ var f={type:k}; h+='<tr><td class="ix-tb'+on(f)+'"'+fa(f)+'>'+esc(k)+'</td><td>'+fmt(g[k].length)+'</td><td>'+med(g[k],'width')+'</td><td>'+med(g[k],'length')+'</td><td>'+med(g[k],'depth')+'</td><td>'+med(g[k],'volume')+'</td></tr>'; });
+    h+='</tbody></table></div><div class="ix-note">ค่ากลาง (มัธยฐาน) ไม่ถูกดึงด้วยแหล่งน้ำขนาดใหญ่มากเพียงไม่กี่แห่ง ต่างจากค่าเฉลี่ย · "–" = ไม่มีข้อมูลช่องนั้น</div>';
+    h+=how('มัธยฐาน = ค่ากลางเมื่อเรียงจากน้อยไปมาก คำนวณแยกแต่ละช่องจากรายการที่มีค่ามากกว่า 0 เท่านั้น');
+    el.innerHTML=h;
+  }
+
+  // ---------- ผู้ดูแลแหล่งน้ำ ----------
+  function ownerGroup(s){
+    var t=(s||'').toString().trim();
+    if(!t||/^(-|ไม่ทราบ|ไม่ระบุ|ไม่มี)/.test(t)) return 'ไม่ระบุ';
+    if(/ชลประทาน/.test(t)) return 'กรมชลประทาน/ชลประทาน';
+    if(/(ทต|เทศบาล|อบต|องค์การบริหาร|อปท)/.test(t)) return 'เทศบาล / อบต.';
+    return 'อื่น ๆ (ชุมชน บุคคล หน่วยงานอื่น)';
+  }
+  function renderOwner(D){
+    var el=$('ix-owner'); if(!D.length){ el.innerHTML=empty(); return; }
+    var order=['กรมชลประทาน/ชลประทาน','เทศบาล / อบต.','อื่น ๆ (ชุมชน บุคคล หน่วยงานอื่น)','ไม่ระบุ'];
+    var g={}; order.forEach(function(k){g[k]={n:0,f:0,key:null};});
+    D.forEach(function(r){ var k=ownerGroup(r.owner); g[k].n++; if(isFail(r)) g[k].f++; });
+    var h='<div class="ix-grid" style="margin:0;"><div><div class="ix-sub" style="margin-top:0;">จัดกลุ่มตามประเภทหน่วยงาน (จากข้อความที่กรอก)</div>';
+    var mx=Math.max.apply(null,order.map(function(k){return g[k].n;}));
+    order.filter(function(k){return g[k].n>0;}).forEach(function(k){
+      var f=(k==='ไม่ระบุ')?{missing:'owner'}:{q:k==='กรมชลประทาน/ชลประทาน'?'ชลประทาน':null};
+      var attr=(k==='ไม่ระบุ')?fa(f):(k==='กรมชลประทาน/ชลประทาน'?fa(f):'');
+      h+='<div class="ix-row'+(attr?on(f):'')+'"'+attr+'><div class="ix-lbl">'+esc(k)+'<small>'+fmt(g[k].n)+' แห่ง</small></div>'+bar(pct(g[k].n,mx),'#90a4ae')+'<div class="ix-val">'+fmt(g[k].f)+' ใช้ไม่ได้ <small>'+pct(g[k].f,g[k].n)+'%</small></div></div>';
+    });
+    h+='<div class="ix-note">กรมชลประทานและ "ไม่ระบุ" คลิกกรองได้ · กลุ่มอื่นเป็นการจัดกลุ่มจากข้อความ จึงไม่มีตัวกรองตรง ใช้รายชื่อฝั่งขวาแทน</div></div>';
+    // รายชื่อจริงที่กรอกในชีต
+    var names=groupBy(D,function(r){ var t=(r.owner||'').toString().replace(/\s+/g,' ').trim(); return (!t||/^(-|ไม่ทราบ|ไม่ระบุ|ไม่มี)/.test(t))?null:t; });
+    var list=Object.keys(names).map(function(k){return {k:k,n:names[k].length,f:names[k].filter(isFail).length};}).sort(function(a,b){return b.f-a.f||b.n-a.n;}).slice(0,12);
+    h+='<div><div class="ix-sub" style="margin-top:0;">12 ชื่อผู้ดูแลที่มีแหล่งน้ำใช้งานไม่ได้มากที่สุด (ตามชื่อที่กรอกในชีต)</div>';
+    if(!list.length||!list[0].f) h+=empty('ไม่พบแหล่งน้ำที่ใช้งานไม่ได้');
+    else list.forEach(function(o){ h+=row(o.k,'ทั้งหมด '+fmt(o.n)+' แห่ง',pct(o.f,list[0].f),'#c62828',fmt(o.f)+' แห่ง',pct(o.f,o.n)+'%',{q:o.k}); });
+    h+='<div class="ix-note">ชื่อที่สะกดต่างกันเล็กน้อยจะนับแยก (เช่น "เทศบาล" กับ "เทศบาลตำบล…") จึงควรทำรายชื่อมาตรฐานของผู้ดูแลในชีต</div></div></div>';
+    h+=how('"ใช้ไม่ได้" = ระบุชำรุด ไม่มีน้ำ/แห้งแล้ง หรือน้ำขาดแคลน การจัดกลุ่มหน่วยงานใช้ข้อความในช่องเจ้าของ: มีคำว่า "ชลประทาน" → ชลประทาน · มี ทต/เทศบาล/อบต/องค์การบริหาร/อปท → เทศบาล/อบต. · ว่างหรือขึ้นต้นด้วย ไม่ทราบ/ไม่ระบุ/ไม่มี/- → ไม่ระบุ · นอกนั้น → อื่น ๆ');
+    el.innerHTML=h;
+  }
+
+  // ---------- รายเดือน ----------
+  function renderMonthly(D){
+    var el=$('ix-monthly'), c={}, bad=0;
+    D.forEach(function(r){ var p=parseDate(r.dt); if(!p){bad++;return;} (c[p.ym]=c[p.ym]||{n:0,p:p}).n++; });
+    var keys=Object.keys(c).sort();
+    if(!keys.length){ el.innerHTML=empty('ไม่มีวันที่บันทึกที่อ่านได้'); return; }
+    var mx=Math.max.apply(null,keys.map(function(k){return c[k].n;})), peak=keys.filter(function(k){return c[k].n===mx;})[0];
+    var h='<div class="ix-sum">เก็บข้อมูลสูงสุดเดือน'+THAI_MON[c[peak].p.m-1]+' '+(c[peak].p.y+543)+' จำนวน '+fmt(mx)+' แห่ง</div><div class="ix-cols">';
+    keys.forEach(function(k){ var f={rule:'month:'+k}; h+='<div class="ix-col'+(k===peak?' ix-peak':'')+on(f)+'"'+fa(f)+' title="'+fmt(c[k].n)+' แห่ง — คลิกเพื่อกรองเดือนนี้"><span>'+fmt(c[k].n)+'</span><i style="height:'+Math.max(3,Math.round(c[k].n/mx*110))+'px;"></i></div>'; });
+    h+='</div><div class="ix-xl">';
+    keys.forEach(function(k){ h+='<div>'+THAI_MON[c[k].p.m-1]+'<br>'+String(c[k].p.y+543).slice(2)+'</div>'; });
+    h+='</div>'+(bad?'<div class="ix-note">ไม่นับ '+fmt(bad)+' รายการที่ไม่มีวันที่อ่านได้</div>':'');
+    h+=how('นับจำนวนรายการตามเดือนของวันที่บันทึก โดยแปลงปี พ.ศ. (ตัวเลขปีมากกว่า 2400) เป็น ค.ศ. ก่อนจัดเรียง แท่งสีส้ม = เดือนที่เก็บมากที่สุด');
+    el.innerHTML=h;
+  }
+
+  // ---------- ตรวจสอบ ----------
+  function renderVerify(D){
+    var el=$('ix-verify'); if(!D.length){ el.innerHTML=empty(); return; }
+    var by={}, ok=0;
+    D.forEach(function(r){ var k=r.tambon||'ไม่ระบุ'; var o=by[k]||(by[k]={n:0,v:0}); o.n++; if((r.status||'').toString().trim()==='ตรวจสอบแล้ว'){o.v++;ok++;} });
+    var h='<div class="ix-sum">ตรวจสอบแล้ว '+fmt(ok)+' จาก '+fmt(D.length)+' รายการ ('+pct(ok,D.length)+'%)</div>';
+    h+=row('ตรวจสอบแล้ว','',pct(ok,D.length),'#2e7d32',fmt(ok),pct(ok,D.length)+'%',{rule:'status:ตรวจสอบแล้ว'});
+    h+=row('รอการตรวจสอบ','',pct(D.length-ok,D.length),'#e65100',fmt(D.length-ok),pct(D.length-ok,D.length)+'%',{rule:'status:รอการตรวจสอบ'});
+    h+='<div class="ix-sub">รายตำบล (เรียงจากตรวจน้อยสุด — คลิกเพื่อกรองตำบล)</div>';
+    Object.keys(by).sort(function(a,b){return pct(by[a].v,by[a].n)-pct(by[b].v,by[b].n)||by[b].n-by[a].n;}).slice(0,12).forEach(function(k){
+      var o=by[k], p=pct(o.v,o.n); h+=row(k,'('+fmt(o.n)+' แห่ง)',p,p>pct(ok,D.length)?'#2e7d32':'#e65100',p+'%',fmt(o.v)+'/'+fmt(o.n),{tambon:k});
+    });
+    h+='<div class="ix-note">แสดง 12 ตำบลที่ตรวจน้อยสุด · สีเขียว = สูงกว่าค่าเฉลี่ยรวม ('+pct(ok,D.length)+'%) สีส้ม = ต่ำกว่า</div>';
+    h+=how('ตรวจสอบแล้ว (%) = จำนวนรายการที่ช่องสถานะเป็น "ตรวจสอบแล้ว" ÷ จำนวนรายการทั้งหมดของตำบล × 100');
+    el.innerHTML=h;
+  }
+
+  // ---------- ความครบถ้วน ----------
+  function renderComplete(D){
+    var el=$('ix-complete'); if(!D.length){ el.innerHTML=empty(); return; }
+    var blank=window.__gfBlank||function(r,k){return !r[k];};
+    var list=FIELDS.map(function(f){ var m=D.filter(function(r){return blank(r,f[0]);}).length; return {k:f[0],l:f[1],m:m}; }).sort(function(a,b){return b.m-a.m;});
+    var h='<div class="ix-sum">ช่องที่ว่างมากที่สุด: '+esc(list[0].l)+' — ว่าง '+fmt(list[0].m)+' จาก '+fmt(D.length)+' แห่ง ('+pct(list[0].m,D.length)+'%)</div>';
+    list.forEach(function(o){ h+=row(o.l,'ว่าง '+fmt(o.m)+' แห่ง',pct(D.length-o.m,D.length),o.m? '#0a5fb4':'#2e7d32',pct(D.length-o.m,D.length)+'%','มีข้อมูล',{missing:o.k}); });
+    var inv=D.filter(function(r){return r.depth>0&&r.depthnet>0&&r.depthnet>r.depth;}).length;
+ if(inv){ var f={rule:'depthinv'}; h+='<div class="ix-sub">ความไม่สอดคล้องของข้อมูล</div>'+row('DepthNet มากกว่า Depth ','น่าจะกรอกผิดช่อง',pct(inv,D.length),'#c62828',fmt(inv)+' แห่ง',pct(inv,D.length)+'%',f); }
+    h+='<div class="ix-note">คลิกแถว = กรองเฉพาะแหล่งน้ำที่ช่องนั้นว่าง เพื่อส่งให้ทีมกลับไปเก็บข้อมูลเพิ่ม · ช่องเบอร์ติดต่อนับว่ามีข้อมูลหรือไม่เท่านั้น ไม่แสดงเลขโทรศัพท์</div>';
+    h+=how('ถือว่า "ว่าง" เมื่อ: ไม่มีค่า, เป็น 0 (สำหรับตัวเลข), ข้อความว่าง, หรือเขียนว่า ไม่มี / ไม่ทราบ / ไม่ระบุ / - ; รูปถ่ายที่ลิงก์เสียก็นับว่าว่าง');
+    el.innerHTML=h;
+  }
+
+  // ---------- แถวที่อาจบันทึกซ้ำ ----------
+  function renderDup(D){
+    var el=$('ix-dup'), g={};
+    D.forEach(function(r){ var k=dupKey(r); if(!k) return; (g[k]=g[k]||[]).push(r); });
+    var list=Object.keys(g).map(function(k){return g[k];}).filter(function(a){return a.length>1;});
+    if(!list.length){ el.innerHTML='<div class="ix-sum" style="background:#e8f5e9;color:#2e7d32;">✅ ไม่พบแถวที่ชื่อ ตำบล และพิกัดซ้ำกันในข้อมูลที่แสดงอยู่</div>'; return; }
+    var extra=list.reduce(function(s,a){return s+a.length-1;},0);
+    var extraVol=list.reduce(function(s,a){ var mx=Math.max.apply(null,a.map(function(r){return r.volume||0;})); return s+a.reduce(function(t,r){return t+(r.volume||0);},0)-mx; },0);
+    var totVol=D.reduce(function(s,r){return s+(r.volume>0?r.volume:0);},0);
+    var h='<div class="ix-sum">พบ '+fmt(list.length)+' กลุ่มที่ชื่อ ตำบล และพิกัดเดียวกัน รวมแถวส่วนเกิน '+fmt(extra)+' แถว'+(extraVol>0?' · ปริมาตรในแถวส่วนเกินประมาณ '+mm(extraVol)+' ('+pct(extraVol,totVol)+'% ของปริมาตรรวมที่นับทุกแถว)':'')+'</div>';
+    var f={rule:'dup'}; h+='<div class="ix-chips" style="margin:0 0 8px;"><span class="ix-chip'+on(f)+'"'+fa(f)+'>🔎 ดูทุกแถวที่อาจซ้ำ <b>'+fmt(list.reduce(function(s,a){return s+a.length;},0))+'</b></span></div>';
+    list.sort(function(a,b){return b.length-a.length;}).slice(0,8).forEach(function(a){ var r=a[0]; h+=row(r.name,'ต.'+(r.tambon||'-')+' · '+(r.type||''),pct(a.length,list[0].length),'#e0730f','บันทึก '+fmt(a.length)+' แถว','',{tambon:r.tambon,q:r.name}); });
+    h+='<div class="ix-note">อาจเป็นการบันทึกซ้ำ หรือเป็นหลายช่วงของลำน้ำ/คลองเดียวกันที่จุดเริ่มต้นเดียวกัน (ซึ่งใช้ได้ถ้าแต่ละแถวมีจุดสิ้นสุดต่างกัน) ต้องตรวจก่อนนำยอดรวมไปใช้</div>';
+    h+=how('จัดกลุ่มแถวที่ชื่อเหมือนกัน (ตัดช่องว่างซ้ำ) ตำบลเดียวกัน และพิกัดเหมือนกันถึงทศนิยม 5 ตำแหน่ง (ประมาณ 1 เมตร) ปริมาตรส่วนเกิน = ผลรวมปริมาตรของกลุ่มลบด้วยแถวที่ปริมาตรมากสุด');
+    el.innerHTML=h;
+  }
+
+  // ---------- หมายเหตุ ----------
+  var NOTE_KW=['ขุดลอก','ซ่อม','สร้างใหม่','โครงการ','ต้องการ','ประปา','รั่ว','ตะกอน','ขยะ','วัชพืช','หน้าแล้ง','เข้าถึง'];
+  function renderNotes(D){
+    var el=$('ix-notes'), blank=window.__gfBlank||function(r,k){return !r[k];};
+    var N=D.filter(function(r){return !blank(r,'note');});
+    if(!N.length){ el.innerHTML=empty('ไม่มีหมายเหตุในข้อมูลที่แสดงอยู่'); return; }
+    var list=NOTE_KW.map(function(k){return {k:k,n:N.filter(function(r){return (r.note||'').indexOf(k)>=0;}).length};}).filter(function(x){return x.n>0;}).sort(function(a,b){return b.n-a.n;});
+    var h='<div class="ix-sum">มีหมายเหตุที่ระบุข้อความ '+fmt(N.length)+' จาก '+fmt(D.length)+' แห่ง ('+pct(N.length,D.length)+'%)</div>';
+    if(!list.length) h+=empty('ไม่พบคำสำคัญในหมายเหตุ');
+    list.forEach(function(x){ h+=row('มีคำว่า "'+x.k+'"','',pct(x.n,list[0].n),'#12a3a3',fmt(x.n)+' แห่ง',pct(x.n,N.length)+'%',{rule:'note:'+x.k}); });
+    h+='<div class="ix-note">คลิกแถว = ค้นหาแหล่งน้ำที่หมายเหตุมีคำนั้น (ช่องค้นหาด้านบนรวมหมายเหตุด้วย) · ไม่รวมหมายเหตุที่เขียนว่า "ไม่มี" หรือ "-"</div>';
+    h+=how('นับแหล่งน้ำที่ข้อความหมายเหตุมีคำนั้นอยู่ คำที่แสดงเป็นคำที่พบบ่อยในหมายเหตุของชีตนี้ ไม่ใช่การจัดหมวดหมู่ที่ตั้งเอง ข้อเสนอจริงให้เปิดอ่านจากรายการที่กรอง');
+    el.innerHTML=h;
+  }
+
+  // ---------- โครงข่ายส่งน้ำ ----------
+  var netMap=null, netLayer=null, netPins=null;
+  var NET_CATS=[
+    {k:'ชำรุด / แห้งแล้ง / ขาดแคลน',c:'#c62828',f:function(r){return FAIL_KW.some(function(k){return has(r,k);});}},
+    {k:'ตื้นเขิน',c:'#8d6e63',f:function(r){return has(r,'ตื้นเขิน');}},
+    {k:'วัชพืชปกคลุม',c:'#ef6c00',f:function(r){return has(r,'วัชพืช');}},
+    {k:'คุณภาพน้ำ',c:'#6a1b9a',f:function(r){return ['น้ำเน่าเสีย','น้ำมีสี','น้ำมีกลิ่น','น้ำเค็ม'].some(function(k){return has(r,k);});}},
+    {k:'ไม่พบปัญหา',c:'#1565c0',f:function(){return true;}}
+  ];
+  function parseXY(s){ var p=(s||'').toString().split(',').map(function(x){return parseFloat(x);}); return (p.length===2&&isFinite(p[0])&&isFinite(p[1]))?[p[0],p[1]]:null; }
+  function catOf(r){ for(var i=0;i<NET_CATS.length;i++){ if(NET_CATS[i].f(r)) return i; } return NET_CATS.length-1; }
+  function renderNet(D){
+    var sum=$('ix-net-sum'), mapEl=$('ixNetMap');
+    var seg=D.map(function(r){ var a=(r.lat!=null&&r.lng!=null)?[+r.lat,+r.lng]:null, b=parseXY(r.endxy); return (a&&b&&r.distance>0)?{r:r,a:a,b:b,d:+r.distance,c:catOf(r)}:null; }).filter(Boolean);
+    if(!seg.length){ sum.innerHTML=empty('ไม่มีรายการแนวเส้น (ช่อง Distance/EndXY) ในข้อมูลที่แสดงอยู่'); if(window.__mapEmpty) window.__mapEmpty('ixNetStage', D.length?'ไม่มีแนวเส้นในข้อมูลที่แสดงอยู่ (ไม่มีช่อง Distance/EndXY)':'ไม่พบแหล่งน้ำตามคำค้น/ตัวกรองที่เลือก'); if(netLayer) netLayer.clearLayers(); return; }
+    var tot=seg.reduce(function(s,x){return s+x.d;},0), byC=NET_CATS.map(function(){return {n:0,d:0};});
+    seg.forEach(function(x){ byC[x.c].n++; byC[x.c].d+=x.d; });
+    var bad=byC[0].d+byC[1].d+byC[2].d;
+    var h='<div class="ix-sum">แนวเส้นรวม '+fmt1(tot/1000)+' กม. ('+fmt(seg.length)+' ช่วง) — มีปัญหาชำรุด/ตื้นเขิน/วัชพืช '+fmt1(bad/1000)+' กม. ('+pct(bad,tot)+'%)</div>';
+    NET_CATS.forEach(function(cat,i){ if(!byC[i].n) return; h+='<div class="ix-row"><div class="ix-lbl"><span class="ix-dot" style="background:'+cat.c+';"></span>'+esc(cat.k)+'</div>'+bar(pct(byC[i].d,tot),cat.c)+'<div class="ix-val">'+fmt1(byC[i].d/1000)+' กม. <small>'+pct(byC[i].d,tot)+'%</small></div></div>'; });
+    var top=seg.slice().sort(function(a,b){return b.d-a.d;}).slice(0,6);
+    h+='<div class="ix-sub">6 ช่วงที่ยาวที่สุด (คลิกเพื่อกรอง)</div>';
+    top.forEach(function(x){ h+=row(x.r.name||'ไม่มีชื่อ','ต.'+(x.r.tambon||'-'),pct(x.d,top[0].d),NET_CATS[x.c].c,fmt1(x.d/1000)+' กม.','',{tambon:x.r.tambon,q:x.r.name||''}); });
+    h+=how('คัดรายการที่ Distance มากกว่า 0 และมีจุดสิ้นสุด (EndXY) รวมระยะทาง (เมตร) ÷ 1,000 เป็นกิโลเมตร เส้นลากตรงจากจุดเริ่ม (พิกัดแหล่งน้ำ) ถึงจุดสิ้นสุด ไม่ใช่แนวโค้งจริงของลำน้ำ ระยะทางรวมใช้ค่า Distance ที่ผู้สำรวจกรอก');
+    sum.innerHTML=h; if(window.__mapEmpty) window.__mapEmpty('ixNetStage','');
+    if(typeof L==='undefined') return;
+    if(!netMap){
+      netMap=L.map(mapEl,{scrollWheelZoom:false}).setView([19.18,99.85],11);
+      if(window.__addBaseMaps) window.__addBaseMaps(netMap); else L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(netMap);
+      netLayer=L.layerGroup().addTo(netMap);
+      if(window.__clusterGroup) netPins=window.__clusterGroup().addTo(netMap);
+      window.__netMap=netMap;
+      if(window.__expandCtl) window.__expandCtl(netMap,'ixNetStage','net');
+    }
+    netLayer.clearLayers(); if(netPins) netPins.clearLayers();
+    var pinArr=[];
+    var pts=[];
+    seg.forEach(function(x){
+      var ln=L.polyline([x.a,x.b],{color:NET_CATS[x.c].c,weight:5,opacity:.85}).addTo(netLayer);
+      if(window.__execPopup && x.r.lat!=null && x.r.lng!=null) ln.bindPopup(window.__execPopup(x.r),{maxWidth:275,minWidth:255});
+      else ln.bindPopup('<b>'+esc(x.r.name||'ไม่มีชื่อ')+'</b><br>'+esc(x.r.type||'')+' · ต.'+esc(x.r.tambon||'-')+'<br>ยาว '+fmt(x.d)+' ม.<br>'+esc(x.r.problem||'ไม่ระบุปัญหา'));
+      if(netPins && window.__execIcon && window.__execPopup && x.r.lat!=null && x.r.lng!=null){
+        var pm=L.marker([x.r.lat,x.r.lng],{icon:window.__execIcon(x.r),title:x.r.name||''});
+        pm.bindPopup(window.__execPopup(x.r),{maxWidth:275,minWidth:255}); pinArr.push(pm);
+      }
+      pts.push(x.a,x.b);
+    });
+    if(netPins){ if(typeof netPins.addLayers==='function') netPins.addLayers(pinArr); else pinArr.forEach(function(m){ netPins.addLayer(m); }); }
+    if(window.__buildLegend){
+      window.__buildLegend(seg.map(function(x){return x.r;}),'ixNetLegend',true);
+      var lg=$('ixNetLegend'), used={}; seg.forEach(function(x){used[x.c]=1;});
+      if(lg) lg.insertAdjacentHTML('afterbegin','<div class="lg-row"><b class="lg-t">สีเส้น (สภาพช่วง):</b>'+NET_CATS.map(function(c,i){return used[i]?'<span class="lg-it"><i class="lg-dot" style="background:'+c.c+';border-radius:3px;width:16px;height:5px;"></i>'+esc(c.k)+'</span>':'';}).join('')+'</div>');
+    }
+    setTimeout(function(){ netMap.invalidateSize(); netMap.fitBounds(L.latLngBounds(pts).pad(0.1)); },60);
+  }
+
+  // ---------- สิ่งที่ข้อมูลบอก ----------
+  function renderFinds(D){
+    var el=$('ix-finds'); if(!D.length){ el.innerHTML='<div class="ix-empty" style="grid-column:1/-1;">ไม่มีข้อมูลตามตัวกรองปัจจุบัน</div>'; return; }
+    var cards=[], blank=window.__gfBlank||function(r,k){return !r[k];};
+    // ตำบลที่มีแหล่งน้ำมีปัญหามากที่สุด
+    var tg=groupBy(D,function(r){return r.tambon;}), tl=Object.keys(tg).map(function(k){return {k:k,n:tg[k].length,p:tg[k].filter(hasProb).length};}).sort(function(a,b){return b.p-a.p;});
+    if(tl.length&&tl[0].p) cards.push({c:'#0a5fb4',ic:'📍',t:'ตำบลที่มีแหล่งน้ำมีปัญหามากที่สุด',h:'ต.'+tl[0].k,s:fmt(tl[0].p)+' จาก '+fmt(tl[0].n)+' แห่ง ('+pct(tl[0].p,tl[0].n)+'%) ค่าเฉลี่ยรวม '+pct(D.filter(hasProb).length,D.length)+'%',f:{tambon:tl[0].k}});
+    // ประเภทที่ชำรุดมากสุด
+    var yg=groupBy(D,function(r){return r.type;}), yl=Object.keys(yg).map(function(k){return {k:k,n:yg[k].length,f:yg[k].filter(isFail).length};}).sort(function(a,b){return b.f-a.f;});
+    if(yl.length&&yl[0].f) cards.push({c:'#c62828',ic:'🛠️',t:'ประเภทที่ใช้งานไม่ได้มากที่สุด',h:yl[0].k,s:fmt(yl[0].f)+' จาก '+fmt(yl[0].n)+' แห่ง ('+pct(yl[0].f,yl[0].n)+'%) ชำรุด แห้ง หรือขาดแคลน',f:{type:yl[0].k}});
+    // ปัญหาที่พบมากสุด
+    var pl=allProbs(D); if(pl.length) cards.push({c:pc(pl[0].k),ic:'⚠️',t:'ปัญหาที่พบมากที่สุด',h:pl[0].k,s:fmt(pl[0].n)+' แห่ง ('+pct(pl[0].n,D.length)+'% ของแหล่งน้ำ)',f:{problem:pl[0].k}});
+    // ความจุที่หายไป
+    var lv=dedupe(D).rows.map(lostVol).filter(function(x){return x!=null;}); if(lv.length){ var lt=lv.reduce(function(s,x){return s+x;},0); cards.push({c:'#8d6e63',ic:'🌊',t:'ปริมาตรที่ตื้นเขินไป (ประมาณ)',h:mm(lt),s:'จาก '+fmt(lv.length)+' แห่งที่มีข้อมูลขนาดครบ ขุดลอกคืนความจุได้ในทางทฤษฎี',f:{problem:'ตื้นเขิน'}}); }
+    // ข้อมูลที่ขาดมากสุด
+    var ml=FIELDS.filter(function(f){return !OPTIONAL[f[0]];}).map(function(f){return {k:f[0],l:f[1],m:D.filter(function(r){return blank(r,f[0]);}).length};}).sort(function(a,b){return b.m-a.m;});
+    if(ml[0].m) cards.push({c:'#e0730f',ic:'📝',t:'ข้อมูลที่ยังขาดมากที่สุด',h:ml[0].l,s:'ว่าง '+fmt(ml[0].m)+' จาก '+fmt(D.length)+' แห่ง ('+pct(ml[0].m,D.length)+'%) ควรส่งทีมไปเก็บเพิ่ม',f:{missing:ml[0].k}});
+    // ผู้ดูแลที่มีแหล่งน้ำใช้ไม่ได้มากสุด
+    var og=groupBy(D,function(r){ var t=(r.owner||'').toString().replace(/\s+/g,' ').trim(); return (!t||/^(-|ไม่ทราบ|ไม่ระบุ|ไม่มี)/.test(t))?null:t; });
+    var ol=Object.keys(og).map(function(k){return {k:k,n:og[k].length,f:og[k].filter(isFail).length};}).sort(function(a,b){return b.f-a.f;});
+    if(ol.length&&ol[0].f) cards.push({c:'#12a3a3',ic:'🏛️',t:'ผู้ดูแลที่มีแหล่งน้ำใช้งานไม่ได้มากที่สุด',h:ol[0].k,s:fmt(ol[0].f)+' จาก '+fmt(ol[0].n)+' แห่ง ('+pct(ol[0].f,ol[0].n)+'%)',f:{q:ol[0].k}});
+    el.innerHTML=cards.map(function(c){ return '<a class="ix-fd'+on(c.f)+'"'+fa(c.f)+' style="--c:'+c.c+';"><span class="ic">'+c.ic+'</span><div class="t">'+c.t+'</div><div class="h">'+esc(c.h)+'</div><div class="s">'+c.s+'</div></a>'; }).join('');
+  }
+
+  // ---------- ควบคุมหลัก ----------
+  var rendering=false;
+  function renderAll(){
+    if(rendering) return; rendering=true;
+    var D=currentData();
+ [renderFinds,renderPType,renderPTamb,renderMulti,renderHot,renderFresh,renderDepth,renderLost,renderCap,renderSize,renderOwner,renderMonthly,renderVerify,renderComplete,renderDup,renderNotes,renderNet].forEach(function(fn){
+      try{ fn(D); }catch(e){ console.error('insight render error',fn.name,e); }
+    });
+    var note=$('ixSubNote'); if(note) note.textContent='คำนวณจากข้อมูล '+fmt(D.length)+' รายการที่แสดงอยู่ตามตัวกรองของแท็บรายละเอียด';
+    rendering=false;
+  }
+  var pend=false;
+  function schedule(){ if(pend) return; pend=true; setTimeout(function(){ pend=false; renderAll(); },30); }
+  window.ixRefresh=schedule;
+
+  // คลิกที่องค์ประกอบ data-f ภายในแท็บ = กรองข้อมูลทั้งหน้า
+  var toastT;
+  function toast(msg){
+    var t=$('ixToast'); if(!t){ t=document.createElement('div'); t.id='ixToast'; document.body.appendChild(t); }
+    t.textContent=msg; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(function(){ t.classList.remove('on'); },2600);
+  }
+  root.addEventListener('click',function(e){
+    var seg=e.target.closest('.ix-seg button');
+    if(seg){ var id=seg.parentNode.getAttribute('data-seg'); MODE[id]=seg.getAttribute('data-m'); renderAll(); return; }
+    var t=e.target.closest('[data-f]'); if(!t||!window.ixSetFilter) return;
+    var f; try{ f=JSON.parse(t.getAttribute('data-f')); }catch(_){ return; }
+    Object.keys(f).forEach(function(k){ if(f[k]==null||f[k]==='') delete f[k]; });
+    if(!Object.keys(f).length) return;
+    var was=isOn(f);
+    window.ixSetFilter(f);
+    var n=(typeof window.__ixData==='function')?window.__ixData().length:null;
+    toast(was?'ยกเลิกตัวกรองแล้ว'+(n!=null?' · แสดง '+fmt(n)+' รายการ':''):'กรองรายการในแท็บรายละเอียดแล้ว'+(n!=null?' · เหลือ '+fmt(n)+' รายการ':''));
+  });
+
+  // วันที่ข้อมูลอัปเดต = วันที่บันทึกล่าสุดในข้อมูลทั้งหมด
+  (function(){
+    var best=null; RAW.forEach(function(r){ var p=parseDate(r.dt); if(p&&(!best||p.key>best.key)) best=p; });
+    var el=$('ixUpdated'); if(!el) return;
+    el.innerHTML=best?'📅 ข้อมูลล่าสุดบันทึกเมื่อ <b>'+thaiDate(best)+'</b>':'📅 ไม่พบวันที่บันทึกที่อ่านได้';
+  })();
+
+  renderAll();
+  var tb=document.querySelector('.tab-btn[data-tab="insight"]');
+  if(tb) tb.addEventListener('click',function(){ setTimeout(function(){ renderAll(); if(netMap) netMap.invalidateSize(); },80); });
+  var nv=document.querySelectorAll('.main-nav button'); for(var q=0;q<nv.length;q++) nv[q].addEventListener('click',function(){ setTimeout(function(){ if(netMap) netMap.invalidateSize(); },200); });
+})();
+
 
 document.querySelectorAll('.tab-btn').forEach(btn=>{
   btn.addEventListener('click',()=>{
@@ -3752,7 +4452,14 @@ function getFiltered(){
     if(state.moo&&String(AREA.normalizeMoo(r.moo)||'')!==String(state.moo))return false;
     if(state.type&&r.type!==state.type)return false;
     if(state.village&&r.village!==state.village)return false;
-    if(state.problem&&!(r.problem&&r.problem.includes(state.problem)))return false;
+    if(state.problem){const ps=state.problem.split('+');for(let i=0;i<ps.length;i++)if(!(r.problem&&r.problem.includes(ps[i])))return false;} // 'ก+ข' = ต้องพบทั้งสองปัญหา (จากแท็บข้อมูลเชิงลึก)
+    if(state.status){
+      if(state.status==='ok'&&!isUsable(r))return false;
+      if(state.status==='bad'&&!isDamaged(r))return false;
+      if(state.status==='broken'&&!(r.problem&&r.problem.indexOf('ชำรุด')>=0))return false;
+    }
+    if(state.rule&&!gfRule(r,state.rule))return false;
+    if(state.missing&&!gfBlank(r,state.missing))return false;
     if(state.q){const h=((r.name||'')+' '+(r.owner||'')+' '+(r.village||'')).toLowerCase();if(!h.includes(state.q))return false;}
     return true;
   });
@@ -3880,20 +4587,115 @@ function renderTable(data){
 }
 
 // GALLERY
-let galleryShown=0;
-function renderGallery(data,reset){
-  const grid=$('#galleryGrid');const withImg=data.filter(d=>d.imglink);
-  if(reset){grid.innerHTML='';galleryShown=0;}
-  withImg.slice(galleryShown,galleryShown+24).forEach(d=>{
-    const card=document.createElement('div');card.className='gcard';
-    card.innerHTML=`<div class="img-box">${d.imglink?imgTag(d.imglink,'width:100%;height:100%;object-fit:cover;display:block;'):'<span class="ph">ไม่มีภาพ</span>'}</div><div class="meta"><div class="nm">${d.name||'ไม่ระบุชื่อ'}</div><div class="sub">${d.tambon||''} ${d.village?'· '+d.village:''}</div><div class="type-tag">${d.type||'-'}</div></div>`;
-    card.onclick=()=>openModal(d);grid.appendChild(card);
-  });
-  galleryShown+=Math.min(24,withImg.length-galleryShown);
-  $('#n-gallery').textContent=`(${fmtN(withImg.length)} รายการที่มีภาพ)`;
-  $('#loadMoreBtn').style.display=galleryShown<withImg.length?'block':'none';
+// GALLERY (phase 3: ported from the prototype — filter tabs, grouped view, multi-photo lightbox; images go through this page's imgTag fallback)
+/* ===== คลังภาพ: หมวดหมู่ ประเภท/ตำบล/สถานะ, จัดกลุ่มตามตำบล, ดูภาพขยาย ===== */
+const galState={type:'',tambon:'',prob:'',group:true,open:{},more:{},flat:24};
+let galList=[];
+const galTags=d=>(d.problem||'').split(',').map(s=>s.trim()).filter(t=>t&&t!=='ใช้งานได้');
+const GAL_PROBS=[['','ทั้งหมด'],['ok','ไม่มีปัญหา'],['bad','มีปัญหา'],['ชำรุด','ชำรุด'],['น้ำตื้นเขิน','ตื้นเขิน'],['วัชพืชปกคลุม','วัชพืช']];
+function galProbPass(d,p){
+  if(!p)return true; if(p==='ok')return galTags(d).length===0; if(p==='bad')return galTags(d).length>0;
+  return (d.problem||'').includes(p);
 }
-$('#loadMoreBtn').addEventListener('click',()=>renderGallery(getFiltered(),false));
+function galPass(d,skip){
+  return (skip==='type'||!galState.type||d.type===galState.type)&&(skip==='tambon'||!galState.tambon||d.tambon===galState.tambon)&&(skip==='prob'||galProbPass(d,galState.prob));
+}
+function galCard(d){
+  const i=galList.indexOf(d); const nb=galTags(d).length;
+  return `<div role="button" tabindex="0" class="gcard" data-i="${i}" aria-label="ดูภาพ ${(d.name||'').replace(/"/g,'')}"><div class="img-box">${imgTag(d.imglink,'width:100%;height:100%;object-fit:cover;display:block;')}${photoCount(d)>1?`<span class="g-n">📷 ${photoCount(d)}</span>`:''}<span class="g-st ${nb?'bad':'ok'}">${nb?'⚠ '+galTags(d)[0]:'✓ ปกติ'}</span></div><div class="meta"><div class="nm">${d.name||'ไม่ระบุชื่อ'}</div><div class="sub">${d.village?d.village+' · ':''}${d.tambon||''}</div><div class="type-tag">${typeIcon(d.type)} ${d.type||'-'}</div></div></div>`; // div[role=button]: imgTag's fallback holds buttons/links, which cannot nest in a <button>
+}
+function renderGallery(data,reset){
+  const base=data.filter(hasPhoto);
+  if(reset){galState.flat=24;galState.more={};}
+  // ตัวเลือกที่ไม่มีภาพเหลืออยู่ให้ล้างอัตโนมัติ
+  if(galState.type&&!base.some(d=>d.type===galState.type))galState.type='';
+  if(galState.tambon&&!base.some(d=>d.tambon===galState.tambon))galState.tambon='';
+  const cnt=(arr,k)=>{const m={};arr.forEach(d=>{const v=d[k]||'ไม่ระบุ';m[v]=(m[v]||0)+1;});return m;};
+  // แท็บประเภท (นับตามตัวกรองตำบลและสถานะที่เลือก)
+  const forType=base.filter(d=>galPass(d,'type')); const tc=cnt(forType,'type');
+  const types=Object.keys(cnt(base,'type')).sort((a,c)=>(tc[c]||0)-(tc[a]||0)||a.localeCompare(c,'th'));
+  $('#galTypeTabs').innerHTML=`<button type="button" class="gtab${galState.type?'':' on'}" data-type="" data-ic="🖼️">ทุกประเภท <b>${fmtN(forType.length)}</b></button>`+types.map(t=>`<button type="button" class="gtab${galState.type===t?' on':''}" data-type="${t.replace(/"/g,'&quot;')}" data-ic="${typeIcon(t)}"${tc[t]?'':' disabled'}>${typeIcon(t)} ${t} <b>${fmtN(tc[t]||0)}</b></button>`).join('');
+  // ตำบล
+  const forTb=base.filter(d=>galPass(d,'tambon')); const bc=cnt(forTb,'tambon');
+  const tbs=Object.keys(cnt(base,'tambon')).sort((a,c)=>(bc[c]||0)-(bc[a]||0)||a.localeCompare(c,'th'));
+  const sel=$('#galTambon'); sel.innerHTML=`<option value="">ทุกตำบล (${fmtN(forTb.length)})</option>`+tbs.map(t=>`<option value="${t}"${galState.tambon===t?' selected':''}>${t} (${fmtN(bc[t]||0)})</option>`).join('');
+  // สถานะ
+  const forPr=base.filter(d=>galPass(d,'prob'));
+  $('#galProbTabs').innerHTML=GAL_PROBS.map(([k,l])=>`<button type="button" class="gtab${galState.prob===k?' on':''}" data-prob="${k}" data-ic="${k==='ok'?'✅':k===''?'🖼️':'⚠️'}">${l} <b>${fmtN(base.filter(d=>galPass(d,'prob')&&false||(galPass(d,'type')&&galPass(d,'tambon')&&galProbPass(d,k))).length)}</b></button>`).join('');
+  document.querySelectorAll('#galView button').forEach(x=>x.classList.toggle('on',(x.dataset.g==='1')===galState.group));
+  const list=base.filter(d=>galPass(d));
+  const grid=$('#galleryGrid'); const lm=$('#loadMoreBtn');
+  if(!list.length){galList=[];grid.innerHTML='<div class="gal-empty">ไม่พบภาพตามเงื่อนไขที่เลือก</div>';lm.style.display='none';$('#n-gallery').textContent='(ไม่พบภาพ)';return;}
+  if(galState.group){
+    const g={};list.forEach(d=>{const k=d.tambon||'ไม่ระบุ';(g[k]=g[k]||[]).push(d);});
+    const keys=Object.keys(g).sort((a,c)=>g[c].length-g[a].length||a.localeCompare(c,'th'));
+    galList=[];keys.forEach(k=>g[k].forEach(d=>galList.push(d)));
+    const auto=keys.length===1||galState.tambon;
+    grid.innerHTML=keys.map((k,ix)=>{
+      const arr=g[k]; const isOpen=galState.open[k]!==undefined?galState.open[k]:(auto||ix===0);
+      const bad=arr.filter(d=>galTags(d).length).length; const lim=galState.more[k]||12;
+      const body=isOpen?`<div class="gallery">${arr.slice(0,lim).map(galCard).join('')}</div>${arr.length>lim?`<button type="button" class="gal-more" data-tb="${k}">แสดงเพิ่ม (อีก ${fmtN(arr.length-lim)} แห่ง)</button>`:''}`:'';
+      return `<section class="ggrp${isOpen?' open':''}"><button type="button" class="ggrp-h" data-tb="${k}" aria-expanded="${isOpen}"><span class="gg-chev">▸</span><b>ต.${k}</b><span class="gg-n">${fmtN(arr.length)} แห่ง · ${fmtN(arr.reduce((n,x)=>n+photoCount(x),0))} ภาพ</span>${bad?`<span class="gg-bad">⚠ มีปัญหา ${fmtN(bad)}</span>`:''}</button>${body}</section>`;
+    }).join('');
+    lm.style.display='none';
+  }else{
+    galList=list;
+    grid.innerHTML=`<div class="gallery">${list.slice(0,galState.flat).map(galCard).join('')}</div>`;
+    lm.style.display=galState.flat<list.length?'block':'none';
+  }
+  $('#n-gallery').textContent=`(${fmtN(list.reduce((n,x)=>n+photoCount(x),0))} ภาพ จาก ${fmtN(list.length)} แห่ง)`;
+}
+$('#loadMoreBtn').addEventListener('click',()=>{galState.flat+=24;renderGallery(getFiltered(),false);});
+(function(){
+  const redo=()=>renderGallery(getFiltered(),false);
+  $('#galTypeTabs').addEventListener('click',e=>{const t=e.target.closest('[data-type]');if(!t||t.disabled)return;galState.type=t.dataset.type;galState.flat=24;galState.more={};redo();});
+  $('#galProbTabs').addEventListener('click',e=>{const t=e.target.closest('[data-prob]');if(!t)return;galState.prob=t.dataset.prob;galState.flat=24;galState.more={};redo();});
+  $('#galTambon').addEventListener('change',e=>{galState.tambon=e.target.value;galState.flat=24;galState.more={};redo();});
+  $('#galView').addEventListener('click',e=>{const t=e.target.closest('[data-g]');if(!t)return;galState.group=t.dataset.g==='1';galState.flat=24;redo();});
+  $('#galleryGrid').addEventListener('click',e=>{
+    const h=e.target.closest('.ggrp-h');
+    if(h){const k=h.dataset.tb;const sec=h.parentElement;const was=sec.classList.contains('open');galState.open[k]=!was;redo();return;}
+    const m=e.target.closest('.gal-more');
+    if(m){const k=m.dataset.tb;galState.more[k]=(galState.more[k]||12)+24;redo();return;}
+    const c=e.target.closest('.gcard');
+    if(c){openLightbox(+c.dataset.i);}
+  });
+  $('#galleryGrid').addEventListener('keydown',e=>{ if(e.key!=='Enter'&&e.key!==' ')return; const c=e.target.closest&&e.target.closest('.gcard'); if(c&&e.target===c){e.preventDefault();openLightbox(+c.dataset.i);} });
+})();
+
+/* ===== ดูภาพขยาย: เลื่อนซ้าย/ขวา ด้วยปุ่มหรือคีย์บอร์ด ===== */
+let lbIdx=-1,lbK=0,lbList=[];
+// The lightbox shows a larger copy of one photo. Its <img> must not use the shared dashboardImageLoaded/Error handlers:
+// they would remember the w1600 URL as the working source (and hide thumbnails of the same id if the big one fails).
+// On error it only reveals the existing fallback box; retrying stays a user action (dashboardImageRetry).
+function lbBigImg(html){
+  return html.replace(/ onload="[^"]*"/,'').replace(/ onerror="[^"]*"/,' onerror="this.style.display=\'none\';var f=this.nextElementSibling;if(f)f.style.display=\'flex\'"').replace('=w500','=w1600').replace('sz=w400','sz=w1600');
+}
+function openLightbox(i,k,list){
+  lbList=list||galList; if(i<0||i>=lbList.length)return;
+  const d=lbList[i], ls=photoLinks(d.imglink); k=Math.max(0,Math.min(k||0,Math.max(ls.length-1,0))); lbIdx=i; lbK=k;
+  const gm=(d.lat&&d.lng)?`<a class="lb-btn" target="_blank" rel="noopener" href="https://www.google.com/maps?q=${d.lat},${d.lng}&z=17">🗺️ นำทาง</a>`:'';
+  const tags=galTags(d).map(t=>`<span class="lb-tag">${t}</span>`).join('')||'<span class="lb-tag ok">ไม่พบปัญหา</span>';
+  const th=ls.length>1?`<div class="lb-th">${ls.map((u,j)=>`<button type="button" class="lb-thb${j===k?' on':''}" data-k="${j}" aria-label="รูปที่ ${j+1}">${imgTag(u,'width:100%;height:100%;object-fit:cover;display:block;',54)}</button>`).join('')}</div>`:'';
+  const pos=`แห่งที่ ${fmtN(i+1)}/${fmtN(lbList.length)}`+(ls.length>1?` · รูป ${k+1}/${ls.length}`:'');
+  $('#lbBody').innerHTML=`<div class="lb-img">${lbBigImg(imgTag(ls[k]||'','max-width:100%;max-height:100%;object-fit:contain;display:block;'))}</div><aside class="lb-info"><div class="lb-pos">${pos}</div><h3>${d.name||'ไม่ระบุชื่อ'}</h3><div class="lb-type">${typeIcon(d.type)} ${d.type||'-'}</div><div class="lb-tags">${tags}</div>${th}<dl><dt>ตำบล</dt><dd>${d.tambon||'-'}${d.village?' · '+d.village:''}${d.moo?' (ม.'+d.moo+')':''}</dd><dt>ขนาด ก×ย×ล</dt><dd>${d.width||'-'}×${d.length||'-'}×${d.depth||'-'} ม.</dd><dt>ปริมาตร</dt><dd>${fmtN(d.volume)} ลบ.ม.</dd><dt>ผู้ดูแล</dt><dd>${d.owner||'-'}</dd><dt>วันที่สำรวจ</dt><dd>${d.dt||'-'}</dd></dl><div class="lb-acts">${gm}${ls[k]?`<a class="lb-btn" target="_blank" rel="noopener" href="${ls[k]}">🔍 ภาพต้นฉบับ</a>`:''}</div></aside>`;
+  $('#lb').classList.add('open');$('#lb').setAttribute('aria-hidden','false');document.body.classList.add('lb-lock');
+  $('#lbPrev').disabled=i===0&&k===0;$('#lbNext').disabled=i===lbList.length-1&&k>=ls.length-1;
+}
+function lbStep(dir){
+  if(lbIdx<0)return; const ls=photoLinks(lbList[lbIdx].imglink);
+  if(dir>0){ if(lbK<ls.length-1)openLightbox(lbIdx,lbK+1); else openLightbox(lbIdx+1,0); }
+  else if(lbK>0)openLightbox(lbIdx,lbK-1);
+  else if(lbIdx>0)openLightbox(lbIdx-1,Math.max(0,photoLinks(lbList[lbIdx-1].imglink).length-1));
+}
+function closeLightbox(){$('#lb').classList.remove('open');$('#lb').setAttribute('aria-hidden','true');document.body.classList.remove('lb-lock');lbIdx=-1;}
+$('#lbClose').addEventListener('click',closeLightbox);
+$('#lbPrev').addEventListener('click',()=>lbStep(-1));
+$('#lbNext').addEventListener('click',()=>lbStep(1));
+$('#lbBody').addEventListener('click',e=>{const t=e.target.closest('.lb-thb');if(t)openLightbox(lbIdx,+t.dataset.k,lbList);});
+$('#lb').addEventListener('click',e=>{if(e.target.id==='lb')closeLightbox();});
+document.addEventListener('keydown',e=>{if(lbIdx<0)return;if(e.key==='Escape')closeLightbox();else if(e.key==='ArrowLeft')lbStep(-1);else if(e.key==='ArrowRight')lbStep(1);});
+(function(){let x0=null;const lb=$('#lb');lb.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;},{passive:true});lb.addEventListener('touchend',e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0;x0=null;if(Math.abs(dx)>60)lbStep(dx<0?1:-1);},{passive:true});})();
 
 // MODAL
 function openModal(d){
@@ -3972,12 +4774,12 @@ $('#siteCardModal').addEventListener('click', e=>{ if(e.target.id==='siteCardMod
 
 // DAMAGED TAB
 let damagedMap=null,damagedMarkerLayer=null,damagedMapInited=false;
-let dfState={district:LOCKED_DISTRICT,authority:LOCKED_AUTHORITY,tambon:'',type:'',problem:null};
+let dfState={district:LOCKED_DISTRICT,authority:LOCKED_AUTHORITY,tambon:'',type:'',problem:null,pick:null};
+const dmgMarkers={};
 function getDamagedData(){let b=RAW.filter(isDamaged);if(dfState.district)b=b.filter(r=>matchesDistrict(r,dfState.district));if(dfState.authority)b=b.filter(r=>matchesAuthority(r,dfState.authority));if(dfState.tambon)b=b.filter(r=>r.tambon===dfState.tambon);if(dfState.type)b=b.filter(r=>r.type===dfState.type);if(dfState.problem)b=b.filter(r=>r.problem&&r.problem.includes(dfState.problem));return b;}
 function initDamagedMap(){
   damagedMap=L.map('damaged-map',{maxZoom:18}).setView(DEFAULT_CENTER,DEFAULT_ZOOM);
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles © Esri',maxZoom:18,maxNativeZoom:17}).addTo(damagedMap);
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{attribution:'',maxZoom:18,maxNativeZoom:17}).addTo(damagedMap);
+  addBaseMaps(damagedMap);
   damagedMarkerLayer=L.markerClusterGroup({maxClusterRadius:zoom=>zoom>=16?1:60,spiderfyOnMaxZoom:true,showCoverageOnHover:false,chunkedLoading:true,iconCreateFunction:clusterIcon('#c62828','#ff7043')}).addTo(damagedMap);damagedMapInited=true;
   // SVG circle markers cannot rise above the dimmed cluster icon like L.Marker.
   // Let touches reach all four spread circles, including the one under that icon.
@@ -3990,26 +4792,53 @@ function initDamagedMap(){
   damagedMap.on('zoomend',()=>rescaleMarkers(damagedMap,damagedMarkerLayer));
   addMapExpandControl(damagedMap,'damagedMapStage','damaged');
 }
+// สัญลักษณ์และสีของแต่ละปัญหา (ไอคอนบนหมุดสื่อความหมายของปัญหา ไม่ใช่แค่สี)
+const DMG_SYM=[
+  {k:'ชำรุด',ic:'🔧',c:'#c62828',t:'ชำรุด'},
+  {k:'ไม่มีน้ำ/แห้งแล้ง',ic:'🏜️',c:'#b7791f',t:'ไม่มีน้ำ/แห้งแล้ง'},
+  {k:'น้ำเน่าเสีย',ic:'☣️',c:'#6b21a8',t:'น้ำเน่าเสีย'},
+  {k:'น้ำมีสี',ic:'🎨',c:'#0e7490',t:'น้ำมีสี'},
+  {k:'น้ำมีกลิ่น',ic:'👃',c:'#9a3412',t:'น้ำมีกลิ่น'},
+  {k:'น้ำเค็ม',ic:'🧂',c:'#475569',t:'น้ำเค็ม'}
+];
+const dmgSymOf=d=>DMG_SYM.find(s=>(d.problem||'').includes(s.k))||DMG_SYM[0];
+function dmgEmptyMsg(data,n){
+  if(n>0&&data.length>0)return '';
+  const all=getFiltered(), tot=all.length, base=all.filter(isDamaged).length;
+  if(tot===0)return 'ไม่พบแหล่งน้ำตามคำค้น/ตัวกรองด้านบน — ลองเปลี่ยนคำค้นหรือกด "ล้างตัวกรอง"';
+  if(base===0)return 'พบแหล่งน้ำ '+fmtN(tot)+' แห่งตามคำค้น/ตัวกรอง แต่ไม่มีแห่งที่ใช้งานไม่ได้ (ชำรุด/แห้ง/คุณภาพน้ำ)';
+  if(data.length===0)return 'ไม่มีแห่งที่ตรงกับตัวกรองในแท็บนี้ (ตำบล/ประเภท/ปัญหา) — กด "ล้าง" เพื่อดูทั้งหมด';
+  return 'พบ '+fmtN(data.length)+' แห่ง แต่ไม่มีพิกัดให้แสดงบนแผนที่ (ดูรายการด้านล่าง)';
+}
+function addBaseMaps(mp){
+  const sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles © Esri',maxZoom:19,maxNativeZoom:18});
+  const st=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles © Esri',maxZoom:19});
+  sat.addTo(mp);
+  L.control.layers({'🛰️ ดาวเทียม':sat,'🗺️ ถนน (Esri)':st},null,{position:'bottomleft',collapsed:false}).addTo(mp);
+}
+// หมุดรวมกลุ่ม: แสดงเป็นหยดน้ำพร้อมตัวเลขจำนวน (ขนาดโตตามจำนวน) — ลดจำนวนจุดที่วาดบนจอ โหลดเร็วขึ้น
+function setMapEmpty(stageId,msg){ return window.__mapEmpty(stageId,msg); }
 let lastDamagedFilterKey='||';
 function renderDamagedMapFn(data){
   if(!damagedMapInited)initDamagedMap();
-  damagedMarkerLayer.clearLayers();let n=0;
-  const latlngs=[];const zs=zoomScale(damagedMap);
+  damagedMarkerLayer.clearLayers();Object.keys(dmgMarkers).forEach(k=>delete dmgMarkers[k]);let n=0;const dmArr=[];
+  const latlngs=[];
   data.forEach(d=>{
     if(d.lat==null||d.lng==null)return;n++;
     latlngs.push([d.lat,d.lng]);
     const prob=d.problem||'';
-    let col='#c62828';
-    if(prob.includes('ตื้นเขิน'))col='#e65100';else if(prob.includes('วัชพืช'))col='#558b2f';else if(prob.includes('แห้งแล้ง'))col='#0277bd';
-    const m=L.circleMarker([d.lat,d.lng],{radius:8*zs,baseRadius:8,color:'#fff',weight:2,fillColor:col,fillOpacity:.9});
+    const m=L.marker([d.lat,d.lng],{icon:makeExecIcon(d,{col:TYPE_COLORS[d.type]||'#0a5fb4',size:22,ring:null}),zIndexOffset:dfState.pick===d.id?1000:0,title:d.name||''});
     const gmapUrl=`https://www.google.com/maps?q=${d.lat},${d.lng}&z=17`;
     const appleUrl=`https://maps.apple.com/?ll=${d.lat},${d.lng}&q=${encodeURIComponent(d.name||'แหล่งน้ำ')}`;
     const probTags=DAMAGE_KEYWORDS.filter(k=>prob.includes(k)).map(k=>`<span class="damage-tag">⚠️ ${k}</span>`).join('');
     const photoBox=d.imglink?`<div style="margin:8px 0;border-radius:8px;overflow:hidden;background:#fce4e4;min-height:120px;display:flex;align-items:center;justify-content:center;position:relative;">${imgTag(d.imglink,'width:100%;max-height:180px;object-fit:cover;display:block;border-radius:8px;')}<a href="${d.imglink}" target="_blank" rel="noopener" style="position:absolute;bottom:5px;right:5px;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:3px 7px;border-radius:5px;text-decoration:none;">🔍 ขนาดเต็ม</a></div>`:`<div style="margin:8px 0;height:80px;background:#ffebee;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#e57373;font-size:12px;">ไม่มีภาพถ่าย</div>`;
     WaterMapPopup.bind(m,damagedMap,`<div style="font-family:'Sarabun',sans-serif;width:255px;font-size:13px;"><b style="color:#c62828;font-size:14px;">${d.name||'ไม่ระบุชื่อ'}</b><div style="color:#666;font-size:11.5px;margin-top:2px;">${d.type||''} · ${d.tambon||''}</div><div style="margin:5px 0;">${probTags}</div>${photoBox}<div style="font-size:12px;color:#333;margin-bottom:8px;line-height:1.8;"><div>📐 ${d.width||'-'}×${d.length||'-'}×${d.depth||'-'} ม.</div><div>👤 ${d.owner||'-'}</div><div style="color:#999;font-size:11px;">📍 ${d.lat.toFixed(5)}, ${d.lng.toFixed(5)}</div></div><a href="${gmapUrl}" target="_blank" rel="noopener" class="popup-nav-btn">🗺️ นำทางด้วย Google Maps</a><a href="${appleUrl}" target="_blank" rel="noopener" style="display:block;margin-top:5px;text-align:center;font-size:11px;color:#888;text-decoration:none;">🍎 Apple Maps</a></div>`,{maxWidth:275,minWidth:255});
-    damagedMarkerLayer.addLayer(m);
+    m.on('click',()=>{if(dfState.pick!==d.id){dfState.pick=d.id;renderDamagedTab(true);}});
+    dmgMarkers[d.id]=m;dmArr.push(m);
   });
+  if(typeof damagedMarkerLayer.addLayers==='function')damagedMarkerLayer.addLayers(dmArr);else dmArr.forEach(m=>damagedMarkerLayer.addLayer(m)); // offline test fixtures use a plain feature group
   $('#n-damaged').textContent=`(${fmtN(n)} จุดที่มีพิกัด)`;
+  setMapEmpty('damagedMapStage',dmgEmptyMsg(data,n));
   // ซูมอัตโนมัติเมื่อเลือกตำบล/ประเภท/ปัญหาในแท็บจุดชำรุด
   const fKey=[dfState.district,dfState.authority,dfState.tambon,dfState.type,dfState.problem||''].join('|');
   if(fKey!==lastDamagedFilterKey){
@@ -4017,20 +4846,39 @@ function renderDamagedMapFn(data){
     if(fKey.replace(/\|/g,'')!==''){zoomToMarkers(damagedMap,latlngs);}
     else{damagedMap.flyTo(DEFAULT_CENTER,DEFAULT_ZOOM,{duration:.8});}
   }
+  insightMapLegend(data,'dmgLegend',true);
 }
 function renderDamagedTable(data){
-  $('#damagedBody').innerHTML=data.map(d=>{
+  const rows=dfState.pick?data.filter(d=>d.id===dfState.pick):data;
+  $('#damagedBody').innerHTML=rows.map(d=>{
     const gmapUrl=d.lat&&d.lng?`https://www.google.com/maps?q=${d.lat},${d.lng}&z=17`:null;
-    const tags=(d.problem||'-').split(',').map(p=>p.trim()).filter(Boolean).map(p=>`<span class="damage-tag">${p}</span>`).join('');
+    const tags=(d.problem||'-').split(',').map(p=>p.trim()).filter(Boolean).map(p=>(()=>{const sy=DMG_SYM.find(x=>p.includes(x.k));return `<span class="damage-tag">${sy?sy.ic+' ':''}${p}</span>`;})()).join('');
     var navCell=gmapUrl?('<a href="'+gmapUrl+'" target="_blank" class="nav-btn-sm nav-gmap">🗺️ Maps</a>'):'<span style="color:#ccc;font-size:11px;">ไม่มีพิกัด</span>';
-    return'<tr><td>'+d.id+'</td><td>'+(d.name||'-')+'</td><td><span class="badge-type">'+(d.type||'-')+'</span></td><td>'+authorityDisplay(d)+'</td><td>'+(d.tambon||'-')+'</td><td>'+(d.village||'-')+'</td><td>'+(d.moo||'-')+'</td><td>'+(d.owner||'-')+'</td><td>'+tags+'</td><td>'+navCell+'</td></tr>';
+    const has=d.lat!=null&&d.lng!=null;
+    return'<tr class="dmg-row'+(has?' has-xy':'')+(dfState.pick===d.id?' picked':'')+'" data-id="'+d.id+'"'+(has?' title="คลิกเพื่อซูมไปที่หมุดบนแผนที่"':'')+'><td>'+d.id+'</td><td>'+(d.name||'-')+'</td><td><span class="badge-type">'+(d.type||'-')+'</span></td><td>'+authorityDisplay(d)+'</td><td>'+(d.tambon||'-')+'</td><td>'+(d.village||'-')+'</td><td>'+(d.moo||'-')+'</td><td>'+(d.owner||'-')+'</td><td>'+tags+'</td><td>'+navCell+'</td></tr>';
   }).join('')||'<tr><td colspan="10" style="text-align:center;color:#9ab;padding:20px;">ไม่พบข้อมูล</td></tr>';
-  $('#n-damaged-list').textContent=`(${fmtN(data.length)} รายการ)`;
+  $('#n-damaged-list').textContent=`(${fmtN(rows.length)}${dfState.pick?' จาก '+fmtN(data.length):''} รายการ)`;
+  const pk=dfState.pick&&data.find(d=>d.id===dfState.pick);
+  $('#dmgPick').innerHTML=pk?`<button type="button" class="dmg-chip" id="dmgPickClr">กำลังแสดงเฉพาะ: ${pk.name||'ไม่ระบุชื่อ'} <i>✕</i></button>`:'';
 }
-function renderDamagedTab(){
-  const data=getDamagedData();renderDamagedMapFn(data);renderDamagedTable(data);
+function renderDamagedTab(keepView){
+  const data=getDamagedData();
+  if(dfState.pick&&!data.some(d=>d.id===dfState.pick))dfState.pick=null;
+  renderDamagedMapFn(data);renderDamagedTable(data);
+  if(dfState.pick&&dmgMarkers[dfState.pick]){
+    if(!keepView)damagedMap.flyTo(dmgMarkers[dfState.pick].getLatLng(),16,{duration:.6});
+    else{const pm=dmgMarkers[dfState.pick];if(typeof damagedMarkerLayer.zoomToShowLayer==='function')damagedMarkerLayer.zoomToShowLayer(pm,()=>pm.openPopup());else pm.openPopup();}
+  }
   setTimeout(()=>{if(damagedMap)damagedMap.invalidateSize();},80);
 }
+// คลิกแถวในรายการ → ซูมไปยังหมุดและเปิดป๊อปอัป (port จากต้นแบบ) · ปุ่มล้างการเลือก
+document.addEventListener('click',e=>{
+  const row=e.target.closest('#damagedBody tr.dmg-row');
+  if(row){const rawId=row.dataset.id;const id=(String(+rawId)===rawId)?+rawId:rawId;const m=dmgMarkers[id];if(m&&damagedMap){damagedMap.closePopup();document.getElementById('damagedMapStage').scrollIntoView({behavior:'smooth',block:'center'});damagedMap.flyTo(m.getLatLng(),17,{duration:.7});setTimeout(()=>{if(typeof damagedMarkerLayer.zoomToShowLayer==='function')damagedMarkerLayer.zoomToShowLayer(m,()=>m.openPopup());else m.openPopup();},780);document.querySelectorAll('#damagedBody tr.hot').forEach(x=>x.classList.remove('hot'));row.classList.add('hot');}return;}
+  if(e.target.closest('#dmgPickClr')){dfState.pick=null;renderDamagedTab(true);}
+});
+// read-only handles for browser tests (same idea as __SCOPED_MAP__)
+window.__DAMAGED_MAP__=Object.freeze({map:()=>damagedMap,layer:()=>damagedMarkerLayer,marker:id=>dmgMarkers[id],markerIds:()=>Object.keys(dmgMarkers).map(Number)});
 (function setupDamagedFilters(){
   const dfd=$('#dfDistrict'),dfa=$('#dfAuthority'),dfty=$('#dfType');
   fillSelect(dfd,DISTRICT_ORDER,v=>'อำเภอ'+v);
@@ -4044,7 +4892,7 @@ function renderDamagedTab(){
   dfd.addEventListener('change',e=>{dfState.district=e.target.value;dfState.authority='';dfState.tambon='';refreshDamagedAuthorities();refreshDamagedTambons();renderDamagedTab();});
   dfa.addEventListener('change',e=>{dfState.authority=e.target.value;dfState.tambon='';refreshDamagedTambons();renderDamagedTab();});
   dfty.addEventListener('change',e=>{dfState.type=e.target.value;renderDamagedTab();});
-  $('#dfReset').addEventListener('click',()=>{dfState={district:LOCKED_DISTRICT,authority:LOCKED_AUTHORITY,tambon:'',type:'',problem:null};dfd.value=LOCKED_DISTRICT;dfty.value='';refreshDamagedAuthorities();refreshDamagedTambons();lockAreaControls();document.querySelectorAll('.df-chip').forEach(x=>x.classList.remove('active'));renderDamagedTab();});
+  $('#dfReset').addEventListener('click',()=>{dfState={district:LOCKED_DISTRICT,authority:LOCKED_AUTHORITY,tambon:'',type:'',problem:null,pick:null};dfd.value=LOCKED_DISTRICT;dfty.value='';refreshDamagedAuthorities();refreshDamagedTambons();lockAreaControls();document.querySelectorAll('.df-chip').forEach(x=>x.classList.remove('active'));renderDamagedTab();});
 })()
 
 // MASTER RENDER
@@ -4053,6 +4901,9 @@ function render(){
   const pivotBase=RAW.filter(r=>(!state.district||matchesDistrict(r,state.district))&&(!state.authority||matchesAuthority(r,state.authority)));
   buildPivot(pivotBase);renderOverview(data);renderTable(data);renderGallery(data,true);
   $('#countNote').textContent=`กำลังแสดง ${fmtN(data.length)} จาก ${fmtN(RAW.length)} รายการ`;
+  if(window.ixRefresh)window.ixRefresh(); // insight tab recomputes from the detail tab data
+  renderQuality();
+  updateIxActive();
 }
 lockAreaControls();
 render();

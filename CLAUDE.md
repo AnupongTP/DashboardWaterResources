@@ -31,3 +31,4 @@
 - ห้ามเปลี่ยน IDs, data attributes, event bindings, สูตร, ตัวกรอง, adapters, API/cache/fallback, counter guards
 - เทสต์ต้อง mock API/ภาพ/tiles/counters — ห้ามยิง Production write, Google image หรือ visitor hit จริง
 - ห้าม commit/push/deploy จนกว่าผู้ใช้สั่ง; ห้าม reset/stash งานค้างใน working tree
+- commit message **ห้ามใส่ `Co-Authored-By: Claude`** หรือ attribution ของ Claude; **ห้าม push เอง** — ให้คำสั่ง git ผู้ใช้รันเอง (ผู้ใช้สั่ง 18 พ.ย. 2026)

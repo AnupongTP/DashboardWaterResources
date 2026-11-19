@@ -27,6 +27,18 @@
   force = true
 
 [[redirects]]
+  from = "/api/line/me"
+  to = "/.netlify/functions/line-me"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/line/register"
+  to = "/.netlify/functions/line-register"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/api/waterresources"
   to = "/.netlify/functions/waterresources"
   status = 200

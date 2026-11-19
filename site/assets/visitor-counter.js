@@ -38,46 +38,12 @@ function initVisitorCounter(AUTHORITY){
 
   const vcToggle = document.getElementById('vcToggle'), vcPanel = document.getElementById('vcPanel');
 
-  // คำนวณตำแหน่งแผงเทียบกับปุ่มด้วย JS ทุกครั้งที่เปิด เพราะแผงใช้ position:fixed (เทียบกับหน้าจอ ไม่ใช่กล่องรอบข้าง)
-  // ปุ่มอยู่ล่างสุดของหน้า จึงต้องเช็กพื้นที่ว่างด้านล่าง ถ้าไม่พอให้เปิดแผงขึ้นด้านบนปุ่มแทน
-  function positionVcPanel(){
-    const btnRect = vcToggle.getBoundingClientRect();
-    const panelWidth = vcPanel.offsetWidth || 280;
-    let left = btnRect.left + (btnRect.width/2) - (panelWidth/2);
-    left = Math.max(8, Math.min(left, window.innerWidth - panelWidth - 8));
-
-    const panelMaxHeight = 360;
-    const spaceBelow = window.innerHeight - btnRect.bottom - 8;
-    const spaceAbove = btnRect.top - 8;
-    let top;
-    if(spaceBelow >= 160 || spaceBelow >= spaceAbove){
-      top = btnRect.bottom + 8;
-      vcPanel.style.maxHeight = Math.max(160, Math.min(panelMaxHeight, spaceBelow)) + 'px';
-    } else {
-      const panelHeight = Math.min(panelMaxHeight, spaceAbove, vcPanel.scrollHeight || panelMaxHeight);
-      top = btnRect.top - 8 - panelHeight;
-      vcPanel.style.maxHeight = Math.max(160, panelHeight) + 'px';
-    }
-    vcPanel.style.left = left + 'px';
-    vcPanel.style.top = top + 'px';
-  }
-
-  if(vcToggle && vcPanel){
-    vcToggle.addEventListener('click', (e)=>{
-      e.stopPropagation();
-      const willOpen = !vcPanel.classList.contains('open');
-      vcPanel.classList.toggle('open', willOpen);
-      vcToggle.classList.toggle('open', willOpen);
-      if(willOpen) positionVcPanel();
+  // เปิด/ปิดแผงแบบเดียวกับหน้าหลัก (index.html initVisitorCounter) — ใช้ CSS .vc-panel ของหน้าหลักวางเหนือปุ่ม
+  if(vcToggle&&vcPanel){
+    vcToggle.addEventListener('click',()=>vcPanel.classList.toggle('open'));
+    document.addEventListener('click',e=>{
+      if(!vcToggle.contains(e.target)&&!vcPanel.contains(e.target)) vcPanel.classList.remove('open');
     });
-    document.addEventListener('click', e=>{
-      if(!vcToggle.contains(e.target) && !vcPanel.contains(e.target)){
-        vcPanel.classList.remove('open');
-        vcToggle.classList.remove('open');
-      }
-    });
-    window.addEventListener('resize', ()=>{ if(vcPanel.classList.contains('open')) positionVcPanel(); });
-    window.addEventListener('scroll', ()=>{ if(vcPanel.classList.contains('open')) positionVcPanel(); }, true);
   }
 
   (async function(){

@@ -116,7 +116,10 @@ export function normalizeRecord(input) {
     status: textOrNull(input.status),
     // Optional field from KebNamComplete LocalAuthority rollout.
     // Current legacy sync may omit it; browser resolver still validates Tambon + Moo compatibility.
-    localAuthority: normalizeAuthorityField(input.localAuthority)
+    localAuthority: normalizeAuthorityField(input.localAuthority),
+    // Optional line-feature fields (Sheet columns Distance/EndXY) used by the Insight network card.
+    distance: finiteNumber(input.distance, null),
+    endxy: textOrNull(input.endxy)
   };
 }
 

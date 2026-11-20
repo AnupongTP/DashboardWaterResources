@@ -4293,7 +4293,7 @@ window.__buildLegend=insightMapLegend;
     var el=$('ix-notes'), blank=window.__gfBlank||function(r,k){return !r[k];};
     var N=D.filter(function(r){return !blank(r,'note');});
     if(!N.length){ el.innerHTML=empty('ไม่มีหมายเหตุในข้อมูลที่แสดงอยู่'); return; }
-    var list=NOTE_KW.map(function(k){return {k:k,n:N.filter(function(r){return (r.note||'').indexOf(k)>=0;}).length};}).filter(function(x){return x.n>0;}).sort(function(a,b){return b.n-a.n;});
+    var list=NOTE_KW.map(function(k){return {k:k,n:N.filter(function(r){return String(r.note==null?'':r.note).indexOf(k)>=0;}).length};}).filter(function(x){return x.n>0;}).sort(function(a,b){return b.n-a.n;});
     var h='<div class="ix-sum">มีหมายเหตุที่ระบุข้อความ '+fmt(N.length)+' จาก '+fmt(D.length)+' แห่ง ('+pct(N.length,D.length)+'%)</div>';
     if(!list.length) h+=empty('ไม่พบคำสำคัญในหมายเหตุ');
     list.forEach(function(x){ h+=row('มีคำว่า "'+x.k+'"','',pct(x.n,list[0].n),'#12a3a3',fmt(x.n)+' แห่ง',pct(x.n,N.length)+'%',{rule:'note:'+x.k}); });

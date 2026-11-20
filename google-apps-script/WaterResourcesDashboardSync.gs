@@ -111,7 +111,9 @@ function buildDashboardWaterResourcesSnapshot_() {
   const missing = required.filter(function (header) { return headerIndex[header] === undefined; });
   if (missing.length) throw new Error('ชีตขาดคอลัมน์: ' + missing.join(', '));
 
-  const contractHeaders = required.concat(headerIndex.LocalAuthority === undefined ? [] : ['LocalAuthority']);
+  // Optional columns: LocalAuthority (rollout) and Distance/EndXY (line segments for the Insight network card).
+  const optionalHeaders = ['LocalAuthority', 'Distance', 'EndXY'].filter(function (header) { return headerIndex[header] !== undefined; });
+  const contractHeaders = required.concat(optionalHeaders);
   const maxContractIndex = Math.max.apply(null, contractHeaders.map(function (header) { return headerIndex[header]; }));
   const readColumnCount = maxContractIndex + 1;
   const values = sheet.getRange(1, 1, lastRow, readColumnCount).getValues();
@@ -150,7 +152,10 @@ function buildDashboardWaterResourcesSnapshot_() {
       // Optional during rollout. Preserve the exact Sheet value; Dashboard v1.4.6 validates it.
       localAuthority: headerIndex.LocalAuthority === undefined
         ? null
-        : toTextOrNull_(row[headerIndex.LocalAuthority])
+        : toTextOrNull_(row[headerIndex.LocalAuthority]),
+      // Optional: length of a line feature (m) and its end point "lat,lng". null when the column is absent.
+      distance: headerIndex.Distance === undefined ? null : toNumberOrNull_(row[headerIndex.Distance]),
+      endxy: headerIndex.EndXY === undefined ? null : toTextOrNull_(row[headerIndex.EndXY])
     });
   }
 

@@ -2,6 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
+<meta name="theme-color" content="#000000">
 <script>
 if (location.protocol !== 'file:' && /^\/(?:authority|district)(?:\/|$)/.test(location.pathname)) {
   const base = document.createElement('base');
@@ -1960,11 +1961,21 @@ catch (error) {
 }
 // Scope = same predicates the old adapters used: authority -> recordMatchesAuthority (resolved owner),
 // district -> recordMatchesDistrict (canonical Tambon only; unresolved LocalAuthority rows are NOT dropped).
+// User decision 2026-11-21 (option ก): records without a usable coordinate are not counted anywhere
+// (KPIs, charts, tables, insight, volume), so the totals match the map. Missing XY or the 0,0 placeholder = no coordinate.
+function hasUsableCoordinate(record) {
+  const lat = Number(record && record.lat), lng = Number(record && record.lng);
+  if (record == null || record.lat == null || record.lng == null) return false;
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return false;
+  return !(lat === 0 && lng === 0);
+}
+const COORDINATED_RECORDS = DECORATED_RECORDS.filter(hasUsableCoordinate);
 const RAW = DISTRICT_MODE
-  ? DECORATED_RECORDS.filter((record) => AREA.recordMatchesDistrict(record, AUTHORITY_ROUTE.district))
+  ? COORDINATED_RECORDS.filter((record) => AREA.recordMatchesDistrict(record, AUTHORITY_ROUTE.district))
   : AUTHORITY_MODE
-    ? DECORATED_RECORDS.filter((record) => AREA.recordMatchesAuthority(record, AUTHORITY_ROUTE.authority))
-    : DECORATED_RECORDS;
+    ? COORDINATED_RECORDS.filter((record) => AREA.recordMatchesAuthority(record, AUTHORITY_ROUTE.authority))
+    : COORDINATED_RECORDS;
 // D14 (ported from the prototype): rows with the same name + tambon + coordinates are counted once in volume totals
 // (the larger volume wins). Only the volume sum is affected; the number of sites is not. Runs after RAW is scoped.
 function gfDupKey(r) {
